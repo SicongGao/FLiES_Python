@@ -1,3 +1,3 @@
-for develop
-asd
-test
+import common
+
+print(common.size)
