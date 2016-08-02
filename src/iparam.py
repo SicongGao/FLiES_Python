@@ -3,6 +3,7 @@
 import common
 import math
 
+
 def iparam(flg, cflg, rType, aType, nkd, wl1, wls, nwl, span, taur, ctaur, d,
            th0, ph0, tm, hfov, tflx, bflx, dflx, obflx, odflx, tpfd, bpfd, dpfd, obpfd, odpfd,
            rflx, rbflx, rdflx, scmpf, scmpp, cbnz, ctnz, RF, RQ, fpc, fpf, fpv, ext, Nid):
@@ -199,25 +200,54 @@ def iparam(flg, cflg, rType, aType, nkd, wl1, wls, nwl, span, taur, ctaur, d,
     common.M_C = common.M_B = common.M_F = 1
 
     # #   ---  local parameters ---
-    wl0 = 0.55                # Default target wavelength(micron)
-    wls = 0.3                 # Default start point of wavelength integration
-    nwl = 75                  # Default sampling number of the wavelength
-    taur = 0.3                # default AOT(tau at 550 nm)
-    ctaur = 0.00              # default COT(tau at 550 nm)
-    d = 8000.0                # default scale height(m)
-    rtype = 1                 # default atmospheric and aerosol type
+    wl0 = 0.55  # Default target wavelength(micron)
+    wls = 0.3  # Default start point of wavelength integration
+    nwl = 75  # Default sampling number of the wavelength
+    taur = 0.3  # default AOT(tau at 550 nm)
+    ctaur = 0.00  # default COT(tau at 550 nm)
+    d = 8000.0  # default scale height(m)
+    rtype = 1  # default atmospheric and aerosol type
     atype = 2
-    nkd = 3                   #  # of subbands for the k-distribution
-    th0 = 10.0                # solar zenith angle in degree
-    ph0 = 0.0                 # solar azimuth angle in degree
-    tm = 1.0                  # atmopsheric transmittance
-    hfov = 1.0                # detector half widt of the field of view
+    nkd = 3  # of subbands for the k-distribution
+    th0 = 10.0  # solar zenith angle in degree
+    ph0 = 0.0  # solar azimuth angle in degree
+    tm = 1.0  # atmopsheric transmittance
+    hfov = 1.0  # detector half widt of the field of view
     hfov = math.radians(hfov)
-    hfov = cos(hfov)
-    cflg = 0                  # cflg = 0 -> cloud - free, cflg = 1 -> cloud
+    hfov = math.cos(hfov)
+    cflg = 0  # cflg = 0 -> cloud - free, cflg = 1 -> cloud
 
+    span[1: 20] = 0.02  # Wavelength span (0.3-0.7 micron)
+    span[21: 100] = 0.1  # Wavelength span (0.7- micron)
 
+    #     Irradiance
+    tflx = 0.0  # Total downward flux at top of canopy
+    bflx = 0.0  # Beam downward flux at TOC
+    dflx = 0.0  # Diffuse downward flux at TOC
+    obflx = 0.0  # Beam downawr flux at TOC(observed)
+    odflx = 0.0  # Diffuse downward flux at TOC(observed)
 
+    #     reflected radiance from canopy
+    rflx = 0.0  # total reflcted irradiaice
+    rbflx = 0.0  # beam reflected irradiance
+    rdflx = 0.0  # diffuse reflected irradiance
 
-def test():
-    common.N_Z = 10000
+    #     Photon flux density
+    tpfd = 0.0  # Total downward PFD at top of canopy
+    bpfd = 0.0  # Beam downward PFD at top of canopy
+    dpfd = 0.0  # Diffuse downward PDF at top of canopy
+    obpfd = 0.0  # Beam downawr PFD at TOC(observed)
+    odpfd = 0.0  # Diffuse downward PFD at TOC(observed)
+
+    #     Number of cloud bottom and top layer
+    cbnz = 0
+    ctnz = 1
+
+    #     incident irradiance and photon flux density at TOA or TOC
+    RF = 0.0
+    RQ = 0.0
+
+    #     initialization of random number generator
+    # flg = frndi(ix(Nid + 1))
+    flg = 0
+
