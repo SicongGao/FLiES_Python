@@ -2,6 +2,8 @@ import numpy as np
 
 # DEFINE CONST
 OBJ_NUM_MAX = 6000
+ANGLE_SHIFT = 65000
+ACOOS_SHIFT = 10000
 
 # space definition
 SIZE = 300
@@ -89,3 +91,10 @@ G_MTF = np.zeros(19 * 19 * 37, dtype=float).reshape(19, 19, 37)
 
 # BACK TRACE
 N_B = B_G = 0
+
+# MATH
+T_SIN = [0.0] * ANGLE_SHIFT * 2
+T_COS = [0.0] * ANGLE_SHIFT * 2
+T_ACOS = [0.0] * ACOOS_SHIFT * 2
+T_EXP = [0.0] * ACOOS_SHIFT
+DLT = np.zeros(6 * 6, dtype=float).reshape(6, 6)
