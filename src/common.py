@@ -1,4 +1,5 @@
 import numpy as np
+import math
 
 # DEFINE CONST
 OBJ_NUM_MAX = 6000
@@ -44,7 +45,7 @@ N_ANG_C = N_TH = N_PH = N_OBJ = 0
 I_OBJ = [0] * OBJ_NUM_MAX
 S_OBJ = [0] * OBJ_NUM_MAX
 DIF_TYPE = DIR_FLAG = BOUND = 0
-REFL = np.zeros(2 * SIZE * SIZE, dtype=int).reshape(2, SIZE, SIZE)
+REFL = np.zeros(2 * SIZE * SIZE, dtype=float).reshape(2, SIZE, SIZE)
 I_REFL = np.zeros(2 * SIZE * SIZE, dtype=int).reshape(2, SIZE, SIZE)
 M_C = M_B = M_F = N_TS = 0
 OBJ = np.zeros(OBJ_NUM_MAX * 5, dtype=float).reshape(OBJ_NUM_MAX, 5)
@@ -94,7 +95,17 @@ N_B = B_G = 0
 
 # MATH
 T_SIN = [0.0] * ANGLE_SHIFT * 2
-T_COS = [0.0] * ANGLE_SHIFT * 2
+T_COS = [1.0] * ANGLE_SHIFT * 2
 T_ACOS = [0.0] * ACOOS_SHIFT * 2
 T_EXP = [0.0] * ACOOS_SHIFT
-DLT = np.zeros(6 * 6, dtype=float).reshape(6, 6)
+DLT = np.zeros((6 + 1) * (6 + 1), dtype=float).reshape((6 + 1), (6 + 1))
+
+for i in range(0, 62832 * 2):
+    T_SIN[i] = math.sin(float(i) * 0.0001)
+    T_COS[i] = math.cos(float(i) * 0.0001)
+
+for i in range(0, ACOOS_SHIFT * 2):
+    T_ACOS[i] = math.acos(float(i) * 0.0001)
+
+for i in range(1,6):
+    DLT[i, i] = 1.0
