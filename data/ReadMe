@@ -1,0 +1,309 @@
+## Spectral resolution
+
+1) Low resolution
+
+0.3-0.7 micron @ 0.02 micron, 20 bands
+0.7-4.0 micron @ 0.1  micron, 33 bands
+total 53 bands
+
+2) High resolution
+
+0.3-4.0 micron @ 0.005 micron, 740 bands
+
+
+## Gases
+
+Parameters of Rayleigh scattering & gaseous absorption are saved in "gas_??" files. Two versions with different spectral resolution are provided.
+
+Single band model is used now instead of the 3-term k-distribution.
+
+
+## Solar incident irradiance
+
+The database is now given for the spectral range, 0.2 to 4.0 micron, with interval of 0.001 micron. The data were taken from Lowtran-7 (using 4-point polynomial interpolation).
+
+
+## Mie optical parameters: Aerosols and clouds
+
+Two versions with different spectral resolution are provided. Parameters of aerosols with hygroscopicity are provided for discrete relative humidity values:
+
+RH = 0, 50, 70, 80, 90, 95, 98, 99%.
+
+# Aerosol type
+
+#--- (1) Continental clean : Hess et al. (1998)
+1	: iatype
+1	: jmix
+0	: jeff
+2	: ncomp
+4  3		: jem(icomp)
+2600  0.15	: rmix(icomp)
+4  4		: jd(icomp)
+0.0212  2.24	: pdpac(ip, icomp)
+0.471   2.51	: pdpac(ip, icomp)
+
+#--- (2) Continental average : Hess et al. (1998)
+2	: iatype
+1	: jmix
+0	: jeff
+3	: ncomp
+4  3  5		: jem(icomp)
+7000  0.4  8300	: rmix(icomp)
+4  4  4		: jd(icomp)
+0.0212  2.24	: pdpac(ip, icomp)
+0.471   2.51	: pdpac(ip, icomp)
+0.0118  2.0	: pdpac(ip, icomp)
+
+#--- (3) Continental polluted : Hess et al. (1998)
+3	: iatype
+1	: jmix
+0	: jeff
+3	: ncomp
+4  3  5		: jem(icomp)
+15700  0.6  34300	: rmix(icomp)
+4  4  4		: jd(icomp)
+0.0212  2.24	: pdpac(ip, icomp)
+0.471   2.51	: pdpac(ip, icomp)
+0.0118  2.0	: pdpac(ip, icomp)
+
+#--- (4) Urban : Hess et al. (1998)
+4	: iatype
+1	: jmix
+0	: jeff
+3	: ncomp
+4  3  5		: jem(icomp)
+28000  1.5  130000	: rmix(icomp)
+4  4  4		: jd(icomp)
+0.0212  2.24	: pdpac(ip, icomp)
+0.471   2.51	: pdpac(ip, icomp)
+0.0118  2.0	: pdpac(ip, icomp)
+
+#--- (5) Desert : Hess et al. (1998)
+5	: iatype
+1	: jmix
+0	: jeff
+4	: ncomp
+4  7  7  7	: jem(icomp)
+2000  269.5  30.5  0.142	: rmix(icomp)
+4  4  4  4	: jd(icomp)
+0.0212  2.24	: pdpac(ip, icomp)
+0.07    1.95	: pdpac(ip, icomp)
+0.39    2.0	: pdpac(ip, icomp)
+1.9     2.15	: pdpac(ip, icomp)
+
+#--- (6) Maritime clean : Hess et al. (1998)
+6	: iatype
+1	: jmix
+0	: jeff
+3	: ncomp
+4  6  6	: jem(icomp)
+1500  20  3.2e-3	: rmix(icomp)
+4  4  4	: jd(icomp)
+0.0212  2.24	: pdpac(ip, icomp)
+0.209   2.03	: pdpac(ip, icomp)
+1.75    2.03	: pdpac(ip, icomp)
+
+#--- (7) Maritime polluted : Hess et al. (1998)
+7	: iatype
+1	: jmix
+0	: jeff
+4	: ncomp
+4  6  6  5	: jem(icomp)
+3800  20  3.2e-3  5180	: rmix(icomp)
+4  4  4	 4 	: jd(icomp)
+0.0212  2.24	: pdpac(ip, icomp)
+0.209   2.03	: pdpac(ip, icomp)
+1.75    2.03	: pdpac(ip, icomp)
+0.0118  2.0	: pdpac(ip, icomp)
+
+#--- (8) Maritime tropical : Hess et al. (1998)
+8	: iatype
+1	: jmix
+0	: jeff
+3	: ncomp
+4  6  6		: jem(icomp)
+590  10  1.3e-3	: rmix(icomp)
+4  4  4		: jd(icomp)
+0.0212  2.24	: pdpac(ip, icomp)
+0.209   2.03	: pdpac(ip, icomp)
+1.75    2.03	: pdpac(ip, icomp)
+
+#--- (9) Arctic : Hess et al. (1998)
+9	: iatype
+1	: jmix
+0	: jeff
+4	: ncomp
+4  3  6  5	: jem(icomp)
+1300  0.01  1.9  5300	: rmix(icomp)
+4  4  4  4	: jd(icomp)
+0.0212  2.24	: pdpac(ip, icomp)
+0.471   2.51	: pdpac(ip, icomp)
+0.209   2.03	: pdpac(ip, icomp)
+0.0118  2.0	: pdpac(ip, icomp)
+
+#--- (10) Antarctic : Hess et al. (1998)
+10	: iatype
+1	: jmix
+0	: jeff
+3	: ncomp
+8  6  7		: jem(icomp)
+42.9  0.47e-1  0.53e-2	: rmix(icomp)
+4  4  4		: jd(icomp)
+0.0695  2.03	: pdpac(ip, icomp)
+0.209   2.03	: pdpac(ip, icomp)
+0.5     2.2	: pdpac(ip, icomp)
+
+#--- (11) Mineral transported : Hess et al. (1998)
+11	: iatype
+1	: jmix
+0	: jeff
+1	: ncomp
+7	: jem(icomp)
+1.0	: rmix(icomp)
+4	: jd(icomp)
+0.5  2.2	: pdpac(ip, icomp)
+
+#--- (12) Yellow dust
+12	: iatype
+1	: jmix
+0	: jeff
+1	: ncomp
+10	: jem(icomp)
+1.0	: rmix(icomp)
+5	: jd(icomp)
+4.0  3.0	: pdpac(ip, icomp)
+
+#--- (13) Sulfate droplets : Hess et al. (1998)
+13	: iatype
+1	: jmix
+0	: jeff
+1	: ncomp
+8	: jem(icomp)
+1.0	: rmix(icomp)
+4	: jd(icomp)
+0.0695  2.03	: pdpac(ip, icomp)
+
+#--- (14) Volcanic ash
+14	: iatype
+1	: jmix
+0	: jeff
+1	: ncomp
+9	: jem(icomp)
+1.0	: rmix(icomp)
+5	: jd(icomp)
+0.6  2.2	: pdpac(ip, icomp)
+
+#--- (15) Rural : Hanel's Model-6
+15	: iatype
+2	: jmix
+0	: jeff
+2	: ncomp
+4  3		: jem(icomp)
+0.7  0.3	: rmix(icomp)
+5  5		: jd(icomp)
+0.19  2.24	: pdpac(ip, icomp)
+5.48  2.51	: pdpac(ip, icomp)
+
+#--- (16) Urban : Hanel's Model-5
+16	: iatype
+2	: jmix
+0	: jeff
+3	: ncomp
+4  3  5		: jem(icomp)
+0.56  0.24  0.2	: rmix(icomp)
+4  4  4		: jd(icomp)
+0.0212  2.24	: pdpac(ip, icomp)
+0.471   2.51	: pdpac(ip, icomp)
+0.0118  2.0	: pdpac(ip, icomp)
+
+# Cloud type
+
+#--- (101) Stratus (continental) : Hess et al. (1998)
+101	: iatype
+1	: jmix
+0	: jeff
+1	: ncomp
+1	: jem(icomp)
+1.0	: rmix(icomp)
+3	: jd(icomp)
+4.7  5.0  1.05	: pdpac(ip, icomp)
+
+#--- (102) Stratus (maritime) : Hess et al. (1998)
+102	: iatype
+1	: jmix
+0	: jeff
+1	: ncomp
+1	: jem(icomp)
+1.0	: rmix(icomp)
+3	: jd(icomp)
+6.75  3.0  1.3	: pdpac(ip, icomp)
+
+#--- (103) Cumulus (cont., clean) : Hess et al. (1998)
+103	: iatype
+1	: jmix
+0	: jeff
+1	: ncomp
+1	: jem(icomp)
+1.0	: rmix(icomp)
+3	: jd(icomp)
+4.8  5.0  2.16	: pdpac(ip, icomp)
+
+#--- (104) Cumulus (cont., polluted) : Hess et al. (1998)
+104	: iatype
+1	: jmix
+0	: jeff
+1	: ncomp
+1	: jem(icomp)
+1.0	: rmix(icomp)
+3	: jd(icomp)
+3.53  8.0  2.15	: pdpac(ip, icomp)
+
+#--- (105) Cumulus (maritime) : Hess et al. (1998)
+105	: iatype
+1	: jmix
+0	: jeff
+1	: ncomp
+1	: jem(icomp)
+1.0	: rmix(icomp)
+3	: jd(icomp)
+10.4  4.0  2.34	: pdpac(ip, icomp)
+
+#--- (106) Fog : Hess et al. (1998)
+106	: iatype
+1	: jmix
+0	: jeff
+1	: ncomp
+1	: jem(icomp)
+1.0	: rmix(icomp)
+3	: jd(icomp)
+8.06  4.0  1.77	: pdpac(ip, icomp)
+
+#--- (107) Cirrus 1 (-25 degC)
+107	: iatype
+1	: jmix
+1	: jeff
+1	: ncomp
+2	: jem(icomp)
+1.0	: rmix(icomp)
+5	: jd(icomp)
+91.7  1.5	: pdpac(ip, icomp)
+
+#--- (108) Cirrus 2 (-50 degC)
+108	: iatype
+1	: jmix
+1	: jeff
+1	: ncomp
+2	: jem(icomp)
+1.0	: rmix(icomp)
+5	: jd(icomp)
+57.4  1.5	: pdpac(ip, icomp)
+
+#--- (109) Cirrus 3 (-50 degC, + small particles)
+109	: iatype
+1	: jmix
+1	: jeff
+1	: ncomp
+2	: jem(icomp)
+1.0	: rmix(icomp)
+5	: jd(icomp)
+34.3  1.5	: pdpac(ip, icomp)
