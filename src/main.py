@@ -35,4 +35,4 @@ x = y = z = ux = uy = uz = w = 0.0
 
 # set by iparam
 para = iparam.Parameters()
-para.readParameters()
+para.readAtmParameters()

@@ -13,8 +13,9 @@ class Parameters:
     taur = 0.0  # default AOT(tau at 550 nm)
     ctaur = 0.0  # default COT(tau at 550 nm)
     d = 0.0  # default scale height(m)
-    rtype = 0  # default atmospheric and aerosol type
-    atype = 0  # default aerosol type
+    atmType = 0  # default atmospheric type
+    aerosolType = 0  # default aerosol type
+    cloudType = 0
     nkd = 0  # of subbands for the k-distribution
     th0 = 0.0  # solar zenith angle in degree
     ph0 = 0.0  # solar azimuth angle in degree
@@ -34,7 +35,7 @@ class Parameters:
     dpfd = 0.0  # Diffuse downward PDF at top of canopy
     obpfd = 0.0  # Beam downawr PFD at TOC(observed)
     odpfd = 0.0  # Diffuse downward PFD at TOC(observed)
-    cbnz = 0  # Number of cloud bottom and top layer
+    cbnz = 0  # Number of cloud bottom layer
     ctnz = 0  # Number of cloud top layer
     RF = 0.0  # incident irradiance and photon flux density at TOA
     RQ = 0.0  # incident irradiance and photon flux density at TOC
@@ -64,7 +65,7 @@ class Parameters:
     lt = np.zeros(5 * 100, dtype=float).reshape(5, 100)
     str = np.zeros(5 * 100, dtype=float).reshape(5, 100)
 
-    fname = ""
+    fname = []
     rfname = ""
 
     def __init__(self):
@@ -92,8 +93,8 @@ class Parameters:
         self.taur = 0.3  # default AOT(tau at 550 nm)
         self.ctaur = 0.00  # default COT(tau at 550 nm)
         self.d = 8000.0  # default scale height(m)
-        self.rtype = 1  # default atmospheric and aerosol type
-        self.atype = 2
+        self.atmType = 1  # default atmospheric and aerosol type
+        self.aerosolType = 2
         self.nkd = 3  # of subbands for the k-distribution
         self.th0 = 10.0  # solar zenith angle in degree
         self.ph0 = 0.0  # solar azimuth angle in degree
@@ -138,6 +139,12 @@ class Parameters:
         self.flg = 0
 
     def readVegParameters(self):
+
+
+
+
+
+
         return
 
     def readGeoParameters(self):
@@ -195,6 +202,7 @@ class Parameters:
 
     def readAtmParameters(self):
         imode = nspc = 0
+        ctop = cbot = 0.0
         parF = 531.2593
         parQ = 2423.93994
         swF = 1351.81531
@@ -203,8 +211,11 @@ class Parameters:
         spcf = [0.0] * 400
         spcq = [0.0] * 400
         npl = [0] * 200
+        wl0d = []
+        spcdf = []
+        spcdq = []
 
-        ch = ["hi", "lo", "lo"]
+        ch = ["", "hi", "lo", "lo"]
 
         if (self.amode == 2):
             # "Only monochro wavelength calculation!"
@@ -215,13 +226,13 @@ class Parameters:
             self.nwl = 1
 
         else:
-            imode = int(input("imode: Integration mode 1:Monochro 2:PAR 3:SW"))
+            imode = int(input("imode: Integration mode 1:Monochro 2:PAR 3:SW\n"))
             if ((imode < 0) or (imode > 4)):
                 print("Mode ERR: number should less than 4 and larger than 0.")
                 return
 
             elif (imode == 1):
-                self.wl0 = float(input("wl0:wavelength (micron ex 0.55)"))
+                self.wl0 = float(input("wl0:wavelength (micron ex 0.55)\n"))
                 self.wls = 0.2
                 self.nwl = int(round(4.0 - 0.3) / self.span[1])
                 npl[1] = self.nPhotonProcess
@@ -240,10 +251,248 @@ class Parameters:
                 self.RQ = swQ
 
             # read solar radiation
+            contentFile = np.loadtxt("..\data\solar_rad")
+            for i in range(len(contentFile)):
+                wl0d.append(contentFile[i][0])
+                spcdf.append(contentFile[i][1])
+                spcdq.append(contentFile[i][2])
+            nspc = len(contentFile)
 
+            # search a spectral irradiance data in monochromatic calculation
+            j = 1
+            wlsd = self.wls + 0.0005
 
+            if (imode == 1):
+                for i in range(nspc):
+                    if ((wlsd > self.wl0 - 0.0025) and (wlsd < self.wl0 + 0.0025)):
+                        self.RF = (wl0d[i + 1] * spcdf[i] + wl0d[i] * spcdf[i + 1]) / (wl0d[i] + wl0d[i + 1])
+                        self.RQ = (wl0d[i + 1] * spcdq[i] + wl0d[i] * spcdq[i + 1]) / (wl0d[i] + wl0d[i + 1])
+                        spcf[j] = self.RF
+                        spcq[j] = self.RQ
+                        self.wq = 1.0
+                        self.nwl = 1
+                        break
+                    wlsd += 0.001
 
+            elif (imode == 2):
+                for i in range(nspc):
+                    if (abs(wl0d[i] - wlsd) < 1.0E-4):
+                        for k in range(20):
+                            spcf[j] += spcdf[i + k]
+                            spcq[j] += spcdq[i + k]
 
+                        spcf[j] /= self.span[1] * 1000
+                        spcq[j] /= self.span[1] * 1000
+                        j += 1
+
+                        if (j> self.nwl):
+                            break
+                        wlsd += self.span[1]
+
+            elif (imode == 3):
+                for i in range(nspc):
+                    if (abs(wl0d[i] - wlsd) < 1.0E-4):
+                        if (wlsd < 0.7):
+                            for k in range(20):
+                                spcf[j] += spcdf[i + k]
+                                spcq[j] += spcdq[i + k]
+
+                            spcf[j] /= self.span[1] * 1000
+                            spcq[j] /= self.span[1] * 1000
+
+                        else:
+                            for k in range(100):
+                                spcf[j] += spcdf[i + k]
+                                spcq[j] += spcdq[i + k]
+
+                            spcf[j] /= self.span[1] * 5000
+                            spcq[j] /= self.span[1] * 5000
+
+                        j += 1
+                        if (j > self.nwl):
+                            break
+
+                        if (wlsd < 0.7):
+                            wlsd += self.span[1]
+                        else:
+                            wlsd += 5.0 * self.span[1]
+
+            # make input photon weight for each wavelength
+            dum = 0.0
+
+            for i in range(self.nwl + 1):
+                if (i < 20):
+                    dum += spcf[i]
+                else:
+                    dum += spcf[i] * 5.0
+
+            for i in range(self.nwl):
+                if (i < 20):
+                    npl[i] = int(float(self.nPhotonProcess) * spcf[i] / dum)
+                else:
+                    npl[i] = int(float(self.nPhotonProcess) * 5.0 * spcf[i] / dum)
+
+            dum = 0.0
+
+            for i in range(self.nwl):
+                dum += npl[i]
+
+            self.nPhotonProcess = int(dum)
+            self.nPhoton = self.nPhotonProcess * self.Nprocess
+            print("Actural number of photon is: " + str(self.nPhoton))
+
+            # with/without atmospheric
+            if (self.amode == 2):
+                self.atmType = 0
+                self.aerosolType = 0
+                self.taur = 0.0
+                ctype = 0
+
+            else:
+                # read z profile
+                common.Z_GRD = np.loadtxt("..\data\zgrd")
+                print("atmType: Atmospheric profile")
+                print(" 1: Tropical")
+                print(" 2: Mid latitude summer")
+                print(" 3: Mid latitude winter")
+                print(" 4: High latitude summer")
+                print(" 5: High latitude winter")
+                print(" 6: US standard atm.")
+                self.atmType = int(input())
+
+                if (self.atmType == 1):
+                    self.rfname = "Data/gas_TR_" + ch[imode]
+                elif (self.atmType == 2):
+                    self.rfname = "Data/gas_TMS_" + ch[imode]
+                elif (self.atmType == 3):
+                    self.rfname = "Data/gas_MW_" + ch[imode]
+                elif (self.atmType == 4):
+                    self.rfname = "Data/gas_HS_" + ch[imode]
+                elif (self.atmType == 5):
+                    self.rfname = "Data/gas_HW_" + ch[imode]
+                elif (self.atmType == 6):
+                    self.rfname = "Data/gas_US_" + ch[imode]
+                else:
+                    print("Input error!")
+                    return -1
+
+                # read the aerosol data
+                print("aerosolType: aerosol type")
+                print(" 1:  Continental clean")
+                print(" 2:  Continental average")
+                print(" 3:  Continental polluted")
+                print(" 4:  Urban")
+                print(" 5:  Desert")
+                print(" 6:  Maritime clean")
+                print(" 7:  Maritime polluted")
+                print(" 8:  Maritime Tropical")
+                print(" 9:  Arctic")
+                print("10:  Antactic")
+                print("11:  Smoke")
+                self.aerosolType = int(input())
+
+                #AOT
+                taur = int(input("tauref: AOT at 0.550 micron\n"))
+                print(" - this version uses a extinction with RH=70% -")
+
+                #current version uses a mixed extinction coef. by Iwabushi san
+                self.nmix = 2
+
+                if (self.aerosolType == 1):
+                    self.fname.append("../data/opt_type1_rh0.70_" + ch[imode])
+                    self.d = 8000.0     # scale height (m)
+                elif (self.aerosolType == 2):
+                    self.fname.append("../data/opt_type2_rh0.70_" + ch[imode])
+                    self.d = 8000.0  # scale height (m)
+                elif (self.aerosolType == 3):
+                    self.fname.append("../data/opt_type3_rh0.70_" + ch[imode])
+                    self.d = 8000.0  # scale height (m)
+                elif (self.aerosolType == 4):
+                    self.fname.append("../data/opt_type4_rh0.70_" + ch[imode])
+                    self.d = 8000.0  # scale height (m)
+                elif (self.aerosolType == 5):
+                    self.fname.append("../data/opt_type5_rh0.70_" + ch[imode])
+                    self.d = 2000.0  # scale height (m)
+                elif ((self.aerosolType == 6) or (self.aerosolType == 8)):
+                    self.fname.append("../data/opt_type6_rh0.70_" + ch[imode])
+                    self.d = 1000.0  # scale height (m)
+                elif (self.aerosolType == 7):
+                    self.fname.append("../data/opt_type7_rh0.70_" + ch[imode])
+                    self.d = 1000.0  # scale height (m)
+                elif (self.aerosolType == 8):
+                    self.fname.append("../data/opt_type8_rh0.70_" + ch[imode])
+                    self.d = 1000.0  # scale height (m)
+                elif (self.aerosolType == 9):
+                    self.fname.append("../data/opt_type9_rh0.70_" + ch[imode])
+                    self.d = 99000.0  # scale height (m)
+                elif (self.aerosolType == 10):
+                    self.fname.append("../data/opt_type10_rh0.70_" + ch[imode])
+                    self.d = 99000.0  # scale height (m)
+                elif (self.aerosolType == 11):
+                    print("smoke aerosol under construction !!")
+                    self.d = 8000.0  # scale height (m)
+                    return -1
+                else:
+                    print("Input error !!")
+                    return -1
+
+                # read cloud data
+                print("ctype: cloud type")
+                print(" 0:  Cloud-free")
+                print(" 1:  Stratus continental")
+                print(" 2:  Stratus maritime")
+                print(" 3:  Cumulus continental clean")
+                print(" 4:  Culumus continental pulluted")
+                print(" 5:  Culumus maritime")
+                print(" 6:  Fog")
+                print(" 7:  Cirrus 1 (-25degC)")
+                print(" 8:  Cirrus 2 (-50 degC)")
+                print(" 9:  Cirrus 3 (-50 degC + small particles)")
+
+                self.cloudType = int(input())
+
+                if (self.cloudType != 0):
+                    self.ctaur = float(input("ctauref:COT at 0.55 micron\n" ))
+                    ctop = float(input("cloud top height (m)\n"))
+                    cbot = float(input("cloud bottom height (m)\n"))
+
+                    self.cflg = 1
+
+                    if (ctop < cbot):
+                        print("cloud top should be greater than cloud bottom")
+                        return -1
+
+                    if (self.cloudType == 1):
+                        self.fname.append("../data/opt_type101_" + ch[imode])
+                    elif (self.cloudType == 2):
+                        self.fname.append("../data/opt_type102_" + ch[imode])
+                    elif (self.cloudType == 3):
+                        self.fname.append("../data/opt_type103_" + ch[imode])
+                    elif (self.cloudType == 4):
+                        self.fname.append("../data/opt_type104_" + ch[imode])
+                    elif (self.cloudType == 5):
+                        self.fname.append("../data/opt_type105_" + ch[imode])
+                    elif (self.cloudType == 6):
+                        self.fname.append("../data/opt_type106_" + ch[imode])
+                    elif (self.cloudType == 7):
+                        self.fname.append("../data/opt_type107_" + ch[imode])
+                    elif (self.cloudType == 8):
+                        self.fname.append("../data/opt_type108_" + ch[imode])
+                    elif (self.cloudType == 9):
+                        self.fname.append("../data/opt_type109_" + ch[imode])
+                    else:
+                        print("Input error !!")
+                        return -1
+
+                    for i in range(common.N_Z):
+                        if (common.Z_GRD[i] < cbot):
+                            self.cbnz = i
+                        if (common.Z_GRD[i] > ctop):
+                            self.ctnz = i
+                            break
+
+                    print(common.Z_GRD[self.cbnz], common.Z_GRD[self.ctnz])
+                    print("clouds are located between " + str(self.ctnz) + " and " + str(self.cbnz))
         return 0
 
     def readParameters(self):
