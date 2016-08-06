@@ -152,6 +152,18 @@ class Parameters:
         self.sor[i] = float(input())
         return 0
 
+    def process100(self):
+
+        if (self.cloudType >= 2):
+            common.N_ANG_C = 1
+            common.UX_RC[0] = 0.0
+            common.UY_RC[0] = 0.0
+            common.UZ_RC[0] = 1.0
+
+        self.process201()
+
+        return ERRCODE.SUCCESS
+
     def process202(self):
         umax = 0.0
 
@@ -424,11 +436,62 @@ class Parameters:
         if ((self.nPhoton == -4) or (self.nPhoton == -5)):
             self.process201()
 
+        # input output mode
+        print("cmode: calculation mode")
+        self.cloudType = int(input("1: BRF only 2: BRF Nadir Image 3: 3D APAR\n"))
 
+        if ((self.cloudType <= 0) or (self.cloudType >= 4)):
+            print("Bad mode selection exit")
+            return  ERRCODE.INPUT_ERROR
 
+        # read the condition file
+        if ((self.bound != 1) and (self.bound != 2)):
+            print("boundary condition should be 1 or 2.")
+            print("  1: Periodic  2: Non-periodic")
+            return ERRCODE.INPUT_ERROR
 
+        if (self.cloudType != 1):
+            self.process100()
 
-        return
+        print("nth, angt: # of angle anfinished process 201 200d zenith angle(max 18)for BRF")
+        print("eg. 5 10. 20. 45. 50. 70.")
+        for i in range(common.N_TH):
+            common.ANG_T[i] = float(input())
+
+        print("nph, angp:# of angle and azimuth angle(max 36)for BRF")
+        print("eg. 3 0. 90. 180.")
+        for i in range(common.N_TH):
+            common.ANG_P[i] = float(input())
+
+        if (common.N_TH * common.N_PH > 700):
+            print("The number of sampling angles are too huge! It should be theta*phi<348")
+            return ERRCODE.INPUT_ERROR
+
+        if (common.N_TH > 18):
+            print("The number of sampling theta are too huge! It should be theta*phi<100")
+            return ERRCODE.INPUT_ERROR
+
+        if (common.N_PH > 36):
+            print("The number of sampling phi are too huge! It should be theta*phi<100")
+            return ERRCODE.INPUT_ERROR
+
+        k = 0
+
+        for i in range(common.N_PH):
+            for j in range(common.N_TH):
+                if (common.ANG_T[j] > 80.0):
+                    print("Zenith angle should be less than 80")
+                    print(str(common.ANG_T[j]) + " is ignored !")
+                else:
+                    common.UX_RC[k] = math.sin(math.radians(common.ANG_T[j])) * math.cos(math.radians(common.ANG_P[i]))
+                    common.UY_RC[k] = math.sin(math.radians(common.ANG_T[j])) * math.sin(math.radians(common.ANG_P[i]))
+                    common.UZ_RC[k] = math.cos(math.radians(common.ANG_T[j]))
+
+                    k += 1
+
+        self.process100()
+
+        return ERRCODE.SUCCESS
 
     def readGeoParameters(self):
 
