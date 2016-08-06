@@ -1,0 +1,12 @@
+10000000 /* total photon number */
+2 /* without atmosphere mode */
+0.0 /* diffuse fraction */
+45. /* solar zenith anle */
+2 /* surface type (3-D canopy) */
+2 /* BRF nadir image */
+1 /* groupe of tree species */
+0.50 0.45 0.45 0.45 0.3 0.15  /* optical parameters of forest component */
+1.0  /* leaf area density of canopy */
+0.5  /* forest floor LAI */
+0.5  /* bark area index */
+0.25 /* Spherical ave. shoot silhouette to totall needle area ratio */

@@ -1,0 +1,23 @@
+30000 /* total photon number */
+1 /* with atmosphere mode */
+45. /* solar zenith anle */
+5 100. 120. 140. 150. 160. /* downward incident radiance (zenith) */
+2 0. 180. /* downward incident radiance (zenith) */
+2 /* integration mode */
+2 /* atmospheric profle (Mid latitude summer) */
+2 /* aerosol type (Continental average) */
+0.3 /* AOT at 550nm */
+0 /* cloud type (cloud free) */
+2 /* surface type (3-D canopy) */
+1 /* BRF only */
+6 0. 10. 20. 30. 40. 50. /* BRF view zenith angles */
+2 0. 180.  /* BRF view azimuth angles */
+1 /* groupe of tree species */
+0.1 0.05 0.15 0.1 0.1 0.05  /* optical parameters of forest component */
+0.5  /* leaf area density of canopy */
+0.5  /* forest floot LAI */
+0.5  /* bark area index */
+0.25 /* Spherical ave. shoot silhouette to totall needle area ratio */
+
+
+

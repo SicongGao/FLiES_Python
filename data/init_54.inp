@@ -1,0 +1,7 @@
+-4 /* np total photon (-4= Gap Probability mode) */
+1 /* nts # of group of tree species */
+0.5 /* u leaf area density */
+0.5 /* BAD branch area density */
+0.25 /*sbar (normally 0.25) */
+15.0 15.0 /* x and y position */
+

@@ -1,0 +1,5 @@
+-5 /* np total photon (-5=LAI calculation mode) */
+1 /* nts number of tree species */
+0.5 /* u: leaf area density */
+0.5 /* branch area density */
+0.1 /* sampling grid unit (m) */
