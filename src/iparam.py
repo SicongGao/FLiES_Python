@@ -203,7 +203,7 @@ class Parameters:
 
         if (umax > 1.0):
             common.FE = 1.0
-        elif (umax < 0.01):
+        elif (umax <= 0.01):
             common.FE = 0.01
         else:
             common.FE = umax
@@ -340,7 +340,7 @@ class Parameters:
         if ((self.nPhoton == -4) or (self.nPhoton == -5)):
             return self.process202()
 
-        common.U[6] = float(self.nts)
+        common.U[5] = float(self.nts)
 
         # currently max nts should be less than 5
         if ((self.nts <= 0) or (self.nts >= 5)):
@@ -488,6 +488,8 @@ class Parameters:
                     common.UZ_RC[k] = math.cos(math.radians(common.ANG_T[j]))
 
                     k += 1
+
+        common.N_ANG_C = k
 
         self.process100()
 
@@ -849,7 +851,7 @@ class Parameters:
             if (self.Nprocess > 1):
                 print("fish eye mode cannot work with multi-processors")
                 print("please execute under single processor")
-                return
+                return ERRCODE.INPUT_ERROR
 
             print("fish eye mode - selected")
             self.readVegParameters()
@@ -861,12 +863,12 @@ class Parameters:
             if (self.Nprocess > 1):
                 print("LAI mode cannot work with multi-processors")
                 print("please execute under single processor")
-                return
+                return ERRCODE.INPUT_ERROR
 
             print("LAI calculation mode - selected")
             self.readVegParameters()
             self.stype = 2
-            return
+            return ERRCODE.SUCCESS
 
         self.nPhotonProcess = int(self.nPhoton / self.Nprocess)
 
@@ -877,7 +879,7 @@ class Parameters:
             self.dif = int(input("dif: Input frac. of diffuse radiation (0-1)\n"))
             if ((self.dif < 0.0) or (self.dif > 1.0)):
                 print("fraction of diffuse should be 0.0-1.0... exit ")
-                return
+                return ERRCODE.INPUT_ERROR
 
         # Get geometrical parameters
         self.readGeoParameters()
@@ -906,5 +908,6 @@ class Parameters:
 
         else:
             print("Bad surface type selection exit")
+            return ERRCODE.INPUT_ERROR
 
-        return 0
+        return ERRCODE.SUCCESS
