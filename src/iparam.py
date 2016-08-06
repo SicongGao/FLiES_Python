@@ -3,7 +3,7 @@
 import common
 import math
 import numpy as np
-
+import ERRCODE
 
 class Parameters:
     __ix = [0] * 1025
@@ -68,6 +68,8 @@ class Parameters:
     fname = []
     rfname = ""
 
+    nts = 0 # group of tree species
+    bound = 1
     def __init__(self):
         self.initParameters()
 
@@ -138,8 +140,289 @@ class Parameters:
         # flg = frndi(ix(Nid + 1))
         self.flg = 0
 
+    def getInputLR_LT_ULR_ULT(self,i):
+        for j in range(self.nts):
+            self.lr[j, i] = float(input())
+        for j in range(self.nts):
+            self.lt[j, i] = float(input())
+        self.ulr[i] = float(input())
+        self.ult[i] = float(input())
+        for j in range(self.nts):
+            self.str[j] = float(input())
+        self.sor[i] = float(input())
+        return 0
+
+    def process202(self):
+        umax = 0.0
+
+        print("u: leaf area density 1,2,3...# tree species")
+        for i in range(self.nts):
+            common.U = float(input())
+
+        if (not((self.nPhoton == -4) or (self.nPhoton == -5))):
+            common.G_LAI = float(input("gLAI: forest floor LAI\n"))
+
+        print("BAD: branch area density 1,2,3... # of tree species")
+        for i in range(self.nts):
+            common.BAD[i] = float(input())
+
+        for i in range(self.nts):
+            if ((common.U[i] < 0.0) or (common.U[i] > 8.0)):
+                print(str(i) + "th leaf area density " + str(common.U[i]) + " should be set in the range (0.0-8.0)")
+                print("EXIT")
+                return ERRCODE.INPUT_ERROR
+
+        if ((common.G_LAI < 0.0) or (common.G_LAI > 8.0)):
+            print(str(common.G_LAI) + " should be set in the range (0.0-8.0)")
+            print("EXIT")
+            return ERRCODE.INPUT_ERROR
+
+        if (self.nPhoton == -5):
+            print("sbar: Spherical ave. shoot silhouette to total needle area ratio")
+            print("1,2,3... # of tree species (0.0-0.25)")
+            print("For broadleaves, please input 0.25")
+            for i in range(self.nts):
+                common.S_BAR = float(input())
+
+        umax = common.U[0]
+        for i in range(1, self.nts):
+            if (umax < common.U[i]):
+                umax = common.U[i]
+
+        if (umax > 1.0):
+            common.FE = 1.0
+        elif (umax < 0.01):
+            common.FE = 0.01
+        else:
+            common.FE = umax
+
+        # canopy object parameters
+        # object id initialization
+        common.I_OBJ = [1] * 6000
+
+        # input obj_nt
+        result = []
+        with open("../data/crowndata.txt", "r") as file:
+            common.N_OBJ = int(file.readline())
+
+            if (common.N_OBJ == 0):
+                common.N_OBJ = common.S_OBJ = 1
+                common.OBJ[1, 1] = 0.01
+                common.OBJ[1, 2] = 0.01
+                common.OBJ[1, 3] = 0.01
+                common.OBJ[1, 4] = 1E-5
+                common.OBJ[1, 5] = 1E-5
+            else:
+                result = []
+                result = file.readlines()
+                result = np.loadtxt(result)
+        file.close()
+
+        obj_nt = common.N_OBJ
+        for i in range(len(result)):
+            common.S_OBJ[i] = result[i][0]
+            common.OBJ[i][0:5] = result[i][1: 6]
+            common.I_OBJ[i] = result[i][7]
+            if ( result[i][0] != 4):
+                if ((result[i][4] < 0.01) or (result[i][5] < 0.01)):
+                    print(str(i + 1) + "th canopy neglected!")
+                    obj_nt -= 1
+
+        common.N_OBJ = obj_nt
+
+        # check the obj id range
+        for i in range(obj_nt):
+            if ((common.I_OBJ[i] <= 0) or (common.I_OBJ[i] > self.nts)):
+                print("species id should be the range betweem 0-" + str(nts))
+            return ERRCODE.OUT_OF_RANGE
+
+        print("Total Object is " + str(obj_nt))
+
+        # change from height to radius
+        for i in range(obj_nt):
+            if (common.S_OBJ[i] == 3):
+                common.OBJ[i, 3] /= 2
+
+        # in case periodic boudary
+        # add objects that are partially in the outside from the simulation scence
+        a = [1.0, 1.0, 0.0, 0.0]
+        b = [0.0, 0.0, 1.0, 1.0]
+        # preparation of the i-th grid for space divided method
+        c = [0.0, common.X_MAX, 0.0, common.Y_MAX]
+        cc = [0.0, 1.0, 0.0, 1.0]
+
+        if (self.bound == 1):
+            # set distance calculation parameters
+            kobj = common.N_OBJ
+
+            # definition of rectangular of the i-th object
+            for j in (kobj):
+                xr = common.OBJ[j, 0]
+                yr = common.OBJ[j, 1]
+
+                #check the intersection on the x - y plane
+                for k in range(4):
+                    d = abs(xr * a[k] + yr * b[k] - c[k])
+
+                    if (d <= common.OBJ[j,4]):
+                        dd = math.sqrt(common.OBJ[j,4] * common.OBJ[j,4] - d * d)
+                        p1 = b[k] * xr + a[k] * yr - dd
+                        p2 = b[k] * xr + a[k] * yr + dd
+                        min = 0.0
+                        max = common.X_MAX
+
+                        if (((min < p1) and (max > p1))
+                            or ((min < p2) and (max > p2))):
+                            common.N_OBJ += 1
+
+                            n = common.N_OBJ
+                            common.OBJ[n, 0] = common.OBJ[j, 0] + a[k] * common.X_MAX * (1.0 - 2.0 * cc[k])
+                            common.OBJ[n, 1] = common.OBJ[j, 1] + a[k] * common.Y_MAX * (1.0 - 2.0 * cc[k])
+                            common.OBJ[n, 2] = common.OBJ[j, 2]
+                            common.OBJ[n, 3] = common.OBJ[j, 3]
+                            common.OBJ[n, 4] = common.OBJ[j, 4]
+
+                            common.S_OBJ[n] = common.S_OBJ[j]
+                            common.I_OBJ[n] = common.I_OBJ[j]
+
+                for k in range(2):
+                    for l in range(2):
+                        rx = xr - c[k]
+                        ry = yr - c[l + 2]
+                        rr = math.sqrt(rx * rx + ry * ry)
+
+                        if (rr <= common.OBJ[j, 4]):
+                            common.N_OBJ += 1
+
+                            n = common.N_OBJ
+                            common.OBJ[n, 0] = common.OBJ[j, 0] + common.X_MAX - 2.0 * cc[k]
+                            common.OBJ[n, 1] = common.OBJ[j, 1] + common.Y_MAX - 2.0 * cc[l + 2]
+                            common.OBJ[n, 2] = common.OBJ[j, 2]
+                            common.OBJ[n, 3] = common.OBJ[j, 3]
+                            common.OBJ[n, 4] = common.OBJ[j, 4]
+
+                            common.S_OBJ[n] = common.S_OBJ[j]
+                            common.I_OBJ[n] = common.I_OBJ[j]
+
+            # determination of the epsi(epsiron) that is used to perform the
+            # Russian Roulette
+            # epsi is setted to be c * (leaf_r + leaf_t)
+            if (self.nPhoton == -4):
+                avelr = 0.0
+                avelt = 0.0
+
+                for i in range(self.nwl):
+                    for j in range(self.nts):
+                        avelr += self.lr[j, i]
+                        avelt += self.lt[j, i]
+
+                avelr /= float(self.nwl * self.nts)
+                avelt /= float(self.nwl * self.nts)
+
+        return ERRCODE.SUCCESS
+
+    def process201(self):
+        ispc = 0
+        # get the number of forest species
+        self.nts = int(input("nts: # of group of tree species\n"))
+        if ((self.nPhoton == -4) or (self.nPhoton == -5)):
+            return self.process202()
+
+        common.U[6] = float(self.nts)
+
+        # currently max nts should be less than 5
+        if ((self.nts <= 0) or (self.nts >= 5)):
+            print("Error # of tree species")
+            print("tree species should be 1-5")
+            return -1
+
+        # read leaf reflectance/transmittance
+        ramda = self.wls
+        if(self.nPhoton == -4):
+            self.nwl = 1
+
+        for i in range(self.nwl + 1):
+            if (self.nwl == 1):
+                print("Input surface optical properties")
+            else:
+                print("Input surface optical properties in")
+                if (i <= 20):
+                    print(str(ramda) + " and " + str(ramda + self.span[1]))
+                else:
+                    print(str(ramda) + " and " + str(ramda + 5 * self.span[1]))
+
+            print("lr1 lr2.. lt1 lt2.. ulr ult str1 str2.. sor")
+            print("(lr, lt:leaf refl. & leaf transm.")
+            print("ulr,ult:understory leaf refl. & transm.")
+            print("stmr: stem refl., soilr: soil refl.)")
+
+            if (self.nwl == 1):
+                self.getInputLR_LT_ULR_ULT(i)
+
+            else:
+                if (i == 1):
+                    print("Input PAR average values:")
+                    self.getInputLR_LT_ULR_ULT(i, nts)
+                    ispc = i
+
+                elif (i == 21):
+                    print("Input NIR average values")
+                    self.getInputLR_LT_ULR_ULT(i, nts)
+                    ispc = i
+
+                else:
+                    for j in range(nts):
+                        self.lr[j, i] = self.lr[j, ispc]
+                        self.lt[j, i] = self.lt[j, ispc]
+                        self.str[j, i] = self.str[j, ispc]
+
+                    self.ulr[i] = self.ult[ispc]
+                    self.ult[i] = self.ult[ispc]
+                    self.sor[i] = self.sor[ispc]
+
+            # check the parameter range
+            for j in range(self.nts):
+                if (self.lr[j,i] + self.lt[j,i] > 0.99):
+                    print("canopy leaf reflectance+transmittance is too large, exit!")
+                    return ERRCODE.OUT_OF_RANGE
+
+                if (self.lr[j, i] + self.lt[j, i] < 0.0001):
+                    self.lr[j,i] = 0.0001
+                    self.lt[j,i] = 0.0001
+
+            if (self.ulr[i] + self.ult[i] > 0.99):
+                print("floor leaf reflectance+transmittance is too large, exit!")
+                return ERRCODE.OUT_OF_RANGE
+
+            if (self.ulr[i] + self.ult[i] < 0.0001):
+                self.ulr[i] = 0.0001
+                self.ult[i] = 0.0001
+
+            for j in range(self.nts):
+                if (self.str[j,i] > 1.00):
+                    print("stem reflectance is too large, exit!")
+                    return ERRCODE.OUT_OF_RANGE
+
+                if (self.str[j,i] < 0.0001):
+                    self.str[j,i] = 0.0001
+
+            if (self.sor[i] > 1.0):
+                print("soil reflectance is too large, exit!")
+                return ERRCODE.OUT_OF_RANGE
+
+            if (self.nwl <= 20):
+                ramda += self.span[1]
+            else:
+                ramda += 5 * self.span[i]
+
+        self.process202()
+
+        return ERRCODE.SUCCESS
+
     def readVegParameters(self):
 
+        if ((self.nPhoton == -4) or (self.nPhoton == -5)):
+            self.process201()
 
 
 
