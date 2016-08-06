@@ -70,6 +70,14 @@ class Parameters:
 
     nts = 0 # group of tree species
     bound = 1
+
+    # for math
+    T_SIN = [0.0] * common.ANGLE_SHIFT * 2
+    T_COS = [1.0] * common.ANGLE_SHIFT * 2
+    T_ACOS = [0.0] * common.ACOOS_SHIFT * 2
+    T_EXP = [0.0] * common.ACOOS_SHIFT
+    DLT = np.zeros((6 + 1) * (6 + 1), dtype=float).reshape((6 + 1), (6 + 1))
+
     def __init__(self):
         self.initParameters()
 
@@ -139,6 +147,23 @@ class Parameters:
         #     initialization of random number generator
         # flg = frndi(ix(Nid + 1))
         self.flg = 0
+
+        self.initMathparameters()
+
+        return ERRCODE.SUCCESS
+
+    def initMathparameters(self):
+        for i in range(0, 62832 * 2):
+            self.T_SIN[i] = math.sin(float(i - 62832) * 0.0001)
+            self.T_COS[i] = math.cos(float(i - 62832) * 0.0001)
+
+        for i in range(0, common.ACOOS_SHIFT * 2):
+            self.T_ACOS[i] = math.acos(float(i - common.ACOOS_SHIFT) * 0.0001)
+
+        for i in range(1, 6):
+            DLT[i, i] = 1.0
+
+        return ERRCODE.SUCCESS
 
     def getInputLR_LT_ULR_ULT(self,i):
         for j in range(self.nts):

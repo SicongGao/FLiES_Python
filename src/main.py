@@ -3,9 +3,6 @@ import iparam
 import numpy as np
 import ERRCODE
 
-# common.T_SIN[-1] = 5
-# print(common.T_SIN)
-
 # only in main
 knmix = 10
 knang = 2000
@@ -30,28 +27,38 @@ ext = np.zeros(knmix * knzext, dtype=float).reshape(knmix, knzext)
 nscat = nscata = ichi = ikd = 0
 x = y = z = ux = uy = uz = w = 0.0
 
-
 # function parapeters
 # real fsin, fcos, facos, r_acos,frnd
 
-# set by iparam
-para = iparam.Parameters()
-#para.readAtmParameters()
+Nid = 0
+Nprod = 1  # common.T_SIN[-1] = 5
+# print(common.T_SIN)
 
-#data = np.load("../data/crowndata.txt")
+def main():
+    if (Nid == 0):
+        print("*********************************************")
+        print("3D canopy-atmosphere radiative transfer model")
+        print("Forest Light Environmental Simulator (FLiES) ")
+        print("                         by Hideki Kobayashi ")
+        print("        Special thanks to Hironobu Iwabuchi  ")
+        print("                      Since Ver2.00 2008/5/1  ")
+        print("*********************************************")
 
-result = []
-r = []
-bb = [1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-with open("../data/crowndata.txt", "r") as file:
-    num = int(file.readline())
-    result = file.readlines()
-    r = np.loadtxt(result)
-    r = np.delete(r,0,0)
-    bb[1:3] = r[1][0:2]
-    print(bb)
-    print(r)
-    print(len(r))
-file.close()
-print(common.N_OBJ)
-#print(data[2,2])
+    # ---- Preparation of the initial condition -------
+    # set by iparam
+    print("iparam")
+    print("Parameters initialization...")
+    para = iparam.Parameters()
+    errCode = para.readParameters()
+
+    # Initialize math function
+    print("imath")
+
+
+
+    return ERRCODE.printMessage(errCode)
+
+
+
+# ##################################################################
+main()
