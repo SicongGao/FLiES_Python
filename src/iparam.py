@@ -68,7 +68,7 @@ class Parameters:
     fname = []
     rfname = ""
 
-    nts = 0 # group of tree species
+    nts = 0  # group of tree species
     bound = 1
 
     # for math
@@ -146,7 +146,7 @@ class Parameters:
 
         #     initialization of random number generator
         # flg = frndi(ix(Nid + 1))
-        self.flg = 0
+        #self.flg = 0
 
         self.initMathparameters()
 
@@ -161,11 +161,11 @@ class Parameters:
             self.T_ACOS[i] = math.acos(float(i - common.ACOOS_SHIFT) * 0.0001)
 
         for i in range(1, 6):
-            DLT[i, i] = 1.0
+            common.DLT[i, i] = 1.0
 
         return ERRCODE.SUCCESS
 
-    def getInputLR_LT_ULR_ULT(self,i):
+    def getInputLR_LT_ULR_ULT(self, i):
         for j in range(self.nts):
             self.lr[j, i] = float(input())
         for j in range(self.nts):
@@ -175,7 +175,7 @@ class Parameters:
         for j in range(self.nts):
             self.str[j] = float(input())
         self.sor[i] = float(input())
-        return 0
+        return ERRCODE.SUCCESS
 
     def process100(self):
 
@@ -194,7 +194,7 @@ class Parameters:
 
         print("u: leaf area density 1,2,3...# tree species")
         for i in range(self.nts):
-            common.U = float(input())
+            common.U[i] = float(input())
 
         if (not((self.nPhoton == -4) or (self.nPhoton == -5))):
             common.G_LAI = float(input("gLAI: forest floor LAI\n"))
@@ -259,7 +259,7 @@ class Parameters:
         for i in range(len(result)):
             common.S_OBJ[i] = result[i][0]
             common.OBJ[i][0:5] = result[i][1: 6]
-            common.I_OBJ[i] = result[i][7]
+            common.I_OBJ[i] = result[i][6]
             if ( result[i][0] != 4):
                 if ((result[i][4] < 0.01) or (result[i][5] < 0.01)):
                     print(str(i + 1) + "th canopy neglected!")
@@ -270,7 +270,7 @@ class Parameters:
         # check the obj id range
         for i in range(obj_nt):
             if ((common.I_OBJ[i] <= 0) or (common.I_OBJ[i] > self.nts)):
-                print("species id should be the range betweem 0-" + str(nts))
+                print("species id should be the range betweem 0-" + str(self.nts))
             return ERRCODE.OUT_OF_RANGE
 
         print("Total Object is " + str(obj_nt))
@@ -297,12 +297,12 @@ class Parameters:
                 xr = common.OBJ[j, 0]
                 yr = common.OBJ[j, 1]
 
-                #check the intersection on the x - y plane
+                # check the intersection on the x - y plane
                 for k in range(4):
                     d = abs(xr * a[k] + yr * b[k] - c[k])
 
-                    if (d <= common.OBJ[j,4]):
-                        dd = math.sqrt(common.OBJ[j,4] * common.OBJ[j,4] - d * d)
+                    if (d <= common.OBJ[j, 4]):
+                        dd = math.sqrt(common.OBJ[j, 4] * common.OBJ[j, 4] - d * d)
                         p1 = b[k] * xr + a[k] * yr - dd
                         p2 = b[k] * xr + a[k] * yr + dd
                         min = 0.0
@@ -371,7 +371,7 @@ class Parameters:
         if ((self.nts <= 0) or (self.nts >= 5)):
             print("Error # of tree species")
             print("tree species should be 1-5")
-            return -1
+            return ERRCODE.INPUT_ERROR
 
         # read leaf reflectance/transmittance
         ramda = self.wls
@@ -399,16 +399,16 @@ class Parameters:
             else:
                 if (i == 1):
                     print("Input PAR average values:")
-                    self.getInputLR_LT_ULR_ULT(i, nts)
+                    self.getInputLR_LT_ULR_ULT(i, self.nts)
                     ispc = i
 
                 elif (i == 21):
                     print("Input NIR average values")
-                    self.getInputLR_LT_ULR_ULT(i, nts)
+                    self.getInputLR_LT_ULR_ULT(i, self.nts)
                     ispc = i
 
                 else:
-                    for j in range(nts):
+                    for j in range(self.nts):
                         self.lr[j, i] = self.lr[j, ispc]
                         self.lt[j, i] = self.lt[j, ispc]
                         self.str[j, i] = self.str[j, ispc]
@@ -571,7 +571,7 @@ class Parameters:
                     common.UX_RTAB[k] = math.cos(math.radians(th[j]))
 
         common.N_RDC = k
-        return 0
+        return ERRCODE.SUCCESS
 
     def readAtmParameters(self):
         imode = nspc = 0
@@ -602,7 +602,7 @@ class Parameters:
             imode = int(input("imode: Integration mode 1:Monochro 2:PAR 3:SW\n"))
             if ((imode < 0) or (imode > 4)):
                 print("Mode ERR: number should less than 4 and larger than 0.")
-                return
+                return ERRCODE.INPUT_ERROR
 
             elif (imode == 1):
                 self.wl0 = float(input("wl0:wavelength (micron ex 0.55)\n"))
@@ -747,7 +747,7 @@ class Parameters:
                     self.rfname = "Data/gas_US_" + ch[imode]
                 else:
                     print("Input error!")
-                    return -1
+                    return ERRCODE.INPUT_ERROR
 
                 # read the aerosol data
                 print("aerosolType: aerosol type")
@@ -804,10 +804,10 @@ class Parameters:
                 elif (self.aerosolType == 11):
                     print("smoke aerosol under construction !!")
                     self.d = 8000.0  # scale height (m)
-                    return -1
+                    return ERRCODE.INPUT_ERROR
                 else:
                     print("Input error !!")
-                    return -1
+                    return ERRCODE.INPUT_ERROR
 
                 # read cloud data
                 print("ctype: cloud type")
@@ -833,7 +833,7 @@ class Parameters:
 
                     if (ctop < cbot):
                         print("cloud top should be greater than cloud bottom")
-                        return -1
+                        return ERRCODE.INPUT_ERROR
 
                     if (self.cloudType == 1):
                         self.fname.append("../data/opt_type101_" + ch[imode])
@@ -855,7 +855,7 @@ class Parameters:
                         self.fname.append("../data/opt_type109_" + ch[imode])
                     else:
                         print("Input error !!")
-                        return -1
+                        return ERRCODE.INPUT_ERROR
 
                     for i in range(common.N_Z):
                         if (common.Z_GRD[i] < cbot):
@@ -866,7 +866,7 @@ class Parameters:
 
                     print(common.Z_GRD[self.cbnz], common.Z_GRD[self.ctnz])
                     print("clouds are located between " + str(self.ctnz) + " and " + str(self.cbnz))
-        return 0
+        return ERRCODE.SUCCESS
 
     def readParameters(self):
         self.nPhoton = int(input("np: Input number of photon\n"))
@@ -881,7 +881,7 @@ class Parameters:
             print("fish eye mode - selected")
             self.readVegParameters()
             self.stype = 2
-            return
+            return ERRCODE.SUCCESS
 
         # LAI calculation mode
         if (self.nPhoton == -5):

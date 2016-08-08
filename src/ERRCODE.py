@@ -18,4 +18,4 @@ def printMessage(itr):
         print("Return unknown error message number! Please check!")
     else:
         print(ERR_MESSAGE[itr])
-        print("Error Code is " + str(itr))
+        print("Error Code: " + str(itr))
