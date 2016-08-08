@@ -467,7 +467,7 @@ class Parameters:
 
         if ((self.cloudType <= 0) or (self.cloudType >= 4)):
             print("Bad mode selection exit")
-            return  ERRCODE.INPUT_ERROR
+            return ERRCODE.INPUT_ERROR
 
         # read the condition file
         if ((self.bound != 1) and (self.bound != 2)):
