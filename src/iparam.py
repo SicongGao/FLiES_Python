@@ -46,7 +46,7 @@ class Parameters:
     nPhotonProcess = 1
 
     # read parameters
-    nPhoton = nmix = amode = imode = cmode = stype = 0
+    nPhoton = nmix = amode = imode = cmode = surfaceType = 0
     dif = phi = th = ph = tgx = tgy = 0.0
     wq = sinf0 = cosf0 = cosq0 = sinq0 = 0
 
@@ -146,7 +146,7 @@ class Parameters:
 
         #     initialization of random number generator
         # flg = frndi(ix(Nid + 1))
-        #self.flg = 0
+        # self.flg = 0
 
         self.initMathparameters()
 
@@ -308,8 +308,8 @@ class Parameters:
                         min = 0.0
                         max = common.X_MAX
 
-                        if (((min < p1) and (max > p1))
-                            or ((min < p2) and (max > p2))):
+                        if (((min < p1) and (max > p1)) or
+                                ((min < p2) and (max > p2))):
                             common.N_OBJ += 1
 
                             n = common.N_OBJ
@@ -399,12 +399,12 @@ class Parameters:
             else:
                 if (i == 1):
                     print("Input PAR average values:")
-                    self.getInputLR_LT_ULR_ULT(i, self.nts)
+                    self.getInputLR_LT_ULR_ULT(i)
                     ispc = i
 
                 elif (i == 21):
                     print("Input NIR average values")
-                    self.getInputLR_LT_ULR_ULT(i, self.nts)
+                    self.getInputLR_LT_ULR_ULT(i)
                     ispc = i
 
                 else:
@@ -436,12 +436,12 @@ class Parameters:
                 self.ult[i] = 0.0001
 
             for j in range(self.nts):
-                if (self.str[j,i] > 1.00):
+                if (self.str[j, i] > 1.00):
                     print("stem reflectance is too large, exit!")
                     return ERRCODE.OUT_OF_RANGE
 
-                if (self.str[j,i] < 0.0001):
-                    self.str[j,i] = 0.0001
+                if (self.str[j, i] < 0.0001):
+                    self.str[j, i] = 0.0001
 
             if (self.sor[i] > 1.0):
                 print("soil reflectance is too large, exit!")
@@ -880,7 +880,7 @@ class Parameters:
 
             print("fish eye mode - selected")
             self.readVegParameters()
-            self.stype = 2
+            self.surfaceType = 2
             return ERRCODE.SUCCESS
 
         # LAI calculation mode
@@ -892,7 +892,7 @@ class Parameters:
 
             print("LAI calculation mode - selected")
             self.readVegParameters()
-            self.stype = 2
+            self.surfaceType = 2
             return ERRCODE.SUCCESS
 
         self.nPhotonProcess = int(self.nPhoton / self.Nprocess)
@@ -913,8 +913,8 @@ class Parameters:
         self.readAtmParameters()
 
         # vegetation parameters read / initialize
-        self.stype = int(input("stye: Surface mode 1: Lambertian, 2: 3-D Vegetation\n"))
-        if (self.stype == 1):
+        self.surfaceType = int(input("stye: Surface mode 1: Lambertian, 2: 3-D Vegetation\n"))
+        if (self.surfaceType == 1):
             for iwl in range(1, self.nwl):
                 if (self.imode == 1):
                     print("Input albedo")
@@ -928,7 +928,7 @@ class Parameters:
                     print("Input albedo: " + str(ab1) + " and " + str(ab2))
                 self.alb[iwl] = float(input())
 
-        elif (self.stype == 2):
+        elif (self.surfaceType == 2):
             self.readVegParameters()
 
         else:

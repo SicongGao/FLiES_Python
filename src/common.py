@@ -74,9 +74,6 @@ G_LAI = 0.0
 U = [0.0] * 6
 BAD = [0.0] * 5
 IR = FE = BP1 = BP2 = 0.0
-GT_BLC = [0.0] * 180
-GT_BLB = [0.0] * 180
-GT_BLF = [0.0] * 180
 UX_RC = [0.0] * K_NRDC
 UY_RC = [0.0] * K_NRDC
 UZ_RC = [0.0] * K_NRDC
@@ -109,3 +106,12 @@ for i in range(0, ACOOS_SHIFT * 2):
 
 for i in range(1,6):
     DLT[i, i] = 1.0
+
+def getSin(n):
+    return T_SIN[int((n + 62382) * 1E4)]
+
+def getCos(n):
+    return T_COS[int((n + 62382) * 1E4)]
+
+def getACos(n):
+    return T_SIN[int((n + ACOOS_SHIFT) * 1E4)]

@@ -1,7 +1,8 @@
 import common
-import iparam
+from iparam import Parameters
 import numpy as np
 import ERRCODE
+from G_Function import G_Function
 
 # only in main
 knmix = 10
@@ -48,17 +49,48 @@ def main():
     # set by iparam
     print("iparam")
     print("Parameters initialization...")
-    para = iparam.Parameters()
+    para = Parameters()
     errCode = para.readParameters()
+
+    if (errCode):
+        return errCode
 
     # Initialize math function
     print("imath")
 
+    # number the initial file read devide (5 for standard input)
+    num = 5
+
+    # Read required parameters
+
+    # igtbl
+    if (para.surfaceType == 2):
+        print("G-function")     # G-function LUT
+        gFunction = G_Function()
+        errCode = gFunction.igtbl(para)
+
+        if errCode:
+            return errCode
+
+        print("idivspace")      # Initialize space division
+        # idivspace
+        print("ipf")            # LUT for phase function
+        # ipf
 
 
-    return ERRCODE.printMessage(errCode)
+
+    print(phs[0, 0], phs[0][0])
+    return ERRCODE.SUCCESS
 
 
 
 # ##################################################################
-main()
+# errCode = main()
+para = Parameters()
+gFunction = G_Function()
+errCode = gFunction.igtbl(para)
+ERRCODE.printMessage(errCode)
+
+print(gFunction.GT_BLB)
+print(gFunction.GT_BLC)
+print(gFunction.GT_BLF)
