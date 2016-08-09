@@ -8,7 +8,7 @@ ACOOS_SHIFT = 10000
 
 # space definition
 SIZE = 300
-N_DICS = [0] * 720
+N_DIVS = [0] * 720
 DIVS = np.zeros(720 * 300, dtype=int).reshape(720, 300)
 M_DIV = 0
 IX_MAX = IY_MAX = IZ_MAX = 0
