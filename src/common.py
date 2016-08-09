@@ -108,10 +108,10 @@ for i in range(1,6):
     DLT[i, i] = 1.0
 
 def getSin(n):
-    return T_SIN[int((n + 62382) * 1E4)]
+    return T_SIN[int((n * 1E4) + 62382)]
 
 def getCos(n):
-    return T_COS[int((n + 62382) * 1E4)]
+    return T_COS[int((n * 1E4) + 62382)]
 
 def getACos(n):
-    return T_SIN[int((n + ACOOS_SHIFT) * 1E4)]
+    return T_SIN[int((n * 1E4) + ACOOS_SHIFT)]

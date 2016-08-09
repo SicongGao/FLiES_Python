@@ -55,7 +55,7 @@ class G_Function:
         result = 0.0
         pht = -common.getCos(th) * common.getCos(thl)
 
-        if (() <= 1E-5):
+        if ((common.getSin(th) * common.getSin(thl)) <= 1E-5):
             pht /= 1E-5
         else:
             pht /= common.getSin(th) * common.getSin(thl)
@@ -68,7 +68,7 @@ class G_Function:
             pht = common.getACos(pht)
             result = common.getCos(th) * common.getCos(thl) * (2.0 * pht / math.pi - 1.0) + \
                      (2.0 / math.pi) * common.getSin(th) * common.getSin(thl) * common.getSin(pht)
-        return ERRCODE.SUCCESS
+        return result
 
     #     ********************************
     #     leaf angle distribution function
@@ -87,6 +87,7 @@ class G_Function:
         # i = 1: uniform, i = 2 planophile i = 3 erectrophile
         # I think when i = 1, it doesn't mean uniform, based on the paper,
         # it should be Spherical. Check Ross paper(Page 252).
+        test = common.getCos(2.0 * cg[i] * thl)
         return (2.0 / math.pi) * (ag[i] + bg[i] * common.getCos(2.0 * cg[i] * thl)) + \
                dg[i] * common.getSin(thl)
 
