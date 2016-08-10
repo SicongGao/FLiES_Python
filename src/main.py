@@ -3,6 +3,7 @@ from iparam import Parameters
 import numpy as np
 import ERRCODE
 from G_Function import G_Function
+import idivspace
 
 # only in main
 knmix = 10
@@ -86,11 +87,11 @@ def main():
 
 # ##################################################################
 # errCode = main()
+np.set_printoptions(threshold=1000)
 para = Parameters()
 gFunction = G_Function()
 errCode = gFunction.igtbl(para)
+para.process202()
+errCode = idivspace.idivspace()
+print(common.Z_MAX)
 ERRCODE.printMessage(errCode)
-
-print(gFunction.GT_BLB)
-print(gFunction.GT_BLC)
-print(gFunction.GT_BLF)

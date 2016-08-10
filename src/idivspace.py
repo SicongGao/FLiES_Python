@@ -1,5 +1,6 @@
 import common as comm
 import math
+import ERRCODE
 
 def idivspace():
     intv = 50.0 / comm.RES
@@ -24,7 +25,7 @@ def idivspace():
 
     # start the idiv loop
     for i in range(idiv):
-        n = 1
+        n = 0
 
         # preparation of the i-th grid for space divided method
         divX = (float(ix) - 1.0) * intv
@@ -60,14 +61,14 @@ def idivspace():
 
             # check the intersection on the x-y plane
             for k in range(4):
-                d = abs(xr * a[k] * yr * b[k] - c[k])
+                d = abs(xr * a[k] + yr * b[k] - c[k])
 
                 if (d <= comm.OBJ[j][4]):
                     dd = math.sqrt(comm.OBJ[j][4] * comm.OBJ[j][4] - d * d)
-                    p1 = b[k] * xr + a[k] *yr - dd
+                    p1 = b[k] * xr + a[k] * yr - dd
                     p2 = b[k] * xr + a[k] * yr + dd
                     min = b[k] * divX + a[k] * divY
-                    max = b[k] * divX + a[k] * divY
+                    max = b[k] * divX + a[k] * divY + intv
 
                     if ((min <= p1) and (max >= p1)):
                         flag = 1
@@ -98,8 +99,8 @@ def idivspace():
 
             # input data number for the ndivs & divs
             if (flag == 2):
-                comm.N_DIVS += 1
-                comm.DIVS = j
+                comm.N_DIVS[i] += 1
+                comm.DIVS[i][n] = j
                 n += 1
                 comm.M_DIV = i
 
@@ -115,3 +116,10 @@ def idivspace():
 
     # determinatin of zmax at the boudary of the big voxel
     comm.Z_MAX = intv * (1.0 + float((comm.M_DIV - 1) / (comm.IX_MAX * comm.IY_MAX)))
+
+    print("N_DIVS")
+    print(comm.N_DIVS)
+    print("DIVS")
+    print(comm.DIVS)
+
+    return ERRCODE.SUCCESS

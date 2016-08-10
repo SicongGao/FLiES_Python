@@ -238,19 +238,18 @@ class Parameters:
         common.I_OBJ = [1] * 6000
 
         # input obj_nt
-        result = []
+        result = ''
         with open("../data/crowndata.txt", "r") as file:
             common.N_OBJ = int(file.readline())
 
             if (common.N_OBJ == 0):
                 common.N_OBJ = common.S_OBJ = 1
-                common.OBJ[1, 1] = 0.01
-                common.OBJ[1, 2] = 0.01
-                common.OBJ[1, 3] = 0.01
-                common.OBJ[1, 4] = 1E-5
-                common.OBJ[1, 5] = 1E-5
+                common.OBJ[0, 0] = 0.01
+                common.OBJ[0, 1] = 0.01
+                common.OBJ[0, 2] = 0.01
+                common.OBJ[0, 3] = 1E-5
+                common.OBJ[0, 4] = 1E-5
             else:
-                result = []
                 result = file.readlines()
                 result = np.loadtxt(result)
         file.close()
