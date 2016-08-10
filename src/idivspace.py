@@ -2,10 +2,9 @@ import common as comm
 import math
 import ERRCODE
 
+
 def idivspace():
     intv = 50.0 / comm.RES
-    flag = 0
-    n = 0
 
     comm.IX_MAX = 6
     comm.IY_MAX = 6
@@ -38,7 +37,7 @@ def idivspace():
         for j in range(comm.N_OBJ):
             flag = 0
 
-            if (comm.S_OBJ[j] == 1):    # cone
+            if (comm.S_OBJ[j] == 1):                            # cone
                 xr = comm.OBJ[j][0]
                 yr = comm.OBJ[j][1]
                 zu = comm.OBJ[j][2]
@@ -48,12 +47,12 @@ def idivspace():
                 yr = comm.OBJ[j][1]
                 zu = comm.OBJ[j][2]
                 zb = comm.OBJ[j][2] - comm.OBJ[j][3]
-            elif (comm.S_OBJ[j] == 3):  # ellipsoid
+            elif (comm.S_OBJ[j] == 3):                          # ellipsoid
                 xr = comm.OBJ[j][0]
                 yr = comm.OBJ[j][1]
                 zu = comm.OBJ[j][2] + comm.OBJ[j][3]
                 zb = comm.OBJ[j][2] - comm.OBJ[j][3]
-            elif (comm.S_OBJ[j] == 5):  # half ellipsoid
+            elif (comm.S_OBJ[j] == 5):                          # half ellipsoid
                 xr = comm.OBJ[j][0]
                 yr = comm.OBJ[j][1]
                 zu = comm.OBJ[j][2] + comm.OBJ[j][3]
@@ -84,8 +83,8 @@ def idivspace():
                         flag = 1
 
             if (flag == 0):
-                if ( ((xr >= c[0]) and (xr <= c[1])) and
-                        ((yr >= c[2]) and (yr <= c[3])) ):
+                if (((xr >= c[0]) and (xr <= c[1])) and
+                        ((yr >= c[2]) and (yr <= c[3]))):
                     flag = 1
 
             # check the intersection for z - axis
@@ -114,7 +113,7 @@ def idivspace():
                 iy = 1
                 iz += 1
 
-    # determinatin of zmax at the boudary of the big voxel
+    # determination of zmax at the boundary of the big voxel
     comm.Z_MAX = intv * (1.0 + float((comm.M_DIV - 1) / (comm.IX_MAX * comm.IY_MAX)))
 
     print("N_DIVS")
