@@ -259,7 +259,7 @@ class Parameters:
             common.S_OBJ[i] = result[i][0]
             common.OBJ[i][0:5] = result[i][1: 6]
             common.I_OBJ[i] = result[i][6]
-            if ( result[i][0] != 4):
+            if (result[i][0] != 4):
                 if ((result[i][4] < 0.01) or (result[i][5] < 0.01)):
                     print(str(i + 1) + "th canopy neglected!")
                     obj_nt -= 1

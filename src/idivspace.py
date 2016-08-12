@@ -42,16 +42,16 @@ def idivspace():
                 yr = comm.OBJ[j][1]
                 zu = comm.OBJ[j][2]
                 zb = comm.OBJ[j][2] - comm.OBJ[j][3]
-            elif (comm.S_OBJ[j] == 2) or (comm.S_OBJ[j] == 4):  # cylinder
+            elif (comm.S_OBJ[j] == 2) or (comm.S_OBJ[j] == 4):  # cylinder, 4 for trunk
                 xr = comm.OBJ[j][0]
                 yr = comm.OBJ[j][1]
                 zu = comm.OBJ[j][2]
-                zb = comm.OBJ[j][2] - comm.OBJ[j][3]
+                zb = comm.OBJ[j][2] - comm.OBJ[j][3]            # zb is always 0 for trunk
             elif (comm.S_OBJ[j] == 3):                          # ellipsoid
                 xr = comm.OBJ[j][0]
                 yr = comm.OBJ[j][1]
-                zu = comm.OBJ[j][2] + comm.OBJ[j][3]
-                zb = comm.OBJ[j][2] - comm.OBJ[j][3]
+                zu = comm.OBJ[j][2] + comm.OBJ[j][3]            # zb, zu is bottom and upper coordinate of objects
+                zb = comm.OBJ[j][2] - comm.OBJ[j][3]            # if S_OBJ[3] == 3, S_OBJ[3] =/ 2 in iparam.py, line 280
             elif (comm.S_OBJ[j] == 5):                          # half ellipsoid
                 xr = comm.OBJ[j][0]
                 yr = comm.OBJ[j][1]
