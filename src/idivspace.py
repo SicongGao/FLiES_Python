@@ -62,7 +62,7 @@ def idivspace():
             for k in range(4):
                 d = abs(xr * a[k] + yr * b[k] - c[k])
 
-                if (d <= comm.OBJ[j][4]):
+                if (d <= comm.OBJ[j][4]):   # (xr, yr) near the boundary
                     dd = math.sqrt(comm.OBJ[j][4] * comm.OBJ[j][4] - d * d)
                     p1 = b[k] * xr + a[k] * yr - dd
                     p2 = b[k] * xr + a[k] * yr + dd

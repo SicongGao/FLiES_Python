@@ -1,6 +1,6 @@
 # Parameters Initialization
 
-import common
+import common as comm
 import math
 import numpy as np
 import ERRCODE
@@ -72,10 +72,10 @@ class Parameters:
     bound = 1
 
     # for math
-    T_SIN = [0.0] * common.ANGLE_SHIFT * 2
-    T_COS = [1.0] * common.ANGLE_SHIFT * 2
-    T_ACOS = [0.0] * common.ACOOS_SHIFT * 2
-    T_EXP = [0.0] * common.ACOOS_SHIFT
+    T_SIN = [0.0] * comm.ANGLE_SHIFT * 2
+    T_COS = [1.0] * comm.ANGLE_SHIFT * 2
+    T_ACOS = [0.0] * comm.ACOOS_SHIFT * 2
+    T_EXP = [0.0] * comm.ACOOS_SHIFT
     DLT = np.zeros((6 + 1) * (6 + 1), dtype=float).reshape((6 + 1), (6 + 1))
 
     def __init__(self):
@@ -83,18 +83,18 @@ class Parameters:
 
     def initParameters(self):
 
-        common.N_Z = 12  # of layers
-        common.X_MAX = common.Y_MAX = 30.0  # X domain size (m), Y domain size (m)
-        common.RES = common.SIZE / common.X_MAX  # inverse of the spatial resolution
-        common.WRR = 0.1  # ideal weight (used for Russian roulette in atm.
+        comm.N_Z = 12  # of layers
+        comm.X_MAX = comm.Y_MAX = 30.0  # X domain size (m), Y domain size (m)
+        comm.RES = comm.SIZE / comm.X_MAX  # inverse of the spatial resolution
+        comm.WRR = 0.1  # ideal weight (used for Russian roulette in atm.
 
         # branch portion in region 1(outer canopy) and 2(internal canopy)
         # 1.0 = 100 % branch, 0.0: 100 % leaf
-        common.bp1 = 0.0
-        common.bp2 = 1.0
+        comm.bp1 = 0.0
+        comm.bp2 = 1.0
 
         # leaf angle distribution of canopy, branches, and floor
-        common.M_C = common.M_B = common.M_F = 1
+        comm.M_C = comm.M_B = comm.M_F = 1
 
         # #   ---  local parameters ---
         self.wl0 = 0.55  # Default target wavelength(micron)
@@ -157,11 +157,11 @@ class Parameters:
             self.T_SIN[i] = math.sin(float(i - 62832) * 0.0001)
             self.T_COS[i] = math.cos(float(i - 62832) * 0.0001)
 
-        for i in range(0, common.ACOOS_SHIFT * 2):
-            self.T_ACOS[i] = math.acos(float(i - common.ACOOS_SHIFT) * 0.0001)
+        for i in range(0, comm.ACOOS_SHIFT * 2):
+            self.T_ACOS[i] = math.acos(float(i - comm.ACOOS_SHIFT) * 0.0001)
 
         for i in range(1, 6):
-            common.DLT[i, i] = 1.0
+            comm.DLT[i, i] = 1.0
 
         return ERRCODE.SUCCESS
 
@@ -180,10 +180,10 @@ class Parameters:
     def process100(self):
 
         if (self.cloudType >= 2):
-            common.N_ANG_C = 1
-            common.UX_RC[0] = 0.0
-            common.UY_RC[0] = 0.0
-            common.UZ_RC[0] = 1.0
+            comm.N_ANG_C = 1
+            comm.UX_RC[0] = 0.0
+            comm.UY_RC[0] = 0.0
+            comm.UZ_RC[0] = 1.0
 
         self.process201()
 
@@ -194,23 +194,23 @@ class Parameters:
 
         print("u: leaf area density 1,2,3...# tree species")
         for i in range(self.nts):
-            common.U[i] = float(input())
+            comm.U[i] = float(input())
 
         if (not((self.nPhoton == -4) or (self.nPhoton == -5))):
-            common.G_LAI = float(input("gLAI: forest floor LAI\n"))
+            comm.G_LAI = float(input("gLAI: forest floor LAI\n"))
 
         print("BAD: branch area density 1,2,3... # of tree species")
         for i in range(self.nts):
-            common.BAD[i] = float(input())
+            comm.BAD[i] = float(input())
 
         for i in range(self.nts):
-            if ((common.U[i] < 0.0) or (common.U[i] > 8.0)):
-                print(str(i) + "th leaf area density " + str(common.U[i]) + " should be set in the range (0.0-8.0)")
+            if ((comm.U[i] < 0.0) or (comm.U[i] > 8.0)):
+                print(str(i) + "th leaf area density " + str(comm.U[i]) + " should be set in the range (0.0-8.0)")
                 print("EXIT")
                 return ERRCODE.INPUT_ERROR
 
-        if ((common.G_LAI < 0.0) or (common.G_LAI > 8.0)):
-            print(str(common.G_LAI) + " should be set in the range (0.0-8.0)")
+        if ((comm.G_LAI < 0.0) or (comm.G_LAI > 8.0)):
+            print(str(comm.G_LAI) + " should be set in the range (0.0-8.0)")
             print("EXIT")
             return ERRCODE.INPUT_ERROR
 
@@ -219,107 +219,107 @@ class Parameters:
             print("1,2,3... # of tree species (0.0-0.25)")
             print("For broadleaves, please input 0.25")
             for i in range(self.nts):
-                common.S_BAR = float(input())
+                comm.S_BAR = float(input())
 
-        umax = common.U[0]
+        umax = comm.U[0]
         for i in range(1, self.nts):
-            if (umax < common.U[i]):
-                umax = common.U[i]
+            if (umax < comm.U[i]):
+                umax = comm.U[i]
 
         if (umax > 1.0):
-            common.FE = 1.0
+            comm.FE = 1.0
         elif (umax <= 0.01):
-            common.FE = 0.01
+            comm.FE = 0.01
         else:
-            common.FE = umax
+            comm.FE = umax
 
         # canopy object parameters
         # object id initialization
-        common.I_OBJ = [1] * 6000
+        comm.I_OBJ = [1] * 6000
 
         # input obj_nt
         result = ''
         with open("../data/crowndata.txt", "r") as file:
-            common.N_OBJ = int(file.readline())
+            comm.N_OBJ = int(file.readline())
 
-            if (common.N_OBJ == 0):
-                common.N_OBJ = common.S_OBJ = 1
-                common.OBJ[0, 0] = 0.01
-                common.OBJ[0, 1] = 0.01
-                common.OBJ[0, 2] = 0.01
-                common.OBJ[0, 3] = 1E-5
-                common.OBJ[0, 4] = 1E-5
+            if (comm.N_OBJ == 0):
+                comm.N_OBJ = comm.S_OBJ = 1
+                comm.OBJ[0, 0] = 0.01
+                comm.OBJ[0, 1] = 0.01
+                comm.OBJ[0, 2] = 0.01
+                comm.OBJ[0, 3] = 1E-5
+                comm.OBJ[0, 4] = 1E-5
             else:
                 result = file.readlines()
                 result = np.loadtxt(result)
         file.close()
 
-        obj_nt = common.N_OBJ
+        obj_nt = comm.N_OBJ
         for i in range(len(result)):
-            common.S_OBJ[i] = result[i][0]
-            common.OBJ[i][0:5] = result[i][1: 6]
-            common.I_OBJ[i] = result[i][6]
+            comm.S_OBJ[i] = result[i][0]
+            comm.OBJ[i][0:5] = result[i][1: 6]
+            comm.I_OBJ[i] = result[i][6]
             if (result[i][0] != 4):
                 if ((result[i][4] < 0.01) or (result[i][5] < 0.01)):
                     print(str(i + 1) + "th canopy neglected!")
                     obj_nt -= 1
 
-        common.N_OBJ = obj_nt
+        comm.N_OBJ = obj_nt
 
         # check the obj id range
         for i in range(obj_nt):
-            if ((common.I_OBJ[i] <= 0) or (common.I_OBJ[i] > self.nts)):
+            if ((comm.I_OBJ[i] <= 0) or (comm.I_OBJ[i] > self.nts)):
                 print("species id should be the range betweem 0-" + str(self.nts))
-            return ERRCODE.OUT_OF_RANGE
+                return ERRCODE.OUT_OF_RANGE
 
         print("Total Object is " + str(obj_nt))
 
         # change from height to radius
         for i in range(obj_nt):
-            if (common.S_OBJ[i] == 3):
-                common.OBJ[i, 3] /= 2
+            if (comm.S_OBJ[i] == 3):
+                comm.OBJ[i, 3] /= 2
 
-        # in case periodic boudary
-        # add objects that are partially in the outside from the simulation scence
+        # in case periodic boundary
+        # add objects that are partially in the outside from the simulation scene
         a = [1.0, 1.0, 0.0, 0.0]
         b = [0.0, 0.0, 1.0, 1.0]
         # preparation of the i-th grid for space divided method
-        c = [0.0, common.X_MAX, 0.0, common.Y_MAX]
+        c = [0.0, comm.X_MAX, 0.0, comm.Y_MAX]
         cc = [0.0, 1.0, 0.0, 1.0]
+        min = 0.0
+        max = comm.X_MAX
 
         if (self.bound == 1):
             # set distance calculation parameters
-            kobj = common.N_OBJ
+            kobj = comm.N_OBJ
 
             # definition of rectangular of the i-th object
-            for j in (kobj):
-                xr = common.OBJ[j, 0]
-                yr = common.OBJ[j, 1]
+            for j in range(kobj):
+                xr = comm.OBJ[j, 0]
+                yr = comm.OBJ[j, 1]
 
                 # check the intersection on the x - y plane
                 for k in range(4):
                     d = abs(xr * a[k] + yr * b[k] - c[k])
 
-                    if (d <= common.OBJ[j, 4]):
-                        dd = math.sqrt(common.OBJ[j, 4] * common.OBJ[j, 4] - d * d)
+                    if (d <= comm.OBJ[j, 4]):   # partially in the out of range
+                        dd = math.sqrt(comm.OBJ[j, 4] * comm.OBJ[j, 4] - d * d)
                         p1 = b[k] * xr + a[k] * yr - dd
                         p2 = b[k] * xr + a[k] * yr + dd
-                        min = 0.0
-                        max = common.X_MAX
 
                         if (((min < p1) and (max > p1)) or
                                 ((min < p2) and (max > p2))):
-                            common.N_OBJ += 1
+                            comm.N_OBJ += 1
 
-                            n = common.N_OBJ
-                            common.OBJ[n, 0] = common.OBJ[j, 0] + a[k] * common.X_MAX * (1.0 - 2.0 * cc[k])
-                            common.OBJ[n, 1] = common.OBJ[j, 1] + a[k] * common.Y_MAX * (1.0 - 2.0 * cc[k])
-                            common.OBJ[n, 2] = common.OBJ[j, 2]
-                            common.OBJ[n, 3] = common.OBJ[j, 3]
-                            common.OBJ[n, 4] = common.OBJ[j, 4]
+                            n = comm.N_OBJ
+                            comm.OBJ[n, 0] = comm.OBJ[j, 0] + a[k] * comm.X_MAX * (1.0 - 2.0 * cc[k])
+                            comm.OBJ[n, 1] = comm.OBJ[j, 1] + a[k] * comm.Y_MAX * (1.0 - 2.0 * cc[k])
+                            comm.OBJ[n, 2] = comm.OBJ[j, 2]
+                            comm.OBJ[n, 3] = comm.OBJ[j, 3]
+                            comm.OBJ[n, 4] = comm.OBJ[j, 4]
 
-                            common.S_OBJ[n] = common.S_OBJ[j]
-                            common.I_OBJ[n] = common.I_OBJ[j]
+                            comm.S_OBJ[n] = comm.S_OBJ[j]
+                            comm.I_OBJ[n] = comm.I_OBJ[j]
 
                 for k in range(2):
                     for l in range(2):
@@ -327,18 +327,18 @@ class Parameters:
                         ry = yr - c[l + 2]
                         rr = math.sqrt(rx * rx + ry * ry)
 
-                        if (rr <= common.OBJ[j, 4]):
-                            common.N_OBJ += 1
+                        if (rr <= comm.OBJ[j, 4]):
+                            comm.N_OBJ += 1
 
-                            n = common.N_OBJ
-                            common.OBJ[n, 0] = common.OBJ[j, 0] + common.X_MAX - 2.0 * cc[k]
-                            common.OBJ[n, 1] = common.OBJ[j, 1] + common.Y_MAX - 2.0 * cc[l + 2]
-                            common.OBJ[n, 2] = common.OBJ[j, 2]
-                            common.OBJ[n, 3] = common.OBJ[j, 3]
-                            common.OBJ[n, 4] = common.OBJ[j, 4]
+                            n = comm.N_OBJ
+                            comm.OBJ[n, 0] = comm.OBJ[j, 0] + comm.X_MAX - 2.0 * cc[k]
+                            comm.OBJ[n, 1] = comm.OBJ[j, 1] + comm.Y_MAX - 2.0 * cc[l + 2]
+                            comm.OBJ[n, 2] = comm.OBJ[j, 2]
+                            comm.OBJ[n, 3] = comm.OBJ[j, 3]
+                            comm.OBJ[n, 4] = comm.OBJ[j, 4]
 
-                            common.S_OBJ[n] = common.S_OBJ[j]
-                            common.I_OBJ[n] = common.I_OBJ[j]
+                            comm.S_OBJ[n] = comm.S_OBJ[j]
+                            comm.I_OBJ[n] = comm.I_OBJ[j]
 
             # determination of the epsi(epsiron) that is used to perform the
             # Russian Roulette
@@ -364,7 +364,7 @@ class Parameters:
         if ((self.nPhoton == -4) or (self.nPhoton == -5)):
             return self.process202()
 
-        common.U[5] = float(self.nts)
+        comm.U[5] = float(self.nts)
 
         # currently max nts should be less than 5
         if ((self.nts <= 0) or (self.nts >= 5)):
@@ -479,41 +479,41 @@ class Parameters:
 
         print("nth, angt: # of angle anfinished process 201 200d zenith angle(max 18)for BRF")
         print("eg. 5 10. 20. 45. 50. 70.")
-        for i in range(common.N_TH):
-            common.ANG_T[i] = float(input())
+        for i in range(comm.N_TH):
+            comm.ANG_T[i] = float(input())
 
         print("nph, angp:# of angle and azimuth angle(max 36)for BRF")
         print("eg. 3 0. 90. 180.")
-        for i in range(common.N_TH):
-            common.ANG_P[i] = float(input())
+        for i in range(comm.N_TH):
+            comm.ANG_P[i] = float(input())
 
-        if (common.N_TH * common.N_PH > 700):
+        if (comm.N_TH * comm.N_PH > 700):
             print("The number of sampling angles are too huge! It should be theta*phi<348")
             return ERRCODE.INPUT_ERROR
 
-        if (common.N_TH > 18):
+        if (comm.N_TH > 18):
             print("The number of sampling theta are too huge! It should be theta*phi<100")
             return ERRCODE.INPUT_ERROR
 
-        if (common.N_PH > 36):
+        if (comm.N_PH > 36):
             print("The number of sampling phi are too huge! It should be theta*phi<100")
             return ERRCODE.INPUT_ERROR
 
         k = 0
 
-        for i in range(common.N_PH):
-            for j in range(common.N_TH):
-                if (common.ANG_T[j] > 80.0):
+        for i in range(comm.N_PH):
+            for j in range(comm.N_TH):
+                if (comm.ANG_T[j] > 80.0):
                     print("Zenith angle should be less than 80")
-                    print(str(common.ANG_T[j]) + " is ignored !")
+                    print(str(comm.ANG_T[j]) + " is ignored !")
                 else:
-                    common.UX_RC[k] = math.sin(math.radians(common.ANG_T[j])) * math.cos(math.radians(common.ANG_P[i]))
-                    common.UY_RC[k] = math.sin(math.radians(common.ANG_T[j])) * math.sin(math.radians(common.ANG_P[i]))
-                    common.UZ_RC[k] = math.cos(math.radians(common.ANG_T[j]))
+                    comm.UX_RC[k] = math.sin(math.radians(comm.ANG_T[j])) * math.cos(math.radians(comm.ANG_P[i]))
+                    comm.UY_RC[k] = math.sin(math.radians(comm.ANG_T[j])) * math.sin(math.radians(comm.ANG_P[i]))
+                    comm.UZ_RC[k] = math.cos(math.radians(comm.ANG_T[j]))
 
                     k += 1
 
-        common.N_ANG_C = k
+        comm.N_ANG_C = k
 
         self.process100()
 
@@ -565,11 +565,11 @@ class Parameters:
                     print(str(th[j]) + " is ignored !")
                 else:
                     k = k + 1
-                    common.UX_RTAB[k] = math.sin(math.radians(th[j])) * math.cos(math.radians(ph[i]))
-                    common.UY_RTAB[k] = math.sin(math.radians(th[j])) * math.sin(math.radians(ph[i]))
-                    common.UX_RTAB[k] = math.cos(math.radians(th[j]))
+                    comm.UX_RTAB[k] = math.sin(math.radians(th[j])) * math.cos(math.radians(ph[i]))
+                    comm.UY_RTAB[k] = math.sin(math.radians(th[j])) * math.sin(math.radians(ph[i]))
+                    comm.UX_RTAB[k] = math.cos(math.radians(th[j]))
 
-        common.N_RDC = k
+        comm.N_RDC = k
         return ERRCODE.SUCCESS
 
     def readAtmParameters(self):
@@ -722,7 +722,7 @@ class Parameters:
 
             else:
                 # read z profile
-                common.Z_GRD = np.loadtxt("..\data\zgrd")
+                comm.Z_GRD = np.loadtxt("..\data\zgrd")
                 print("atmType: Atmospheric profile")
                 print(" 1: Tropical")
                 print(" 2: Mid latitude summer")
@@ -856,14 +856,14 @@ class Parameters:
                         print("Input error !!")
                         return ERRCODE.INPUT_ERROR
 
-                    for i in range(common.N_Z):
-                        if (common.Z_GRD[i] < cbot):
+                    for i in range(comm.N_Z):
+                        if (comm.Z_GRD[i] < cbot):
                             self.cbnz = i
-                        if (common.Z_GRD[i] > ctop):
+                        if (comm.Z_GRD[i] > ctop):
                             self.ctnz = i
                             break
 
-                    print(common.Z_GRD[self.cbnz], common.Z_GRD[self.ctnz])
+                    print(comm.Z_GRD[self.cbnz], comm.Z_GRD[self.ctnz])
                     print("clouds are located between " + str(self.ctnz) + " and " + str(self.cbnz))
         return ERRCODE.SUCCESS
 

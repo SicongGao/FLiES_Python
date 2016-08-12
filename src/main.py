@@ -91,6 +91,7 @@ np.set_printoptions(threshold=1000)
 para = Parameters()
 gFunction = G_Function()
 errCode = gFunction.igtbl(para)
+para.nts = 2
 para.process202()
 errCode = idivspace.idivspace()
 print(common.Z_MAX)
