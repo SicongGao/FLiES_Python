@@ -88,6 +88,7 @@ def idivspace():
                     flag = 1
 
             # check the intersection for z - axis
+            # s: object[j] inter the voxel
             if (flag == 1):
                 if ((zu > c[4]) and (zu <= c[5])):
                     flag = 2
