@@ -98,6 +98,7 @@ def idivspace():
                     flag = 2
 
             # input data number for the ndivs & divs
+            # s: current voxel contains obj, then record
             if (flag == 2):
                 comm.N_DIVS[i] += 1
                 comm.DIVS[i][n] = j
