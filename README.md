@@ -1,6 +1,7 @@
 ﻿# FLiES_Python
 The FLiES (Forest Light Environmental Simulator) is designed to calculate forest light environmental parameters such as reflectance, absorbed light, transmitted light in the 3D heterogeneous landscape.
-Developed by Kobayashi, H
+
+Developed by Kobayashi, H.
 
 Translated FLiES from Fortran to Python.
 

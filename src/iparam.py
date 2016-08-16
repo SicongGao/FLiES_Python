@@ -82,7 +82,6 @@ class Parameters:
         self.initParameters()
 
     def initParameters(self):
-
         comm.N_Z = 12  # of layers
         comm.X_MAX = comm.Y_MAX = 30.0  # X domain size (m), Y domain size (m)
         comm.RES = comm.SIZE / comm.X_MAX  # inverse of the spatial resolution
