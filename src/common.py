@@ -80,12 +80,12 @@ UZ_RC = [0.0] * K_NRDC
 RB = 0.5
 
 # scattering angle parameters
-G_MRC = np.zeros(19 * 19 * 37, dtype=float).reshape(19, 19, 37)
-G_MTC = np.zeros(19 * 19 * 37, dtype=float).reshape(19, 19, 37)
-G_MRB = np.zeros(19 * 19 * 37, dtype=float).reshape(19, 19, 37)
-G_MTB = np.zeros(19 * 19 * 37, dtype=float).reshape(19, 19, 37)
-G_MRF = np.zeros(19 * 19 * 37, dtype=float).reshape(19, 19, 37)
-G_MTF = np.zeros(19 * 19 * 37, dtype=float).reshape(19, 19, 37)
+G_MRC = np.zeros(20 * 20 * 38, dtype=float).reshape(20, 20, 38)
+G_MTC = np.zeros(20 * 20 * 38, dtype=float).reshape(20, 20, 38)
+G_MRB = np.zeros(20 * 20 * 38, dtype=float).reshape(20, 20, 38)
+G_MTB = np.zeros(20 * 20 * 38, dtype=float).reshape(20, 20, 38)
+G_MRF = np.zeros(20 * 20 * 38, dtype=float).reshape(20, 20, 38)
+G_MTF = np.zeros(20 * 20 * 38, dtype=float).reshape(20, 20, 38)
 
 # BACK TRACE
 N_B = B_G = 0

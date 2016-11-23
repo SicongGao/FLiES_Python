@@ -4,7 +4,7 @@ import math
 def test():
     R = 0.5
     inside = 0
-    allNum = 9000000
+    allNum = 10000
     for i in range(allNum):
         rX = random.uniform(0, 1)
         rY = random.uniform(0, 1)

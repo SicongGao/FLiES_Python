@@ -3,7 +3,8 @@ from iparam import Parameters
 import numpy as np
 import ERRCODE
 from G_Function import G_Function
-import idivspace
+from ipf import ipf
+from idivspace import idivspace
 
 # only in main
 knmix = 10
@@ -74,25 +75,35 @@ def main():
             return errCode
 
         print("idivspace")      # Initialize space division
-        # idivspace
+        errCode = idivspace.idivspace()
+
         print("ipf")            # LUT for phase function
-        # ipf
+        ipf()
+
+    # fish eye image at the forest floor
+    # call local estimation for fish eye image
+    if (para.nPhoton == -4):
+        tgx = int(input("Input the x, y position of view\n"))
+        tgy = int(input())
 
 
 
-    print(phs[0, 0], phs[0][0])
     return ERRCODE.SUCCESS
 
 
 
 # ##################################################################
-# errCode = main()
-np.set_printoptions(threshold=1000)
-para = Parameters()
-gFunction = G_Function()
-errCode = gFunction.igtbl(para)
-para.nts = 2
-para.process202()
-errCode = idivspace.idivspace()
-print(common.Z_MAX)
-ERRCODE.printMessage(errCode)
+# # errCode = main()
+# np.set_printoptions(threshold=1000)
+# para = Parameters()
+# gFunction = G_Function()
+# errCode = gFunction.igtbl(para)
+# para.nts = 2
+# para.process202()
+# errCode = idivspace.idivspace()
+# print(common.Z_MAX)
+# ERRCODE.printMessage(errCode)
+
+a = int(input("Input the x, y position of view\n"))
+b = int(input())
+print(a, b)
