@@ -27,6 +27,16 @@ class TreeBoundary:
     # and cone external boundary
     ############################################################
 
+    def dealTreeType(self, treeType, x, y, z, ux, uy, uz, tobj):
+        if (treeType == 1):
+            self.cones(x, y, z, ux, uy, uz, tobj)
+        elif (treeType == 2) or (treeType == 4):
+            self.cyls(x, y, z, ux, uy, uz, tobj)
+        elif (treeType == 3):
+            self.elpss(x, y, z, ux, uy, uz, tobj)
+        elif (treeType == 5):
+            self.helpss(x, y, z, ux, uy, uz, tobj)
+
     def cones(self, x, y, z, ux, uy, uz, tobj):
 
         # Parameter Definition

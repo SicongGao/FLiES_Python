@@ -5,6 +5,8 @@ import ERRCODE
 from G_Function import G_Function
 from ipf import ipf
 from idivspace import idivspace
+from clai import CLAI
+import datetime
 
 # only in main
 knmix = 10
@@ -69,13 +71,13 @@ def main():
     if (para.surfaceType == 2):
         print("G-function")     # G-function LUT
         gFunction = G_Function()
-        errCode = gFunction.igtbl(para)
+        errCode = gFunction.igtbl()
 
         if errCode:
             return errCode
 
         print("idivspace")      # Initialize space division
-        errCode = idivspace.idivspace()
+        errCode = idivspace()
 
         print("ipf")            # LUT for phase function
         ipf()
@@ -86,8 +88,23 @@ def main():
         tgx = int(input("Input the x, y position of view\n"))
         tgy = int(input())
 
+        # to be continue, not important
 
+        return ERRCODE.SUCCESS
 
+    #  LAI calculation
+    if (para.nPhoton == -5):
+        # spn = float(input("input sampling grid (m), suggested value is 0.1 (m)\n"))
+        # debug
+        spn = 0.1
+        cLAI = CLAI()
+        cLAI.calLAI(spn)
+
+        print("LAI = ", cLAI.LAI)
+        print("Crown cover = ", cLAI.crownCover)
+        print("pLAI is")
+        print(cLAI.pLAI)
+        print("Finish print LAI.")
     return ERRCODE.SUCCESS
 
 
@@ -103,7 +120,18 @@ def main():
 # errCode = idivspace.idivspace()
 # print(common.Z_MAX)
 # ERRCODE.printMessage(errCode)
+# import math
+# time.sleep(2)
 
-a = int(input("Input the x, y position of view\n"))
-b = int(input())
-print(a, b)
+# a = np.zeros((6 + 1) * (6 + 1), dtype=float).reshape((6 + 1), (6 + 1))
+#
+# print(a[1][1])
+# print(a[1, 1])
+
+START_TIME = datetime.datetime.now()
+
+errCode = main()
+ERRCODE.printMessage(errCode)
+
+END_TIME = datetime.datetime.now()
+print("TIME USED (HOURS, MINUTES, SECONDS): ", (END_TIME - START_TIME))

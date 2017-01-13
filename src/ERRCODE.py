@@ -4,13 +4,15 @@ FAILURE = 1
 OUT_OF_RANGE = 2
 INPUT_ERROR = 3
 CALCULATE_ERROR = 4
+CANNOT_FIND = 5
 
 # Error messages
 ERR_MESSAGE = ["Run Success!",
                "Run Failure!",
                "Input number out of range!",
                "Input Error!",
-               "Calculate Error!"]
+               "Calculate Error!",
+               "Cannot Find"]
 
 
 def printMessage(itr):

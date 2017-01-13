@@ -192,15 +192,19 @@ class Parameters:
         umax = 0.0
 
         print("u: leaf area density 1,2,3...# tree species")
-        for i in range(self.nts):
-            comm.U[i] = float(input())
+        # for i in range(self.nts):
+        #     comm.U[i] = float(input())
+        # debug
+        comm.U[1] = 1
 
         if (not((self.nPhoton == -4) or (self.nPhoton == -5))):
             comm.G_LAI = float(input("gLAI: forest floor LAI\n"))
 
         print("BAD: branch area density 1,2,3... # of tree species")
-        for i in range(self.nts):
-            comm.BAD[i] = float(input())
+        # for i in range(self.nts):
+        #     comm.BAD[i] = float(input())
+        # debug
+        comm.BAD[1] = 1
 
         for i in range(self.nts):
             if ((comm.U[i] < 0.0) or (comm.U[i] > 8.0)):
@@ -217,8 +221,10 @@ class Parameters:
             print("sbar: Spherical ave. shoot silhouette to total needle area ratio")
             print("1,2,3... # of tree species (0.0-0.25)")
             print("For broadleaves, please input 0.25")
-            for i in range(self.nts):
-                comm.S_BAR = float(input())
+            # for i in range(self.nts):
+            #     comm.S_BAR[i] = float(input())
+            # debug
+            comm.S_BAR[1] = 0.25
 
         umax = comm.U[0]
         for i in range(1, self.nts):
@@ -255,9 +261,9 @@ class Parameters:
 
         obj_nt = comm.N_OBJ
         for i in range(len(result)):
-            comm.S_OBJ[i] = result[i][0]
+            comm.S_OBJ[i] = int(result[i][0])
             comm.OBJ[i][0:5] = result[i][1: 6]
-            comm.I_OBJ[i] = result[i][6]
+            comm.I_OBJ[i] = int(result[i][6])
             if (result[i][0] != 4):
                 if ((result[i][4] < 0.01) or (result[i][5] < 0.01)):
                     print(str(i + 1) + "th canopy neglected!")
@@ -308,6 +314,7 @@ class Parameters:
 
                         if (((min < p1) and (max > p1)) or
                                 ((min < p2) and (max > p2))):
+
                             comm.N_OBJ += 1
 
                             n = comm.N_OBJ
@@ -327,6 +334,7 @@ class Parameters:
                         rr = math.sqrt(rx * rx + ry * ry)
 
                         if (rr <= comm.OBJ[j, 4]):
+
                             comm.N_OBJ += 1
 
                             n = comm.N_OBJ
@@ -359,7 +367,9 @@ class Parameters:
     def process201(self):
         ispc = 0
         # get the number of forest species
-        self.nts = int(input("nts: # of group of tree species\n"))
+        #self.nts = int(input("nts: # of group of tree species\n"))
+        # debug
+        self.nts = 1
         if ((self.nPhoton == -4) or (self.nPhoton == -5)):
             return self.process202()
 
@@ -457,11 +467,13 @@ class Parameters:
     def readVegParameters(self):
 
         if ((self.nPhoton == -4) or (self.nPhoton == -5)):
-            self.process201()
+            return self.process201()
 
         # input output mode
         print("cmode: calculation mode")
-        self.cloudType = int(input("1: BRF only 2: BRF Nadir Image 3: 3D APAR\n"))
+        #self.cloudType = int(input("1: BRF only 2: BRF Nadir Image 3: 3D APAR\n"))
+        # debug
+        self.cloudType = 3
 
         if ((self.cloudType <= 0) or (self.cloudType >= 4)):
             print("Bad mode selection exit")
@@ -867,7 +879,9 @@ class Parameters:
         return ERRCODE.SUCCESS
 
     def readParameters(self):
-        self.nPhoton = int(input("np: Input number of photon\n"))
+        #self.nPhoton = int(input("np: Input number of photon\n"))
+        # debug
+        self.nPhoton = -5
 
         # fish eye simulation mode
         if (self.nPhoton == -4):
