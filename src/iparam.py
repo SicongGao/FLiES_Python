@@ -46,7 +46,7 @@ class Parameters:
     nPhotonProcess = 1
 
     # read parameters
-    nPhoton = nmix = amode = imode = cmode = surfaceType = 0
+    nPhoton = nmix = AtmMode = imode = cmode = surfaceType = 0
     dif = phi = th = ph = tgx = tgy = 0.0
     wq = sinf0 = cosf0 = cosq0 = sinq0 = 0
 
@@ -538,7 +538,9 @@ class Parameters:
         ph = [0] * 36
 
         # solar zenith angle
-        self.th0 = float(input("the0: Solar zenith angle(degree)\n"))
+        # debug
+        self.th0 = 60.0
+        #self.th0 = float(input("the0: Solar zenith angle(degree)\n"))
         q0 = math.pi - math.radians(self.th0)
 
         if (self.ph0 <= math.pi):
@@ -551,22 +553,28 @@ class Parameters:
         sin_fo = math.sin(f0)
         cos_fo = math.cos(f0)
 
-        if (self.amode == 2):
+        if (self.AtmMode == 2):
             return
 
         # radiance smapling angle
         print("Radiance at the bottom atmospheric boundary")
         print("ntha, th: # of angle and zenith angle(degree,max 18)")
         print("ex. 5 100. 120. 140. 160. 170.")
-        ntha = int(input())
-        for i in range(ntha):
-            th[i] = int(input())
+        # debug
+        ntha = 1
+        th[1] = 1
+        # ntha = int(input())
+        # for i in range(ntha):
+        #     th[i] = int(input())
 
         print("npha, ph: # of angle and azimuth angle(degree,max 36)")
         print("ex. 3 0. 90. 180.")
-        npha = int(input())
-        for i in range(npha):
-            ph[i] = int(input())
+        # debug
+        npha = 1
+        ph[1] = 1
+        # npha = int(input())
+        # for i in range(npha):
+        #     ph[i] = int(input())
 
         k = 0
         for i in range(1,npha):
@@ -600,7 +608,7 @@ class Parameters:
 
         ch = ["", "hi", "lo", "lo"]
 
-        if (self.amode == 2):
+        if (self.AtmMode == 2):
             # "Only monochro wavelength calculation!"
             imode = 1
             self.RF = 1000.0
@@ -609,7 +617,9 @@ class Parameters:
             self.nwl = 1
 
         else:
-            imode = int(input("imode: Integration mode 1:Monochro 2:PAR 3:SW\n"))
+            # debug
+            imode = 2
+            #imode = int(input("imode: Integration mode 1:Monochro 2:PAR 3:Snow\n"))
             if ((imode < 0) or (imode > 4)):
                 print("Mode ERR: number should less than 4 and larger than 0.")
                 return ERRCODE.INPUT_ERROR
@@ -617,29 +627,29 @@ class Parameters:
             elif (imode == 1):
                 self.wl0 = float(input("wl0:wavelength (micron ex 0.55)\n"))
                 self.wls = 0.2
-                self.nwl = int(round(4.0 - 0.3) / self.span[1])
+                self.nwl = int(round((4.0 - 0.3) / self.span[1]))
                 npl[1] = self.nPhotonProcess
 
             elif (imode == 2):
                 self.wls = 0.4
-                self.nwl = int(round(0.7 - 0.4) / self.span[1])
+                self.nwl = int(round((0.7 - 0.4) / self.span[1]))
                 self.RF = parF
                 self.RQ = parQ
 
             elif (imode == 3):
                 self.wls = 0.3
-                self.nwl = int(round(0.7 - 0.3) / self.span[1])
+                self.nwl = int(round((0.7 - 0.3) / self.span[1]))
                 self.nwl += int((4.0 - 0.7) / (5.0 * self.span[1]))
                 self.RF = swF
                 self.RQ = swQ
 
             # read solar radiation
             contentFile = np.loadtxt("..\data\solar_rad")
-            for i in range(len(contentFile)):
+            nspc = len(contentFile)
+            for i in range(nspc):
                 wl0d.append(contentFile[i][0])
                 spcdf.append(contentFile[i][1])
                 spcdq.append(contentFile[i][2])
-            nspc = len(contentFile)
 
             # search a spectral irradiance data in monochromatic calculation
             j = 1
@@ -664,8 +674,8 @@ class Parameters:
                             spcf[j] += spcdf[i + k]
                             spcq[j] += spcdq[i + k]
 
-                        spcf[j] /= self.span[1] * 1000
-                        spcq[j] /= self.span[1] * 1000
+                        spcf[j] /= self.span[1] * 1000.0
+                        spcq[j] /= self.span[1] * 1000.0
                         j += 1
 
                         if (j> self.nwl):
@@ -701,31 +711,31 @@ class Parameters:
                             wlsd += 5.0 * self.span[1]
 
             # make input photon weight for each wavelength
-            dum = 0.0
+            sum = 0.0
 
             for i in range(self.nwl + 1):
                 if (i < 20):
-                    dum += spcf[i]
+                    sum += spcf[i]
                 else:
-                    dum += spcf[i] * 5.0
+                    sum += spcf[i] * 5.0
 
             for i in range(self.nwl):
                 if (i < 20):
-                    npl[i] = int(float(self.nPhotonProcess) * spcf[i] / dum)
+                    npl[i] = round(float(self.nPhotonProcess) * spcf[i] / sum)
                 else:
-                    npl[i] = int(float(self.nPhotonProcess) * 5.0 * spcf[i] / dum)
+                    npl[i] = round(float(self.nPhotonProcess) * 5.0 * spcf[i] / sum)
 
-            dum = 0.0
+            sum = 0.0
 
             for i in range(self.nwl):
-                dum += npl[i]
+                sum += npl[i]
 
-            self.nPhotonProcess = int(dum)
+            self.nPhotonProcess = int(sum)
             self.nPhoton = self.nPhotonProcess * self.Nprocess
             print("Actural number of photon is: " + str(self.nPhoton))
 
             # with/without atmospheric
-            if (self.amode == 2):
+            if (self.AtmMode == 2):
                 self.atmType = 0
                 self.aerosolType = 0
                 self.taur = 0.0
@@ -881,7 +891,7 @@ class Parameters:
     def readParameters(self):
         #self.nPhoton = int(input("np: Input number of photon\n"))
         # debug
-        self.nPhoton = -5
+        self.nPhoton = 10
 
         # fish eye simulation mode
         if (self.nPhoton == -4):
@@ -910,9 +920,11 @@ class Parameters:
         self.nPhotonProcess = int(self.nPhoton / self.Nprocess)
 
         # Atmospheric mode
-        self.amode = int(input("amode: 1:atmospheric mode, 2: without atmospheric\n"))
+        # debug
+        self.AtmMode = 1
+        #self.AtmMode = int(input("AtmMode: 1:atmospheric mode, 2: without atmospheric\n"))
 
-        if (self.amode == 2):
+        if (self.AtmMode == 2):
             self.dif = int(input("dif: Input frac. of diffuse radiation (0-1)\n"))
             if ((self.dif < 0.0) or (self.dif > 1.0)):
                 print("fraction of diffuse should be 0.0-1.0... exit ")
