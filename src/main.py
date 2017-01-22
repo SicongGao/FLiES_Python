@@ -7,6 +7,8 @@ from ipf import ipf
 from idivspace import idivspace
 from clai import CLAI
 import datetime
+import Random
+from math import *
 
 # only in main
 knmix = 10
@@ -29,6 +31,7 @@ phs = np.zeros(knmix * knang, dtype=float).reshape(knmix, knang)
 ext = np.zeros(knmix * knzext, dtype=float).reshape(knmix, knzext)
 
 MIN_VALUE = 1.0e-8
+MIN_UZ = 0.0174524
 
 # photon data
 nscat = nscata = ichi = ikd = 0
@@ -41,12 +44,17 @@ Nid = 0
 Nprod = 1  # comm.T_SIN[-1] = 5
 # print(comm.T_SIN)
 
+random = Random()
 
 def simulateATM():
     return ERRCODE.SUCCESS
 
 
 def simulateNoATM(para):
+
+    global ux, uy, uz, x, y, z
+    global nscat, nscata
+    #global th, ph
 
     for iPhoton in range(para.nPhotonProcess):
 
@@ -56,14 +64,45 @@ def simulateNoATM(para):
         ikd = 0     # initialization of CDK (correlated k-dist)
 
         #  selection of beam or diffuse flux
-        if (0):
+        if (random.getRandom() > para.diffuse):
             # beam
-            return
+            ux = para.sinq0 * para.cosf0
+            uy = para.sinq0 * para.sinf0
+            uz = para.cosq0
+
+            if (abs(uz) < MIN_UZ):
+                uz = copyright(MIN_UZ, uz)
+
+            nscat = 0
+            nscata = nscat
+
         else:
             # diffuse
-            return
+            th = 0.5 * pi + 0.5 * acos(1.0 - 2.0 * random.getRandom())
+            ph = 2.0 * pi * random.getRandom()
+
+            ux = sin(th) * cos(ph)
+            uy = sin(th) * sin(ph)
+            uz = cos(th)
+
+            if (abs(uz) < MIN_UZ):
+                uz = copyright(MIN_UZ, uz)
+
+            nscat = 1
+            nscata = nscat
 
         # initial position (x, y)
+        x = comm.X_MAX * random.getRandom()
+        y = comm.Y_MAX * random.getRandom()
+        print("Initial potion x = ", x, ", y = ", y)
+
+        para.tflx += w
+        para.tpfd += w * para.wq
+
+        para.bflx += w * (1.0 - min(float(nscat), 1.0))
+        para.bpfd += w * para.wq * (1.0 - min(float(nscat), 1.0))
+        para.dflx += w * (1.0 - min(float(nscat), 1.0))
+        para.dpfd += w * para.wq * (1.0 - min(float(nscat), 1.0))
 
         # surface reflection
 
@@ -187,6 +226,9 @@ def main():
 # print(a[1][1])
 # print(a[1, 1])
 
+# #################################################################
+# TEST
+# #################################################################
 START_TIME = datetime.datetime.now()
 
 err = main()
@@ -194,4 +236,6 @@ ERRCODE.printMessage(err)
 
 END_TIME = datetime.datetime.now()
 print("TIME USED (HOURS, MINUTES, SECONDS): ", (END_TIME - START_TIME))
+
+
 

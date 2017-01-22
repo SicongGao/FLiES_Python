@@ -47,7 +47,7 @@ class Parameters:
 
     # read parameters
     nPhoton = nmix = AtmMode = imode = cmode = surfaceType = 0
-    dif = phi = th = ph = tgx = tgy = 0.0
+    diffuse = phi = th = ph = tgx = tgy = 0.0
     wq = sinf0 = cosf0 = cosq0 = sinq0 = 0
 
     npl = [0] * 200
@@ -925,8 +925,8 @@ class Parameters:
         #self.AtmMode = int(input("AtmMode: 1:atmospheric mode, 2: without atmospheric\n"))
 
         if (self.AtmMode == 2):
-            self.dif = int(input("dif: Input frac. of diffuse radiation (0-1)\n"))
-            if ((self.dif < 0.0) or (self.dif > 1.0)):
+            self.diffuse = int(input("diffuse: Input frac. of diffuse radiation (0-1)\n"))
+            if ((self.diffuse < 0.0) or (self.diffuse > 1.0)):
                 print("fraction of diffuse should be 0.0-1.0... exit ")
                 return ERRCODE.INPUT_ERROR
 
