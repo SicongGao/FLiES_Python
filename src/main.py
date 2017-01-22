@@ -71,7 +71,7 @@ def simulateNoATM(para):
             uz = para.cosq0
 
             if (abs(uz) < MIN_UZ):
-                uz = copyright(MIN_UZ, uz)
+                uz = copysign(MIN_UZ, uz)
 
             nscat = 0
             nscata = nscat
@@ -86,7 +86,7 @@ def simulateNoATM(para):
             uz = cos(th)
 
             if (abs(uz) < MIN_UZ):
-                uz = copyright(MIN_UZ, uz)
+                uz = copysign(MIN_UZ, uz)
 
             nscat = 1
             nscata = nscat
@@ -120,7 +120,7 @@ def main():
         print("Forest Light Environmental Simulator (FLiES) ")
         print("                         by Hideki Kobayashi ")
         print("        Special thanks to Hironobu Iwabuchi  ")
-        print("                      Since Ver2.00 2008/5/1  ")
+        print("                      Since Ver2.00 2008/5/1 ")
         print("*********************************************")
 
     # ---- Preparation of the initial condition -------
