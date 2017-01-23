@@ -14,23 +14,23 @@ class Planes:
     x = 0.0
     y = 0.0
     z = 0.0
-    solution = 0.0
+    distance = 0.0
 
     def deal_X_Y_Plane(self, x0, y0, z0, ux, uy, uz, x1, y1, z1, intv):
 
-        solutionBottom = (z1 - z0) / uz
-        solutionUpper = (z1 - z0 + intv[3]) / uz
+        distanceBottom = (z1 - z0) / uz
+        distanceUpper = (z1 - z0 + intv[3]) / uz
 
-        if (solutionBottom > solutionUpper):
-            self.solution = solutionBottom
+        if (distanceBottom > distanceUpper):
+            self.distance = distanceBottom
             self.face = 5
         else:
-            self.solution = solutionUpper
+            self.distance = distanceUpper
             self.face = 6
 
-        self.x = x0 + self.solution * ux
+        self.x = x0 + self.distance * ux
         if((self.x >= x1) and (self.x <= x1 + intv[1])):
-            self.y = y0 + self.solution * uy
+            self.y = y0 + self.distance * uy
             if ((self.y >= y1) and (self.y <= y1 + intv[2])):
                 print("In x - y plane")
                 return ERRCODE.SUCCESS
@@ -39,19 +39,19 @@ class Planes:
 
     def deal_Y_Z_Plane(self, x0, y0, z0, ux, uy, uz, x1, y1, z1, intv):
 
-        solutionBottom = (x1 - x0) / ux
-        solutionUpper = (x1 - x0 + intv[1]) / ux
+        distanceBottom = (x1 - x0) / ux
+        distanceUpper = (x1 - x0 + intv[1]) / ux
 
-        if (solutionBottom > solutionUpper):
-            self.solution = solutionBottom
+        if (distanceBottom > distanceUpper):
+            self.distance = distanceBottom
             self.face = 1
         else:
-            self.solution = solutionUpper
+            self.distance = distanceUpper
             self.face = 2
 
-        self.y = y0 + self.solution * uy
+        self.y = y0 + self.distance * uy
         if((self.y >= y1) and (self.y <= y1 + intv[2])):
-            self.z = z0 + self.solution * uz
+            self.z = z0 + self.distance * uz
             if ((self.z >= z1) and (self.z <= z1 + intv[3])):
                 print("In y - z plane")
                 return ERRCODE.SUCCESS
@@ -60,19 +60,19 @@ class Planes:
 
     def deal_X_Z_Plane(self, x0, y0, z0, ux, uy, uz, x1, y1, z1, intv):
 
-        solutionBottom = (y1 - y0) / uy
-        solutionUpper = (y1 - y0 + intv[2]) / uy
+        distanceBottom = (y1 - y0) / uy
+        distanceUpper = (y1 - y0 + intv[2]) / uy
 
-        if (solutionBottom > solutionUpper):
-            self.solution = solutionBottom
+        if (distanceBottom > distanceUpper):
+            self.distance = distanceBottom
             self.face = 3
         else:
-            self.solution = solutionUpper
+            self.distance = distanceUpper
             self.face = 4
 
-        self.z = z0 + self.solution * uz
+        self.z = z0 + self.distance * uz
         if ((self.z >= z1) and (self.z <= z1 + intv[3])):
-            self.x = x0 + self.solution * ux
+            self.x = x0 + self.distance * ux
             if ((self.x >= x1) and (self.x <= x1 + intv[1])):
                 print("In x - z plane")
                 return ERRCODE.SUCCESS
@@ -85,11 +85,11 @@ class Planes:
     # (x1, y1, z1) are minimum position of cubic apex
     # intv(1):x0, intv(2):y0, intv(3):z0
     ###############################################################
-    def calPlanes(self, s, x0, y0, z0, ux, uy, uz, x1, y1, z1, intv):
+    def calPlanes(self, d, x0, y0, z0, ux, uy, uz, x1, y1, z1, intv):
 
         errCode = 0
         MIN_VALUE = 1.0e-6
-        self.solution = s
+        self.distance = d
 
         self.x = self.y = self.z = 0.0
 

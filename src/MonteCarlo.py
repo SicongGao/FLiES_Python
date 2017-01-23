@@ -1,6 +1,31 @@
 import random
 import math
 
+class MonteCarlo:
+
+    def __init__(self):
+        return
+
+    def stem(self):
+        return
+
+    def canopy(self):
+        return
+
+    def floor(self):
+        return
+
+
+
+
+
+
+
+# ###################
+# FOR TEST
+# ###################
+
+
 def test():
     R = 0.5
     inside = 0

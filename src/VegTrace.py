@@ -5,6 +5,15 @@ from Planes import Planes
 from TreeBoundary import TreeBoundary
 from G_Function import G_Function
 
+# #####################################################
+# simulate the optical thickness in the canopy
+# along the photon trajectory
+#
+# Written by H. Kobayashi
+# Last modified 08/04/02
+# #####################################################
+
+
 class VegTrace:
 
     sFlag = 1
@@ -20,8 +29,8 @@ class VegTrace:
         conv = 1.0e-8
 
         # initial distance from object
-        solution = 1.0e5
-        sp = 1.0e5
+        distanceObj = 1.0e5
+        distancePho = 1.0e5
 
         # sflg: stem flag = 0 stem collision, 1 = no stem
         self.sFlag = 1
@@ -38,7 +47,7 @@ class VegTrace:
         oFace = pFace = 0
         rb12 = 1.0
         io = io2 = io12 = 0
-        solution2 = solution12 = 0.0
+        distance2 = distance12 = 0.0
 
         intv = [50.0 / comm.RES] * 4
 
@@ -61,9 +70,9 @@ class VegTrace:
             y1 = trunc(y0 / intv[2])
             z1 = trunc(z0 / intv[3])
 
-            iVox = comm.IX_MAX * comm.IY_MAX * int(z1)
-            iVox += int(y1) * comm.IY_MAX
-            iVox += int(x1) + 1
+            iVOX = comm.IX_MAX * comm.IY_MAX * int(z1)
+            iVOX += int(y1) * comm.IY_MAX
+            iVOX += int(x1) + 1
 
             x1 *= intv[1]
             y1 *= intv[2]
@@ -74,8 +83,8 @@ class VegTrace:
             index = -1
 
             # check the photon intersection with big-voxel walls
-            errCode = planes.calPlanes(sp, x0, y0, z0, uxr, uyr, uzr, x1, y1, z1, intv)
-            sp = planes.solution
+            errCode = planes.calPlanes(x0, y0, z0, uxr, uyr, uzr, x1, y1, z1, intv)
+            distancePho = planes.distance
             if (errCode == ERRCODE.CANNOT_FIND):
                 # update the x0, y0, z0
                 x0 = planes.x
@@ -83,23 +92,23 @@ class VegTrace:
                 z0 = planes.z
 
             # check the photon intersection with objects
-            if (comm.N_DIVS[iVox] != 0):
+            if (comm.N_DIVS[iVOX] != 0):
 
-                solution = 1.0e5
-                for idiv in range(1, comm.N_DIVS[iVox]):
+                distanceObj = 1.0e5
+                for idiv in range(1, comm.N_DIVS[iVOX]):
 
-                    index = comm.DIVS[iVox][idiv]
+                    index = comm.DIVS[iVOX][idiv]
 
                     for l in range(1, 6):
                         tobj[l] = comm.OBJ[index][l-1]
 
                     treeBoundary.dealTreeType(comm.S_OBJ[index], x0, y0, z0, uxr, uyr, uzr, tobj)
 
-                    tempSolution = treeBoundary.solution
+                    tempDistance = treeBoundary.distance
                     tempIO = treeBoundary.io
 
-                    if (tempSolution < solution):
-                        solution = tempSolution
+                    if (tempDistance < distanceObj):
+                        distanceObj = tempDistance
                         iNobj = index
                         io = tempIO
 
@@ -107,9 +116,9 @@ class VegTrace:
                         break
 
                 # if stem collision, return
-                if (comm.S_OBJ[iNobj] == 4) and (solution < 1.0e5):
+                if (comm.S_OBJ[iNobj] == 4) and (distanceObj < 1.0e5):
                     self.sFlag = 0
-                    return
+                    return ERRCODE.FAILURE
 
             # increment of the optical path
             if (io == 0):
@@ -128,29 +137,29 @@ class VegTrace:
 
                 treeBoundary.dealTreeType(comm.S_OBJ[index], x0, y0, z0, uxr, uyr, uzr, tobj)
                 io2 = treeBoundary.io
-                solution2 = treeBoundary.solution
+                distance2 = treeBoundary.distance
 
                 treeBoundary.dealTreeType(comm.S_OBJ[index], x0, y0, z0, uxr, uyr, uzr, tobj12)
                 io12 = treeBoundary.io
-                solution12 = treeBoundary.solution
+                distance12 = treeBoundary.distance
 
                 # if outside of branch (io12 = 1) go into the branch
                 if (io12 == 1):
-                    xb = x0 + (solution12 + mgn) * uxr
-                    yb = y0 + (solution12 + mgn) * uyr
-                    zb = z0 + (solution12 + mgn) * uzr
+                    xb = x0 + (distance12 + mgn) * uxr
+                    yb = y0 + (distance12 + mgn) * uyr
+                    zb = z0 + (distance12 + mgn) * uzr
 
                     treeBoundary.dealTreeType(comm.S_OBJ[index], xb, yb, zb, uxr, uyr, uzr, tobj12)
-                    solution12 = treeBoundary.solution
+                    distance12 = treeBoundary.distance
 
                 # if outside of branch (io2 = 1) go into the branch
                 if (io2 == 1):
-                    xb = x0 + (solution2 + mgn) * uxr
-                    yb = y0 + (solution2 + mgn) * uyr
-                    zb = z0 + (solution2 + mgn) * uzr
+                    xb = x0 + (distance2 + mgn) * uxr
+                    yb = y0 + (distance2 + mgn) * uyr
+                    zb = z0 + (distance2 + mgn) * uzr
 
                     treeBoundary.dealTreeType(comm.S_OBJ[index], xb, yb, zb, uxr, uyr, uzr, tobj12)
-                    solution2 = treeBoundary.solution
+                    distance2 = treeBoundary.distance
 
                 ################################
                 # calculation of optical path
@@ -164,21 +173,21 @@ class VegTrace:
                 cf = comm.S_BAR[comm.I_OBJ[index]]
                 cf12 = comm.S_BAR[comm.I_OBJ[index]]
 
-                taub = rio * (solution2 + mgn) * comm.BAD[comm.I_OBJ[index]] * gFunction.GT_BLB[ith] * comm.BP2
-                taub += rio * (solution2 + mgn) * comm.U[comm.I_OBJ[index]] * gFunction.GT_BLC[ith] * 4.0 * cf * (1.0 - comm.BP2)
+                taub = rio * (distance2 + mgn) * comm.BAD[comm.I_OBJ[index]] * gFunction.GT_BLB[ith] * comm.BP2
+                taub += rio * (distance2 + mgn) * comm.U[comm.I_OBJ[index]] * gFunction.GT_BLC[ith] * 4.0 * cf * (1.0 - comm.BP2)
 
-                tauc12 = ((solution12 + mgn) - (solution12 + mgn) * rio) * rio12
+                tauc12 = ((distance12 + mgn) - (distance12 + mgn) * rio) * rio12
                 tauc12 = comm.U[comm.I_OBJ[index]] * gFunction.GT_BLC[ith] * 4.0 * cf12 * (1.0 - comm.BP1) \
                          + (comm.BAD[comm.I_OBJ[index]] * gFunction.GT_BLB[ith]) * comm.BP1
 
-                tauc = (solution + mgn) - (solution12 + mgn) * rio12
+                tauc = (distanceObj + mgn) - (distance12 + mgn) * rio12
                 tauc = comm.U[comm.I_OBJ[index]] * gFunction.GT_BLC[ith] * 4.0 * cf * (1.0 - comm.BP1) \
                          + (comm.BAD[comm.I_OBJ[index]] * gFunction.GT_BLB[ith]) * comm.BP1
 
                 self.tau += tauc + tauc12 + taub
 
             # refresh photon position
-            d = solution * (1.0 - float(io)) + min(solution, sp) * float(io)
+            d = distanceObj * (1.0 - float(io)) + min(distanceObj, distancePho) * float(io)
             x0 += (d + mgn) * uxr
             y0 += (d + mgn) * uyr
             z0 += (d + mgn) * uzr

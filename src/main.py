@@ -105,9 +105,18 @@ def simulateNoATM(para):
         para.dpfd += w * para.wq * (1.0 - min(float(nscat), 1.0))
 
         # surface reflection
+        if (para.surfaceType == 1):
+            # lambertian
 
-        # call the canopy radiation transfer module
+            return
+        else:
+            # 3D surface
 
+
+            # call the canopy radiation transfer module
+
+
+            return
 
 
     return ERRCODE.SUCCESS
@@ -136,7 +145,7 @@ def main():
     # Initialize math function
     print("imath")
 
-    # number the initial file read devide (5 for standard input)
+    # number the initial file read divide (5 for standard input)
     num = 5
 
     # Read required parameters

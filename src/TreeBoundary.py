@@ -7,7 +7,7 @@ class TreeBoundary:
 
     face = -1
     io = -1
-    solution = -1
+    distance = -1
     t1 = 1.0e5
     t2 = 1.0e5
     t3 = 1.0e5
@@ -16,7 +16,7 @@ class TreeBoundary:
     def __init__(self):
         face = -1
         io = -1
-        solution = -1
+        distance = -1
         t1 = 1.0e5
         t2 = 1.0e5
         t3 = 1.0e5
@@ -48,7 +48,7 @@ class TreeBoundary:
         # rp=(r/h)
         # face: the face of cylinder 1=side;2=bottom circle
         # d = quadratic judgements
-        # t1,t2,t3 = solution
+        # t1,t2,t3 = distance
 
         # we have to solve following eq.
         # a*t**2+b*t+c=0
@@ -85,7 +85,7 @@ class TreeBoundary:
             self.t2 = (-b + sqrt(d)) / (2.0 * a)
 
             # if t do not meet the following conditions,
-            # penalties are added in the solution.
+            # penalties are added in the distance.
 
             if (((cz - h - 1.0e-4) <= (z + self.t1 * uz))
                 and ((z + self.t1 * uz) <= (cz + 1.0e-4))):
@@ -123,9 +123,9 @@ class TreeBoundary:
             t = self.t3
             self.face = 2
 
-        # there is no solution, t = 1.0e5
-        self.solution = t
-        if (self.solution > 0.9e5):
+        # there is no distance, t = 1.0e5
+        self.distance = t
+        if (self.distance > 0.9e5):
             self.face = -1
 
         # inout check
@@ -138,7 +138,7 @@ class TreeBoundary:
             self.io = 1
 
         # prevent numerical error
-        if (self.solution > 1.0e5):
+        if (self.distance > 1.0e5):
             self.io = 1
 
         return ERRCODE.SUCCESS
@@ -153,7 +153,7 @@ class TreeBoundary:
         # cone height h and radius bottom circle r
         # face: the face of cylinder 1=side;2=bottom circle; 3=upper circle
         # d = quadratic judgements
-        # t1,t2,t3 = solution
+        # t1,t2,t3 = distance
 
         # we have to solve following eq.
         # a*t**2+b*t+c=0
@@ -189,7 +189,7 @@ class TreeBoundary:
             self.t2 = (-b + sqrt(d)) / (2.0 * a)
 
             # if t do not meet the following conditions,
-            # penalties are added in the solution.
+            # penalties are added in the distance.
 
             if (((cz - h - 1.0e-4) <= (z + self.t1 * uz))
                 and ((z + self.t1 * uz) <= (cz + 1.0e-4))):
@@ -240,9 +240,9 @@ class TreeBoundary:
             t = self.t4
             self.face = 3
 
-        # there is no solution, t = 1.0e5
-        self.solution = t
-        if (self.solution > 0.9e5):
+        # there is no distance, t = 1.0e5
+        self.distance = t
+        if (self.distance > 0.9e5):
             self.face = -1
 
         # inout check
@@ -253,7 +253,7 @@ class TreeBoundary:
             self.io = 1
 
         # prevent numerical error
-        if (self.solution > 1.0e5):
+        if (self.distance > 1.0e5):
             self.io = 1
 
         return ERRCODE.SUCCESS
@@ -268,7 +268,7 @@ class TreeBoundary:
         # radius for z-axis : r1
         # radius for x - y plane: r2
         # d = quadratic judgements
-        # t1,t2,t3 = solution
+        # t1,t2,t3 = distance
 
         # we have to solve following eq.
         # a*t**2+b*t+c=0
@@ -288,7 +288,7 @@ class TreeBoundary:
         r1Square = r1 ** 2
         r2Square = r2 ** 2
 
-        self.solution = 0.0
+        self.distance = 0.0
         elps = 0.0
 
         # init
@@ -322,13 +322,13 @@ class TreeBoundary:
             if (self.t2 < 0):
                 self.t2 = 1.0e5
 
-        self.solution = min(self.t1, self.t2)
+        self.distance = min(self.t1, self.t2)
 
         elps = (x - cx) ** 2 / r2Square
         elps += (y - cy) ** 2 / r2Square
         elps += (z - cz) ** 2 / r1Square
 
-        if ((elps < 1.0) and (self.solution < 1.0e5)):
+        if ((elps < 1.0) and (self.distance < 1.0e5)):
             self.io = 0
         else:
             self.io = 1
@@ -346,7 +346,7 @@ class TreeBoundary:
         # radius for z-axis : r1
         # radius for x - y plane: r2
         # d = quadratic judgements
-        # t1,t2,t3 = solution
+        # t1,t2,t3 = distance
 
         # we have to solve following eq.
         # a*t**2+b*t+c=0
@@ -369,7 +369,7 @@ class TreeBoundary:
         r1Square = r1 ** 2
         r2Square = r2 ** 2
 
-        self.solution = 0.0
+        self.distance = 0.0
         elps = 0.0
 
         # init
@@ -431,8 +431,8 @@ class TreeBoundary:
             t = self.t3
             self.face = 2
 
-        self.solution = t
-        if (self.solution > 0.9e5):
+        self.distance = t
+        if (self.distance > 0.9e5):
             self.face = -1
 
         # in out check
@@ -440,7 +440,7 @@ class TreeBoundary:
         elps += (y - cy) ** 2 / r2Square
         elps += (z - cz) ** 2 / r1Square
 
-        if ((elps < 1.0) and (self.solution < 1.0e5)):
+        if ((elps < 1.0) and (self.distance < 1.0e5)):
             self.io = 0
         else:
             self.io = 1
