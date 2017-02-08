@@ -44,4 +44,3 @@ def test():
     print("PI = ", PI)
     print("ERR = ", abs((math.pi - PI) / math.pi))
 
-test()

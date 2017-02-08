@@ -14,13 +14,13 @@ class TreeBoundary:
     t4 = 1.0e5
 
     def __init__(self):
-        face = -1
-        io = -1
-        distance = -1
-        t1 = 1.0e5
-        t2 = 1.0e5
-        t3 = 1.0e5
-        t4 = 1.0e5
+        self.face = -1
+        self.io = -1
+        self.distance = -1
+        self.t1 = 1.0e5
+        self.t2 = 1.0e5
+        self.t3 = 1.0e5
+        self.t4 = 1.0e5
 
     ############################################################
     # This routine calculates the distance between the (x,y,z)
@@ -105,12 +105,12 @@ class TreeBoundary:
 
         # if ray - line cross the bottom circle of the cone crown.
         uz = copysign(max(abs(uz), 1.0e-4), uz)
-        t3 = (cz - h - z) / uz
+        self.t3 = (cz - h - z) / uz
 
-        circle = (x + t3 * ux - cx) ** 2 +(y + t3 * uy - cy) ** 2
+        circle = (x + self.t3 * ux - cx) ** 2 +(y + self.t3 * uy - cy) ** 2
 
-        if ((t3 < 0) or (circle > r ** 2)):
-            t3 = 1.0e5
+        if ((self.t3 < 0) or (circle > r ** 2)):
+            self.t3 = 1.0e5
 
         # determination of the sb
         t = self.t1
