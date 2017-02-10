@@ -42,14 +42,14 @@ N_Z = N_CHI = N_RDC = 0
 
 # canopy common
 N_ANG_C = N_TH = N_PH = N_OBJ = 0
-I_OBJ = [0] * OBJ_NUM_MAX
-S_OBJ = [0] * OBJ_NUM_MAX
+I_OBJ = [0] * OBJ_NUM_MAX   # tree type group number
+T_OBJ = [0] * OBJ_NUM_MAX   # type of the tree object
 DIF_TYPE = DIR_FLAG = BOUND = 0
 REFL = np.zeros(2 * SIZE * SIZE, dtype=float).reshape(2, SIZE, SIZE)
 I_REFL = np.zeros(2 * SIZE * SIZE, dtype=int).reshape(2, SIZE, SIZE)
 M_C = M_B = M_F = N_TS = 0
 OBJ = np.zeros(OBJ_NUM_MAX * 5, dtype=float).reshape(OBJ_NUM_MAX, 5)
-S_BAR = [0.0] * 5
+S_BAR = [0.0] * 5   # index expressing degree of shoot clumping, always set to 0.25
 ANG_T = [0.0] * 100
 ANG_P = [0.0] * 100
 BRF = np.zeros(2 * 700, dtype=float).reshape(2, 700)

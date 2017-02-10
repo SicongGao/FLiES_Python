@@ -13,8 +13,7 @@ class Random:
     N_RAND = 1000
     cnt = 0
     randArray = [0] * 1260
-    originArr = [0] * 1260
-
+    # originArr = [0] * 1260
 
     # *******************************************************************
     # nrand: the number of random numbers which should be a
@@ -1498,14 +1497,4 @@ class Random:
         randomValue = self.randArray[self.cnt + MOVE] * self.A_NORM
         self.cnt += 1
         return randomValue
-
-
-
-
-
-
-
-
-
-
 

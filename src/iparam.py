@@ -421,7 +421,7 @@ class Parameters:
             comm.N_OBJ = int(file.readline())
 
             if (comm.N_OBJ == 0):
-                comm.N_OBJ = comm.S_OBJ = 1
+                comm.N_OBJ = comm.T_OBJ = 1
                 comm.OBJ[0, 0] = 0.01
                 comm.OBJ[0, 1] = 0.01
                 comm.OBJ[0, 2] = 0.01
@@ -434,7 +434,7 @@ class Parameters:
 
         obj_nt = comm.N_OBJ
         for i in range(len(result)):
-            comm.S_OBJ[i] = int(result[i][0])
+            comm.T_OBJ[i] = int(result[i][0])
             comm.OBJ[i][0:5] = result[i][1: 6]
             comm.I_OBJ[i] = int(result[i][6])
             if (result[i][0] != 4):
@@ -454,7 +454,7 @@ class Parameters:
 
         # change from height to radius
         for i in range(obj_nt):
-            if (comm.S_OBJ[i] == 3):
+            if (comm.T_OBJ[i] == 3):
                 comm.OBJ[i, 3] /= 2
 
         # in case periodic boundary
@@ -464,8 +464,8 @@ class Parameters:
         # preparation of the i-th grid for space divided method
         c = [0.0, comm.X_MAX, 0.0, comm.Y_MAX]
         cc = [0.0, 1.0, 0.0, 1.0]
-        min = 0.0
-        max = comm.X_MAX
+        iMin = 0.0
+        iMax = comm.X_MAX
 
         if (self.bound == 1):
             # set distance calculation parameters
@@ -485,8 +485,8 @@ class Parameters:
                         p1 = b[k] * xr + a[k] * yr - dd
                         p2 = b[k] * xr + a[k] * yr + dd
 
-                        if (((min < p1) and (max > p1)) or
-                                ((min < p2) and (max > p2))):
+                        if (((iMin < p1) and (iMax > p1)) or
+                                ((iMin < p2) and (iMax > p2))):
 
                             comm.N_OBJ += 1
 
@@ -497,7 +497,7 @@ class Parameters:
                             comm.OBJ[n, 3] = comm.OBJ[j, 3]
                             comm.OBJ[n, 4] = comm.OBJ[j, 4]
 
-                            comm.S_OBJ[n] = comm.S_OBJ[j]
+                            comm.T_OBJ[n] = comm.T_OBJ[j]
                             comm.I_OBJ[n] = comm.I_OBJ[j]
 
                 for k in range(2):
@@ -517,7 +517,7 @@ class Parameters:
                             comm.OBJ[n, 3] = comm.OBJ[j, 3]
                             comm.OBJ[n, 4] = comm.OBJ[j, 4]
 
-                            comm.S_OBJ[n] = comm.S_OBJ[j]
+                            comm.T_OBJ[n] = comm.T_OBJ[j]
                             comm.I_OBJ[n] = comm.I_OBJ[j]
 
             # determination of the epsi(epsiron) that is used to perform the

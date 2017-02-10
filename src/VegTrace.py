@@ -102,7 +102,7 @@ class VegTrace:
                     for l in range(1, 6):
                         tobj[l] = comm.OBJ[index][l-1]
 
-                    treeBoundary.dealTreeType(comm.S_OBJ[index], x0, y0, z0, uxr, uyr, uzr, tobj)
+                    treeBoundary.dealTreeType(comm.T_OBJ[index], x0, y0, z0, uxr, uyr, uzr, tobj)
 
                     tempDistance = treeBoundary.distance
                     tempIO = treeBoundary.io
@@ -116,7 +116,7 @@ class VegTrace:
                         break
 
                 # if stem collision, return
-                if (comm.S_OBJ[iNobj] == 4) and (distanceObj < 1.0e5):
+                if (comm.T_OBJ[iNobj] == 4) and (distanceObj < 1.0e5):
                     self.sFlag = 0
                     return ERRCODE.FAILURE
 
@@ -125,21 +125,21 @@ class VegTrace:
                 # check branch optical thickness
                 tobjb[1] = tobj[1]
                 tobjb[2] = tobj[2]
-                tobjb[3] = tobj[3] - tobj[4] * (1.0 - comm.RB) * min(1, abs(comm.S_OBJ[iNObj] - 5))
+                tobjb[3] = tobj[3] - tobj[4] * (1.0 - comm.RB) * min(1, abs(comm.T_OBJ[iNObj] - 5))
                 tobjb[4] = tobj[4] * comm.RB
                 tobjb[5] = tobj[5] * comm.RB
 
                 tobj12[1] = tobj[1]
                 tobj12[2] = tobj[2]
-                tobj12[3] = tobj[3] - tobj[4] * (1.0 - comm.RB) * min(1, abs(comm.S_OBJ[iNObj] - 5))
+                tobj12[3] = tobj[3] - tobj[4] * (1.0 - comm.RB) * min(1, abs(comm.T_OBJ[iNObj] - 5))
                 tobj12[4] = tobj[4] * rb12
                 tobj12[5] = tobj[5] * rb12
 
-                treeBoundary.dealTreeType(comm.S_OBJ[index], x0, y0, z0, uxr, uyr, uzr, tobj)
+                treeBoundary.dealTreeType(comm.T_OBJ[index], x0, y0, z0, uxr, uyr, uzr, tobj)
                 io2 = treeBoundary.io
                 distance2 = treeBoundary.distance
 
-                treeBoundary.dealTreeType(comm.S_OBJ[index], x0, y0, z0, uxr, uyr, uzr, tobj12)
+                treeBoundary.dealTreeType(comm.T_OBJ[index], x0, y0, z0, uxr, uyr, uzr, tobj12)
                 io12 = treeBoundary.io
                 distance12 = treeBoundary.distance
 
@@ -149,7 +149,7 @@ class VegTrace:
                     yb = y0 + (distance12 + mgn) * uyr
                     zb = z0 + (distance12 + mgn) * uzr
 
-                    treeBoundary.dealTreeType(comm.S_OBJ[index], xb, yb, zb, uxr, uyr, uzr, tobj12)
+                    treeBoundary.dealTreeType(comm.T_OBJ[index], xb, yb, zb, uxr, uyr, uzr, tobj12)
                     distance12 = treeBoundary.distance
 
                 # if outside of branch (io2 = 1) go into the branch
@@ -158,7 +158,7 @@ class VegTrace:
                     yb = y0 + (distance2 + mgn) * uyr
                     zb = z0 + (distance2 + mgn) * uzr
 
-                    treeBoundary.dealTreeType(comm.S_OBJ[index], xb, yb, zb, uxr, uyr, uzr, tobj12)
+                    treeBoundary.dealTreeType(comm.T_OBJ[index], xb, yb, zb, uxr, uyr, uzr, tobj12)
                     distance2 = treeBoundary.distance
 
                 ################################

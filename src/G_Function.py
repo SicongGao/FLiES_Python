@@ -16,11 +16,11 @@ class G_Function:
         self.__x = [0.1488743389, 0.4333953941, 0.6794095682, 0.8650633666, 0.9739065285]
 
     def igtbl(self):
-        max = math.pi
-        min = 0.0
+        iMax = math.pi
+        iMin = 0.0
 
-        xm = 0.5 * (max + min)
-        xr = 0.5 * (max - min)
+        xm = 0.5 * (iMax + iMin)
+        xr = 0.5 * (iMax - iMin)
 
         for i in range(180):
             th = math.radians(i)

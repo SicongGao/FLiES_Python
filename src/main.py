@@ -7,7 +7,7 @@ from ipf import ipf
 from idivspace import idivspace
 from clai import CLAI
 import datetime
-import Random
+from Random import Random
 from math import *
 
 # only in main
@@ -45,6 +45,7 @@ Nprod = 1  # comm.T_SIN[-1] = 5
 # print(comm.T_SIN)
 
 random = Random()
+
 
 def simulateATM():
     return ERRCODE.SUCCESS

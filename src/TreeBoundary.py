@@ -1,6 +1,5 @@
 import ERRCODE
 from math import *
-import common as comm
 
 
 class TreeBoundary:
@@ -30,10 +29,13 @@ class TreeBoundary:
     def dealTreeType(self, treeType, x, y, z, ux, uy, uz, tobj):
         if (treeType == 1):
             self.cones(x, y, z, ux, uy, uz, tobj)
+
         elif (treeType == 2) or (treeType == 4):
             self.cyls(x, y, z, ux, uy, uz, tobj)
+
         elif (treeType == 3):
             self.elpss(x, y, z, ux, uy, uz, tobj)
+
         elif (treeType == 5):
             self.helpss(x, y, z, ux, uy, uz, tobj)
 
@@ -87,16 +89,16 @@ class TreeBoundary:
             # if t do not meet the following conditions,
             # penalties are added in the distance.
 
-            if (((cz - h - 1.0e-4) <= (z + self.t1 * uz))
-                and ((z + self.t1 * uz) <= (cz + 1.0e-4))):
+            if (((cz - h - 1.0e-4) <= (z + self.t1 * uz)) and
+                    ((z + self.t1 * uz) <= (cz + 1.0e-4))):
 
                 if (self.t1 < 0):
                     self.t1 = 1.0e5
             else:
                 self.t1 = 1.0e5
 
-            if (((cz - h - 1.0e-4) <= (z + self.t2 * uz))
-                and ((z + self.t2 * uz) <= (cz + 1.0e-4))):
+            if (((cz - h - 1.0e-4) <= (z + self.t2 * uz)) and
+                    ((z + self.t2 * uz) <= (cz + 1.0e-4))):
 
                 if (self.t2 < 0):
                     self.t2 = 1.0e5
@@ -107,7 +109,7 @@ class TreeBoundary:
         uz = copysign(max(abs(uz), 1.0e-4), uz)
         self.t3 = (cz - h - z) / uz
 
-        circle = (x + self.t3 * ux - cx) ** 2 +(y + self.t3 * uy - cy) ** 2
+        circle = (x + self.t3 * ux - cx) ** 2 + (y + self.t3 * uy - cy) ** 2
 
         if ((self.t3 < 0) or (circle > r ** 2)):
             self.t3 = 1.0e5
@@ -123,7 +125,7 @@ class TreeBoundary:
             t = self.t3
             self.face = 2
 
-        # there is no distance, t = 1.0e5
+        # there is no distance, if t = 1.0e5
         self.distance = t
         if (self.distance > 0.9e5):
             self.face = -1
@@ -191,16 +193,16 @@ class TreeBoundary:
             # if t do not meet the following conditions,
             # penalties are added in the distance.
 
-            if (((cz - h - 1.0e-4) <= (z + self.t1 * uz))
-                and ((z + self.t1 * uz) <= (cz + 1.0e-4))):
+            if (((cz - h - 1.0e-4) <= (z + self.t1 * uz)) and
+                    ((z + self.t1 * uz) <= (cz + 1.0e-4))):
 
                 if (self.t1 < 0):
                     self.t1 = 1.0e5
             else:
                 self.t1 = 1.0e5
 
-            if (((cz - h - 1.0e-4) <= (z + self.t2 * uz))
-                and ((z + self.t2 * uz) <= (cz + 1.0e-4))):
+            if (((cz - h - 1.0e-4) <= (z + self.t2 * uz)) and
+                    ((z + self.t2 * uz) <= (cz + 1.0e-4))):
 
                 if (self.t2 < 0):
                     self.t2 = 1.0e5

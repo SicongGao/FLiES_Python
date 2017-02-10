@@ -87,7 +87,7 @@ class CanopyPhotonTrace:
                     for l in range(1, 6):
                         tObj[l] = comm.OBJ[index][l - 1]
 
-                    treeBoundary.dealTreeType(comm.S_OBJ[index], x0, y0, z0, uxr, uyr, uzr, tObj)
+                    treeBoundary.dealTreeType(comm.T_OBJ[index], x0, y0, z0, uxr, uyr, uzr, tObj)
 
                     tempDistance = treeBoundary.distance
                     tempIO = treeBoundary.io
@@ -104,7 +104,7 @@ class CanopyPhotonTrace:
             if ((distanceObj < distancePho) or (io == 0)):
 
                 # stem interaction
-                if (comm.S_OBJ[iNobj] == 4):
+                if (comm.T_OBJ[iNobj] == 4):
                     # if the photon is in the stem object by mistake, exit from stem
                     # in other case, photon go to the stem surface
 

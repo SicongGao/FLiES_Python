@@ -37,22 +37,22 @@ def idivspace():
         for j in range(comm.N_OBJ):
             flag = 0
 
-            if (comm.S_OBJ[j] == 1):                            # cone
+            if (comm.T_OBJ[j] == 1):                            # cone
                 xr = comm.OBJ[j][0]
                 yr = comm.OBJ[j][1]
                 zu = comm.OBJ[j][2]
                 zb = comm.OBJ[j][2] - comm.OBJ[j][3]
-            elif (comm.S_OBJ[j] == 2) or (comm.S_OBJ[j] == 4):  # cylinder, 4 for trunk
+            elif (comm.T_OBJ[j] == 2) or (comm.T_OBJ[j] == 4):  # cylinder, 4 for trunk
                 xr = comm.OBJ[j][0]
                 yr = comm.OBJ[j][1]
                 zu = comm.OBJ[j][2]
                 zb = comm.OBJ[j][2] - comm.OBJ[j][3]            # zb is always 0 for trunk
-            elif (comm.S_OBJ[j] == 3):                          # ellipsoid
+            elif (comm.T_OBJ[j] == 3):                          # ellipsoid
                 xr = comm.OBJ[j][0]
                 yr = comm.OBJ[j][1]
                 zu = comm.OBJ[j][2] + comm.OBJ[j][3]            # zb, zu is bottom and upper coordinate of objects
-                zb = comm.OBJ[j][2] - comm.OBJ[j][3]            # if S_OBJ[3] == 3, S_OBJ[3] =/ 2 in iparam.py, line 280
-            elif (comm.S_OBJ[j] == 5):                          # half ellipsoid
+                zb = comm.OBJ[j][2] - comm.OBJ[j][3]            # if T_OBJ[3] == 3, T_OBJ[3] =/ 2 in iparam.py, line 280
+            elif (comm.T_OBJ[j] == 5):                          # half ellipsoid
                 xr = comm.OBJ[j][0]
                 yr = comm.OBJ[j][1]
                 zu = comm.OBJ[j][2] + comm.OBJ[j][3]
@@ -66,12 +66,12 @@ def idivspace():
                     dd = math.sqrt(comm.OBJ[j][4] * comm.OBJ[j][4] - d * d)
                     p1 = b[k] * xr + a[k] * yr - dd
                     p2 = b[k] * xr + a[k] * yr + dd
-                    min = b[k] * divX + a[k] * divY
-                    max = b[k] * divX + a[k] * divY + intv
+                    iMin = b[k] * divX + a[k] * divY
+                    iMax = b[k] * divX + a[k] * divY + intv
 
-                    if ((min <= p1) and (max >= p1)):
+                    if ((iMin <= p1) and (max >= p1)):
                         flag = 1
-                    if ((min <= p2) and (max >= p2)):
+                    if ((iMax <= p2) and (max >= p2)):
                         flag = 1
 
             for k in range(2):
