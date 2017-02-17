@@ -1,6 +1,6 @@
 import ERRCODE
 from math import *
-
+from Position import Position
 
 # ***********************************************************
 # This routine calculates the distance between the (x,y,x)
@@ -16,10 +16,10 @@ class Planes:
     z = 0.0
     distance = 0.0
 
-    def deal_X_Y_Plane(self, x0, y0, z0, ux, uy, uz, x1, y1, z1, intv):
+    def deal_X_Y_Plane(self, phoCoord, vecCoord, objCoord, intv):
 
-        distanceBottom = (z1 - z0) / uz
-        distanceUpper = (z1 - z0 + intv[3]) / uz
+        distanceBottom = (objCoord.z - phoCoord.z) / vecCoord.x
+        distanceUpper = (objCoord.z - phoCoord.z + intv[3]) / vecCoord.z
 
         if (distanceBottom > distanceUpper):
             self.distance = distanceBottom
@@ -28,19 +28,19 @@ class Planes:
             self.distance = distanceUpper
             self.face = 6
 
-        self.x = x0 + self.distance * ux
-        if((self.x >= x1) and (self.x <= x1 + intv[1])):
-            self.y = y0 + self.distance * uy
-            if ((self.y >= y1) and (self.y <= y1 + intv[2])):
+        self.x = phoCoord.x + self.distance * vecCoord.x
+        if((self.x >= objCoord.x) and (self.x <= objCoord.x + intv[1])):
+            self.y = phoCoord.y + self.distance * vecCoord.y
+            if ((self.y >= objCoord.y) and (self.y <= objCoord.y + intv[2])):
                 print("In x - y plane")
                 return ERRCODE.SUCCESS
 
         return ERRCODE.CANNOT_FIND
 
-    def deal_Y_Z_Plane(self, x0, y0, z0, ux, uy, uz, x1, y1, z1, intv):
+    def deal_Y_Z_Plane(self, phoCoord, vecCoord, objCoord, intv):
 
-        distanceBottom = (x1 - x0) / ux
-        distanceUpper = (x1 - x0 + intv[1]) / ux
+        distanceBottom = (objCoord.x - phoCoord.x) / vecCoord.x
+        distanceUpper = (objCoord.x - phoCoord.x + intv[1]) / vecCoord.x
 
         if (distanceBottom > distanceUpper):
             self.distance = distanceBottom
@@ -49,19 +49,19 @@ class Planes:
             self.distance = distanceUpper
             self.face = 2
 
-        self.y = y0 + self.distance * uy
-        if((self.y >= y1) and (self.y <= y1 + intv[2])):
-            self.z = z0 + self.distance * uz
-            if ((self.z >= z1) and (self.z <= z1 + intv[3])):
+        self.y =  phoCoord.y + self.distance * vecCoord.y
+        if((self.y >= objCoord.y) and (self.y <= objCoord.y + intv[2])):
+            self.z =phoCoord.z + self.distance * vecCoord.z
+            if ((self.z >= objCoord.z) and (self.z <= objCoord.z + intv[3])):
                 print("In y - z plane")
                 return ERRCODE.SUCCESS
 
         return ERRCODE.CANNOT_FIND
 
-    def deal_X_Z_Plane(self, x0, y0, z0, ux, uy, uz, x1, y1, z1, intv):
+    def deal_X_Z_Plane(self, phoCoord, vecCoord, objCoord, intv):
 
-        distanceBottom = (y1 - y0) / uy
-        distanceUpper = (y1 - y0 + intv[2]) / uy
+        distanceBottom = (objCoord.y - phoCoord.y) / vecCoord.y
+        distanceUpper = (objCoord.y - phoCoord.y + intv[2]) / vecCoord.y
 
         if (distanceBottom > distanceUpper):
             self.distance = distanceBottom
@@ -70,10 +70,10 @@ class Planes:
             self.distance = distanceUpper
             self.face = 4
 
-        self.z = z0 + self.distance * uz
-        if ((self.z >= z1) and (self.z <= z1 + intv[3])):
-            self.x = x0 + self.distance * ux
-            if ((self.x >= x1) and (self.x <= x1 + intv[1])):
+        self.z = phoCoord.z + self.distance * vecCoord.z
+        if ((self.z >= objCoord.z) and (self.z <= objCoord.z + intv[3])):
+            self.x = phoCoord.x + self.distance * vecCoord.x
+            if ((self.x >= objCoord.x) and (self.x <= objCoord.x + intv[1])):
                 print("In x - z plane")
                 return ERRCODE.SUCCESS
 
@@ -85,7 +85,7 @@ class Planes:
     # (x1, y1, z1) are minimum position of cubic apex
     # intv(1):x0, intv(2):y0, intv(3):z0
     ###############################################################
-    def calPlanes(self, d, x0, y0, z0, ux, uy, uz, x1, y1, z1, intv):
+    def calPlanes(self, d, phoCoord, vecCoord, objCoord, intv):
 
         errCode = 0
         MIN_VALUE = 1.0e-6
@@ -95,26 +95,26 @@ class Planes:
 
         # if not parallel
         # check manual P.51-52
-        if (abs(ux) >= MIN_VALUE):
-            errCode = self.deal_Y_Z_Plane(x0, y0, z0, ux, uy, uz, x1, y1, z1, intv)
+        if (abs(vecCoord.x) >= MIN_VALUE):
+            errCode = self.deal_Y_Z_Plane(phoCoord, vecCoord, objCoord, intv)
             if (errCode == 0):
                 return ERRCODE.SUCCESS
 
-        if (abs(uy) >= MIN_VALUE):
-            errCode = self.deal_X_Z_Plane(x0, y0, z0, ux, uy, uz, x1, y1, z1, intv)
+        if (abs(vecCoord.y) >= MIN_VALUE):
+            errCode = self.deal_X_Z_Plane(phoCoord, vecCoord, objCoord, intv)
             if (errCode == 0):
                 return ERRCODE.SUCCESS
 
-        errCode = self.deal_X_Y_Plane(x0, y0, z0, ux, uy, uz, x1, y1, z1, intv)
+        errCode = self.deal_X_Y_Plane(phoCoord, vecCoord, objCoord, intv)
         if (errCode == 0):
             return ERRCODE.SUCCESS
 
         # if cannot find the intersection due to the limitation of numerical calculation
         # move the photon position slightly then back to the top of this code
 
-        self.x = x0 + 0.1 * copysign(1.0, (x1 + intv[1]) - x0)
-        self.y = y0 + 0.1 * copysign(1.0, (y1 + intv[2]) - y0)
-        self.z = z0 + 0.1 * copysign(1.0, (z1 + intv[3]) - z0)
+        self.x = phoCoord.x + 0.1 * copysign(1.0, (objCoord.x + intv[1]) - phoCoord.x)
+        self.y = phoCoord.y + 0.1 * copysign(1.0, (objCoord.y + intv[2]) - phoCoord.y)
+        self.z = phoCoord.z + 0.1 * copysign(1.0, (objCoord.z + intv[3]) - phoCoord.z)
 
         print("can't find cube intersection")
         return ERRCODE.CANNOT_FIND

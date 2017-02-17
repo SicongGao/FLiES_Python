@@ -3,6 +3,7 @@ import ERRCODE
 import common as comm
 from math import *
 from VegTrace import VegTrace
+from Position import Position
 
 # *****************************************
 # LAI calculation
@@ -26,10 +27,14 @@ class CLAI:
         tLai = 0.0
         intv = 50.0 / comm.RES
 
-        ux = 0.0
-        uy = 0.0
-        uz = 1.0
-        x = y = z = 0.0
+        # ux = 0.0
+        # uy = 0.0
+        # uz = 1.0
+        vectCoord = Position()
+        vectCoord.setPosition(0.0, 0.0, 1.0)
+        # x = y = z = 0.0
+        phoCoord = Position()
+        phoCoord.setPosition(0.0, 0.0, 1.0)
 
         m = 1
         its = 0
@@ -40,19 +45,19 @@ class CLAI:
         treeBoundary = TreeBoundary()
 
         for k in range(1, int(comm.Z_MAX / spn) + 1):
-            z = (float(k) - 0.5) * spn
+            phoCoord.z = (float(k) - 0.5) * spn
             if (fmod(k, int(1.0 / spn)) == 0):
                 m += 1
 
             for i in range(1, int(comm.X_MAX / spn) + 1):
-                x = (float(i) - 0.5) * spn
+                phoCoord.x = (float(i) - 0.5) * spn
 
                 for j in range(1, int(comm.Y_MAX / spn) + 1):
-                    y = (float(j) - 0.5) * spn
+                    phoCoord.y = (float(j) - 0.5) * spn
 
-                    x1 = trunc(x / intv)
-                    y1 = trunc(y / intv)
-                    z1 = trunc(z / intv)
+                    x1 = trunc(phoCoord.x / intv)
+                    y1 = trunc(phoCoord.y / intv)
+                    z1 = trunc(phoCoord.z / intv)
 
                     ivox = comm.IX_MAX * comm.IY_MAX * z1
                     ivox += int(y1) * comm.IY_MAX
@@ -75,9 +80,9 @@ class CLAI:
                             tobjb[4] = tobj[4] * comm.RB
                             tobjb[5] = tobj[5] * comm.RB
 
-                            treeBoundary.dealTreeType(comm.T_OBJ[i], x, y, z, ux, uy, uz, tobj)
+                            treeBoundary.dealTreeType(comm.T_OBJ[i], phoCoord, vectCoord, tobj)
                             io1 = treeBoundary.io
-                            treeBoundary.dealTreeType(comm.T_OBJ[i], x, y, z, ux, uy, uz, tobjb)
+                            treeBoundary.dealTreeType(comm.T_OBJ[i], phoCoord, vectCoord, tobjb)
                             io2 = treeBoundary.io
 
                             if (io2 == 0):
@@ -103,7 +108,7 @@ class CLAI:
         # crown cover calculation
         print("crown cover calculation ...")
 
-        z = 0.01
+        phoCoord.z = 0.01
 
         # dummy clumping factor and lea area density
         for i in range(1, 5):
@@ -112,11 +117,11 @@ class CLAI:
 
         vegTrace = VegTrace()
         for i in range(1, int(comm.X_MAX / spn)):
-            x = (float(i) - 0.5) * spn
+            phoCoord.x = (float(i) - 0.5) * spn
 
             for j in range(1, int(comm.Y_MAX / spn)):
-                y = (float(j) - 0.5) * spn
-                vegTrace.trace(x, y, z, ux, uy, uz)
+                phoCoord.y = (float(j) - 0.5) * spn
+                vegTrace.trace(phoCoord, vectCoord)
                 if (vegTrace.tau != 0.0):
                     self.crownCover += 1.0
 

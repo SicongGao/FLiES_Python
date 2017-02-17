@@ -1,12 +1,19 @@
 import random
-import math
+from math import *
+from iparam import Parameters
+
 
 class MonteCarlo:
+
+    nscat = 0
+    cNscat = 0
+    cIchi = 0
+    cIkd = 0
 
     def __init__(self):
         return
 
-    def stem(self):
+    def stem(self, w, wq, phoCoord, vectCoord, nscat, tObj, face, ichi, ikd, iParameter):
         return
 
     def canopy(self):

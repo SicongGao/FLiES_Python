@@ -4,6 +4,7 @@ from math import *
 from Planes import Planes
 from TreeBoundary import TreeBoundary
 from G_Function import G_Function
+from Position import Position
 
 # #####################################################
 # simulate the optical thickness in the canopy
@@ -19,7 +20,7 @@ class VegTrace:
     sFlag = 1
     tau = 0.0
 
-    def trace(self, x, y, z, uxr, uyr, uzr):
+    def trace(self, coord, vectCoord):
 
         # marginal value
         mgn = 1.0e-2
@@ -38,11 +39,14 @@ class VegTrace:
         # optical thickness
         self.tau = tauc12 = tauc = taub = 0.0
 
-        x0 = y0 = z0 = 0.0
-
-        x0 = x
-        y0 = y
-        z0 = max(z, mgn)
+        # x0 = y0 = z0 = 0.0
+        #
+        # x0 = x
+        # y0 = y
+        # z0 = max(z, mgn)
+        objCoord = Position()
+        phoCoord = Position()
+        phoCoord.setPosition(coord.x, coord.y, max(coord.z, mgn))
 
         oFace = pFace = 0
         rb12 = 1.0
@@ -53,7 +57,7 @@ class VegTrace:
 
         # z boundary for trance flag = 1 (zlim = 0.0), flag = 2 (zlim = zmax)
         zlim = [0.0, 0.0, comm.Z_MAX]
-        flag = int(1.5 + copysign(0.5, uzr))
+        flag = int(1.5 + copysign(0.5, vectCoord.z))
 
         tobj = [0.0] * 6
         tobjb = [0.0] * 6
@@ -66,30 +70,31 @@ class VegTrace:
 
         # do while photon reaches the terminal point
         while(1):
-            x1 = trunc(x0 / intv[1])
-            y1 = trunc(y0 / intv[2])
-            z1 = trunc(z0 / intv[3])
+            # x1 = trunc(x0 / intv[1])
+            # y1 = trunc(y0 / intv[2])
+            # z1 = trunc(z0 / intv[3])
+            objCoord.setPosition(trunc(phoCoord.x / intv[1]), trunc(phoCoord.y / intv[2]), trunc(phoCoord.z / intv[3]))
 
-            iVOX = comm.IX_MAX * comm.IY_MAX * int(z1)
-            iVOX += int(y1) * comm.IY_MAX
-            iVOX += int(x1) + 1
+            iVOX = comm.IX_MAX * comm.IY_MAX * int(objCoord.z)
+            iVOX += int(objCoord.y) * comm.IY_MAX
+            iVOX += int(objCoord.x) + 1
 
-            x1 *= intv[1]
-            y1 *= intv[2]
-            z1 *= intv[3]
+            objCoord.x *= intv[1]
+            objCoord.y *= intv[2]
+            objCoord.z *= intv[3]
 
             io = 1
             iNobj = -1
             index = -1
 
             # check the photon intersection with big-voxel walls
-            errCode = planes.calPlanes(x0, y0, z0, uxr, uyr, uzr, x1, y1, z1, intv)
+            errCode = planes.calPlanes(phoCoord, vectCoord, objCoord, intv)
             distancePho = planes.distance
             if (errCode == ERRCODE.CANNOT_FIND):
                 # update the x0, y0, z0
-                x0 = planes.x
-                y0 = planes.y
-                z0 = planes.z
+                phoCoord.x = planes.x
+                phoCoord.y = planes.y
+                phoCoord.z = planes.z
 
             # check the photon intersection with objects
             if (comm.N_DIVS[iVOX] != 0):
@@ -102,7 +107,7 @@ class VegTrace:
                     for l in range(1, 6):
                         tobj[l] = comm.OBJ[index][l-1]
 
-                    treeBoundary.dealTreeType(comm.T_OBJ[index], x0, y0, z0, uxr, uyr, uzr, tobj)
+                    treeBoundary.dealTreeType(comm.T_OBJ[index], phoCoord, vectCoord, tobj)
 
                     tempDistance = treeBoundary.distance
                     tempIO = treeBoundary.io
@@ -135,30 +140,34 @@ class VegTrace:
                 tobj12[4] = tobj[4] * rb12
                 tobj12[5] = tobj[5] * rb12
 
-                treeBoundary.dealTreeType(comm.T_OBJ[index], x0, y0, z0, uxr, uyr, uzr, tobj)
+                treeBoundary.dealTreeType(comm.T_OBJ[index], phoCoord, vectCoord, tobj)
                 io2 = treeBoundary.io
                 distance2 = treeBoundary.distance
 
-                treeBoundary.dealTreeType(comm.T_OBJ[index], x0, y0, z0, uxr, uyr, uzr, tobj12)
+                treeBoundary.dealTreeType(comm.T_OBJ[index], phoCoord, vectCoord, tobj12)
                 io12 = treeBoundary.io
                 distance12 = treeBoundary.distance
 
                 # if outside of branch (io12 = 1) go into the branch
                 if (io12 == 1):
-                    xb = x0 + (distance12 + mgn) * uxr
-                    yb = y0 + (distance12 + mgn) * uyr
-                    zb = z0 + (distance12 + mgn) * uzr
+                    xb = phoCoord.x + (distance12 + mgn) * vectCoord.x
+                    yb = phoCoord.y + (distance12 + mgn) * vectCoord.y
+                    zb = phoCoord.z + (distance12 + mgn) * vectCoord.z
+                    branchCoord = Position()
+                    branchCoord.setPosition(xb, yb, zb)
 
-                    treeBoundary.dealTreeType(comm.T_OBJ[index], xb, yb, zb, uxr, uyr, uzr, tobj12)
+                    treeBoundary.dealTreeType(comm.T_OBJ[index], branchCoord, vectCoord, tobj12)
                     distance12 = treeBoundary.distance
 
                 # if outside of branch (io2 = 1) go into the branch
                 if (io2 == 1):
-                    xb = x0 + (distance2 + mgn) * uxr
-                    yb = y0 + (distance2 + mgn) * uyr
-                    zb = z0 + (distance2 + mgn) * uzr
+                    xb = phoCoord.x + (distance2 + mgn) * vectCoord.x
+                    yb = phoCoord.y + (distance2 + mgn) * vectCoord.y
+                    zb = phoCoord.z + (distance2 + mgn) * vectCoord.z
+                    branchCoord = Position()
+                    branchCoord.setPosition(xb, yb, zb)
 
-                    treeBoundary.dealTreeType(comm.T_OBJ[index], xb, yb, zb, uxr, uyr, uzr, tobj12)
+                    treeBoundary.dealTreeType(comm.T_OBJ[index], branchCoord, vectCoord, tobj12)
                     distance2 = treeBoundary.distance
 
                 ################################
@@ -166,7 +175,7 @@ class VegTrace:
                 ################################
                 # Don't know what's the meaning
                 ################################
-                th = acos(uzr)
+                th = acos(vectCoord.z)
                 ith = int(radians(th))
                 rio = 1.0 - float(io2)
                 rio12 = 1.0 - float(io12)
@@ -188,15 +197,15 @@ class VegTrace:
 
             # refresh photon position
             d = distanceObj * (1.0 - float(io)) + min(distanceObj, distancePho) * float(io)
-            x0 += (d + mgn) * uxr
-            y0 += (d + mgn) * uyr
-            z0 += (d + mgn) * uzr
+            phoCoord.x += (d + mgn) * vectCoord.x
+            phoCoord.y += (d + mgn) * vectCoord.y
+            phoCoord.z += (d + mgn) * vectCoord.z
 
             # check upper or bottom boundary condition
-            if (copysign(1.0, uzr) * (z0 - zlim[flag]) >= 0.0):
+            if (copysign(1.0, vectCoord.z) * (phoCoord.z - zlim[flag]) >= 0.0):
                 return ERRCODE.SUCCESS
 
-            x0 -= (trunc(x0 / comm.X_MAX) - 0.5 + copysign(0.5, x0)) * comm.X_MAX
-            y0 -= (trunc(y0 / comm.Y_MAX) - 0.5 + copysign(0.5, y0)) * comm.Y_MAX
+            phoCoord.x -= (trunc(phoCoord.x / comm.X_MAX) - 0.5 + copysign(0.5, phoCoord.x)) * comm.X_MAX
+            phoCoord.y -= (trunc(phoCoord.y / comm.Y_MAX) - 0.5 + copysign(0.5, phoCoord.y)) * comm.Y_MAX
 
         return ERRCODE.SUCCESS

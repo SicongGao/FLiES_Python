@@ -1,6 +1,6 @@
 import ERRCODE
 from math import *
-
+from Position import Position
 
 class TreeBoundary:
 
@@ -26,26 +26,26 @@ class TreeBoundary:
     # and cone external boundary
     ############################################################
 
-    def dealTreeType(self, treeType, x, y, z, ux, uy, uz, tobj):
+    def dealTreeType(self, treeType, phoCoord, vectCoord, tobj):
         if (treeType == 1):
-            self.cones(x, y, z, ux, uy, uz, tobj)
+            self.cones(phoCoord, vectCoord, tobj)
 
         elif (treeType == 2) or (treeType == 4):
-            self.cyls(x, y, z, ux, uy, uz, tobj)
+            self.cyls(phoCoord, vectCoord, tobj)
 
         elif (treeType == 3):
-            self.elpss(x, y, z, ux, uy, uz, tobj)
+            self.elpss(phoCoord, vectCoord, tobj)
 
         elif (treeType == 5):
-            self.helpss(x, y, z, ux, uy, uz, tobj)
+            self.helpss(phoCoord, vectCoord, tobj)
 
-    def cones(self, x, y, z, ux, uy, uz, tobj):
+    def cones(self, phoCoord, vectCoord, tobj):
 
         # Parameter Definition
         # inout : the position inside object, then =0, outside=1
-        # photon position (x,y,z)
-        # photon direction (ux, uy, uz)
-        # cone apex(cx,cy,cz)
+        # photon position (x,y,z), phoCoord
+        # photon direction (ux, uy, uz), vectCoord
+        # cone apex(cx,cy,cz),crownCoord
         # cone height h and radius bottom circle r
         # rp=(r/h)
         # face: the face of cylinder 1=side;2=bottom circle
@@ -62,9 +62,9 @@ class TreeBoundary:
         t = 0.0
 
         # crown related parameters
-        cx = tobj[1]
-        cy = tobj[2]
-        cz = tobj[3]
+        crownCoord = Position()
+        crownCoord.setPosition(tobj[1], tobj[2], tobj[3])
+
         h = tobj[4]
         r = tobj[5]
         rp = r / h
@@ -74,11 +74,13 @@ class TreeBoundary:
 
         # calculate the quadratic parameters
         # a*t^2+b*t+c=0
-        a = ux ** 2 + uy ** 2 - (rp * uz) ** 2
+        a = vectCoord.x ** 2 + vectCoord.y ** 2 - (rp * vectCoord.z) ** 2
         a = copysign(max(abs(a), 0.0001), a)
 
-        b = 2.0 * (ux * (x - cx) + uy * (y - cy) - uz * (z - cz) * rp ** 2)
-        c = (x - cx) ** 2 + (y - cy) ** 2 - (rp * (z - cz)) ** 2
+        b = 2.0 * (vectCoord.x * (phoCoord.x - crownCoord.x) + vectCoord.y * (phoCoord.y - crownCoord.y) -
+                   vectCoord.z * (phoCoord.z - crownCoord.z) * rp ** 2)
+        c = (phoCoord.x - crownCoord.x) ** 2 + (phoCoord.y - crownCoord.y) ** 2 - \
+            (rp * (phoCoord.z - crownCoord.z)) ** 2
 
         d = b ** 2 - 4.0 * a * c
 
@@ -89,16 +91,16 @@ class TreeBoundary:
             # if t do not meet the following conditions,
             # penalties are added in the distance.
 
-            if (((cz - h - 1.0e-4) <= (z + self.t1 * uz)) and
-                    ((z + self.t1 * uz) <= (cz + 1.0e-4))):
+            if (((crownCoord.z - h - 1.0e-4) <= (phoCoord.z + self.t1 * vectCoord.z)) and
+                    ((phoCoord.z + self.t1 * vectCoord.z) <= (crownCoord.z + 1.0e-4))):
 
                 if (self.t1 < 0):
                     self.t1 = 1.0e5
             else:
                 self.t1 = 1.0e5
 
-            if (((cz - h - 1.0e-4) <= (z + self.t2 * uz)) and
-                    ((z + self.t2 * uz) <= (cz + 1.0e-4))):
+            if (((crownCoord.z - h - 1.0e-4) <= (phoCoord.z + self.t2 * vectCoord.z)) and
+                    ((phoCoord.z + self.t2 * vectCoord.z) <= (crownCoord.z + 1.0e-4))):
 
                 if (self.t2 < 0):
                     self.t2 = 1.0e5
@@ -106,10 +108,11 @@ class TreeBoundary:
                 self.t2 = 1.0e5
 
         # if ray - line cross the bottom circle of the cone crown.
-        uz = copysign(max(abs(uz), 1.0e-4), uz)
-        self.t3 = (cz - h - z) / uz
+        vectCoord.z = copysign(max(abs(vectCoord.z), 1.0e-4), vectCoord.z)
+        self.t3 = (crownCoord.z - h - phoCoord.z) / vectCoord.z
 
-        circle = (x + self.t3 * ux - cx) ** 2 + (y + self.t3 * uy - cy) ** 2
+        circle = (phoCoord.x + self.t3 * vectCoord.x - crownCoord.x) ** 2 + \
+                 (phoCoord.y + self.t3 * vectCoord.y - crownCoord.y) ** 2
 
         if ((self.t3 < 0) or (circle > r ** 2)):
             self.t3 = 1.0e5
@@ -131,8 +134,9 @@ class TreeBoundary:
             self.face = -1
 
         # inout check
-        if (((cz - h) < z) and (z < cz)):
-            if ((x - cx) ** 2 + (y - cy) ** 2 < (rp * (cz - z)) ** 2):
+        if (((crownCoord.z - h) < phoCoord.z) and (phoCoord.z < crownCoord.z)):
+            if ((phoCoord.x - crownCoord.x) ** 2 + (phoCoord.y - crownCoord.y) ** 2 <
+                        (rp * (crownCoord.z - phoCoord.z)) ** 2):
                 self.io = 0
             else:
                 self.io = 1
@@ -145,13 +149,13 @@ class TreeBoundary:
 
         return ERRCODE.SUCCESS
 
-    def cyls(self, x, y, z, ux, uy, uz, tobj):
+    def cyls(self, phoCoord, vectCoord, tobj):
 
         # Parameter Definition
         # inout : the position inside object, then =0, outside=1
-        # photon position (x,y,z)
-        # photon direction (ux, uy, uz)
-        # cone apex(cx,cy,cz)
+        # photon position (x,y,z), phoCoord, phoCoord
+        # photon direction (ux, uy, uz), vectCoord
+        # cone apex(cx,cy,cz),crownCoord
         # cone height h and radius bottom circle r
         # face: the face of cylinder 1=side;2=bottom circle; 3=upper circle
         # d = quadratic judgements
@@ -167,9 +171,8 @@ class TreeBoundary:
         t = 0.0
 
         # crown related parameters
-        cx = tobj[1]
-        cy = tobj[2]
-        cz = tobj[3]
+        crownCoord = Position()
+        crownCoord.setPosition(tobj[1], tobj[2], tobj[3])
         h = tobj[4]
         r = tobj[5]
 
@@ -178,11 +181,11 @@ class TreeBoundary:
 
         # calculate the quadratic parameters
         # a*t^2+b*t+c=0
-        a = ux ** 2 + uy ** 2
+        a = vectCoord.x ** 2 + vectCoord.y ** 2
         a = copysign(max(abs(a), 0.0001), a)
 
-        b = 2.0 * (ux * (x - cx) + uy * (y - cy))
-        c = (x - cx) ** 2 + (y - cy) ** 2 - r ** 2
+        b = 2.0 * (vectCoord.x * (phoCoord.x - crownCoord.x) + vectCoord.y * (phoCoord.y - crownCoord.y))
+        c = (phoCoord.x - crownCoord.x) ** 2 + (phoCoord.y - crownCoord.y) ** 2 - r ** 2
 
         d = b ** 2 - 4.0 * a * c
 
@@ -193,16 +196,16 @@ class TreeBoundary:
             # if t do not meet the following conditions,
             # penalties are added in the distance.
 
-            if (((cz - h - 1.0e-4) <= (z + self.t1 * uz)) and
-                    ((z + self.t1 * uz) <= (cz + 1.0e-4))):
+            if (((crownCoord.z - h - 1.0e-4) <= (phoCoord.z + self.t1 * vectCoord.z)) and
+                    ((phoCoord.z + self.t1 * vectCoord.z) <= (crownCoord.z + 1.0e-4))):
 
                 if (self.t1 < 0):
                     self.t1 = 1.0e5
             else:
                 self.t1 = 1.0e5
 
-            if (((cz - h - 1.0e-4) <= (z + self.t2 * uz)) and
-                    ((z + self.t2 * uz) <= (cz + 1.0e-4))):
+            if (((crownCoord.z - h - 1.0e-4) <= (phoCoord.z + self.t2 * vectCoord.z)) and
+                    ((phoCoord.z + self.t2 * vectCoord.z) <= (crownCoord.z + 1.0e-4))):
 
                 if (self.t2 < 0):
                     self.t2 = 1.0e5
@@ -210,19 +213,21 @@ class TreeBoundary:
                 self.t2 = 1.0e5
 
         # if ray - line cross the bottom circle of the cylinder crown.
-        uz = copysign(max(abs(uz), 1.0e-4), uz)
-        self.t3 = (cz - h - z) / uz
+        vectCoord.z = copysign(max(abs(vectCoord.z), 1.0e-4), vectCoord.z)
+        self.t3 = (crownCoord.z - h - phoCoord.z) / vectCoord.z
 
-        circle = (x + self.t3 * ux - cx) ** 2 + (y + self.t3 * uy - cy) ** 2
+        circle = (phoCoord.x + self.t3 * vectCoord.x - crownCoord.x) ** 2 + \
+                 (phoCoord.y + self.t3 * vectCoord.y - crownCoord.y) ** 2
 
         if ((self.t3 < 0) or (circle > r ** 2)):
             self.t3 = 1.0e5
 
         # if ray - line cross the upper circle of the cylinder crown.
-        uz = copysign(max(abs(uz), 1.0e-4), uz)
-        self.t4 = (cz - z) / uz
+        vectCoord.z = copysign(max(abs(vectCoord.z), 1.0e-4), vectCoord.z)
+        self.t4 = (crownCoord.z - phoCoord.z) / vectCoord.z
 
-        circle = (x + self.t4 * ux - cx) ** 2 + (y + self.t4 * uy - cy) ** 2
+        circle = (phoCoord.x + self.t4 * vectCoord.x - crownCoord.x) ** 2 + \
+                 (phoCoord.y + self.t4 * vectCoord.y - crownCoord.y) ** 2
 
         if ((self.t4 < 0) or (circle > r ** 2)):
             self.t4 = 1.0e5
@@ -248,8 +253,8 @@ class TreeBoundary:
             self.face = -1
 
         # inout check
-        if ((((cz - h) < z) and (z < cz)) and
-            ((x - cx) ** 2 + (y - cy) ** 2 < r ** 2)):
+        if ((((crownCoord.z - h) < phoCoord.z) and (phoCoord.z < crownCoord.z)) and
+            ((phoCoord.x - crownCoord.x) ** 2 + (phoCoord.y - crownCoord.y) ** 2 < r ** 2)):
             self.io = 0
         else:
             self.io = 1
@@ -260,13 +265,13 @@ class TreeBoundary:
 
         return ERRCODE.SUCCESS
 
-    def elpss(self, x, y, z, ux, uy, uz, tobj):
+    def elpss(self, phoCoord, vectCoord, tobj):
 
         # Parameter Definition
         # inout : the position inside object, then =0, outside=1
-        # photon position (x,y,z)
-        # photon direction (ux, uy, uz)
-        # cone apex(cx,cy,cz)
+        # photon position (x,y,z), phoCoord
+        # photon direction (ux, uy, uz), vectCoord
+        # cone apex(cx,cy,cz),crownCoord
         # radius for z-axis : r1
         # radius for x - y plane: r2
         # d = quadratic judgements
@@ -282,9 +287,8 @@ class TreeBoundary:
         t = 0.0
 
         # crown related parameters
-        cx = tobj[1]
-        cy = tobj[2]
-        cz = tobj[3]
+        crownCoord = Position()
+        crownCoord.setPosition(tobj[1], tobj[2], tobj[3])
         r1 = tobj[4]
         r2 = tobj[5]
         r1Square = r1 ** 2
@@ -298,19 +302,19 @@ class TreeBoundary:
 
         # calculate the quadratic parameters
         # a*t^2+b*t+c=0
-        a = r1Square * ux ** 2
-        a += r1Square * uy ** 2
-        a += r2Square * uz ** 2
+        a = r1Square * vectCoord.x ** 2
+        a += r1Square * vectCoord.y ** 2
+        a += r2Square * vectCoord.z ** 2
         a = max(a, 0.0001)
 
-        b = r1Square * ux * (x - cx)
-        b += r1Square * uy * (y - cy)
-        b += r2Square * uz * (z - cz)
+        b = r1Square * vectCoord.x * (phoCoord.x - crownCoord.x)
+        b += r1Square * vectCoord.y * (phoCoord.y - crownCoord.y)
+        b += r2Square * vectCoord.z * (phoCoord.z - crownCoord.z)
         b *= 2.0
 
-        c = r1Square * (x - cx) ** 2
-        c += r1Square * (y - cy) ** 2
-        c += r2Square * (z - cz) ** 2
+        c = r1Square * (phoCoord.x - crownCoord.x) ** 2
+        c += r1Square * (phoCoord.y - crownCoord.y) ** 2
+        c += r2Square * (phoCoord.z - crownCoord.z) ** 2
         c -= r1Square * r2Square
 
         d = b ** 2 - 4.0 * a * c
@@ -326,9 +330,9 @@ class TreeBoundary:
 
         self.distance = min(self.t1, self.t2)
 
-        elps = (x - cx) ** 2 / r2Square
-        elps += (y - cy) ** 2 / r2Square
-        elps += (z - cz) ** 2 / r1Square
+        elps = (phoCoord.x - crownCoord.x) ** 2 / r2Square
+        elps += (phoCoord.y - crownCoord.y) ** 2 / r2Square
+        elps += (phoCoord.z - crownCoord.z) ** 2 / r1Square
 
         if ((elps < 1.0) and (self.distance < 1.0e5)):
             self.io = 0
@@ -337,14 +341,14 @@ class TreeBoundary:
 
         return ERRCODE.SUCCESS
 
-    def helpss(self, x, y, z, ux, uy, uz, tobj):
+    def helpss(self, phoCoord, vectCoord, tobj):
 
         # semi-spheroid
         # Parameter Definition
         # inout : the position inside object, then =0, outside=1
-        # photon position (x,y,z)
-        # photon direction (ux, uy, uz)
-        # cone apex(cx,cy,cz)
+        # photon position (x,y,z), phoCoord
+        # photon direction (ux, uy, uz), vectCoord
+        # cone apex(cx,cy,cz),crownCoord
         # radius for z-axis : r1
         # radius for x - y plane: r2
         # d = quadratic judgements
@@ -363,9 +367,8 @@ class TreeBoundary:
         r1 = r2 = 0.0
 
         # crown related parameters
-        cx = tobj[1]
-        cy = tobj[2]
-        cz = tobj[3]
+        crownCoord = Position()
+        crownCoord.setPosition(tobj[1], tobj[2], tobj[3])
         r1 = tobj[4]
         r2 = tobj[5]
         r1Square = r1 ** 2
@@ -379,19 +382,19 @@ class TreeBoundary:
 
         # calculate the quadratic parameters
         # a*t^2+b*t+c=0
-        a = r1Square * ux ** 2
-        a += r1Square * uy ** 2
-        a += r2Square * uz ** 2
+        a = r1Square * vectCoord.x ** 2
+        a += r1Square * vectCoord.y ** 2
+        a += r2Square * vectCoord.z ** 2
         a = max(a, 0.0001)
 
-        b = r1Square * ux * (x - cx)
-        b += r1Square * uy * (y - cy)
-        b += r2Square * uz * (z - cz)
+        b = r1Square * vectCoord.x * (phoCoord.x - crownCoord.x)
+        b += r1Square * vectCoord.y * (phoCoord.y - crownCoord.y)
+        b += r2Square * vectCoord.z * (phoCoord.z - crownCoord.z)
         b *= 2.0
 
-        c = r1Square * (x - cx) ** 2
-        c += r1Square * (y - cy) ** 2
-        c += r2Square * (z - cz) ** 2
+        c = r1Square * (phoCoord.x - crownCoord.x) ** 2
+        c += r1Square * (phoCoord.y - crownCoord.y) ** 2
+        c += r2Square * (phoCoord.z - crownCoord.z) ** 2
         c -= r1Square * r2Square
 
         d = b ** 2 - 4.0 * a * c
@@ -405,19 +408,20 @@ class TreeBoundary:
             if (self.t2 < 0):
                 self.t2 = 1.0e5
 
-            z1 = z + self.t1 * uz
-            z2 = z + self.t2 * uz
+            z1 = phoCoord.z + self.t1 * vectCoord.z
+            z2 = phoCoord.z + self.t2 * vectCoord.z
 
-            if (self.t1 < 0) or (z1 < cz):
+            if (self.t1 < 0) or (z1 < crownCoord.z):
                 self.t1 = 1.0e5
-            if (self.t2 < 0) or (z2 < cz):
+            if (self.t2 < 0) or (z2 < crownCoord.z):
                 self.t2 = 1.0e5
 
         # if ray-line cross the bottom circle of the cone crown
-        uz = copysign(max(max(abs(uz), 1.0e-4)), uz)
-        self.t3 = (cz - z) / uz
+        vectCoord.z = copysign(max(max(abs(vectCoord.z), 1.0e-4)), vectCoord.z)
+        self.t3 = (crownCoord.z - phoCoord.z) / vectCoord.z
 
-        circle = (x + self.t3 * ux - cx) ** 2 + (y + self.t3 * uy - cy) ** 2
+        circle = (phoCoord.x + self.t3 * vectCoord.x - crownCoord.x) ** 2 + \
+                 (phoCoord.y + self.t3 * vectCoord.y - crownCoord.y) ** 2
 
         if (self.t3 < 0) or (circle > r2 * r2):
             self.t3 = 1.0e5
@@ -438,9 +442,9 @@ class TreeBoundary:
             self.face = -1
 
         # in out check
-        elps = (x - cx) ** 2 / r2Square
-        elps += (y - cy) ** 2 / r2Square
-        elps += (z - cz) ** 2 / r1Square
+        elps = (phoCoord.x - crownCoord.x) ** 2 / r2Square
+        elps += (phoCoord.y - crownCoord.y) ** 2 / r2Square
+        elps += (phoCoord.z - crownCoord.z) ** 2 / r1Square
 
         if ((elps < 1.0) and (self.distance < 1.0e5)):
             self.io = 0

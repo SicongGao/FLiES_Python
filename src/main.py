@@ -5,10 +5,11 @@ import ERRCODE
 from G_Function import G_Function
 from ipf import ipf
 from idivspace import idivspace
-from clai import CLAI
+from Clai import CLAI
 import datetime
 from Random import Random
 from math import *
+from Position import Position
 
 # only in main
 knmix = 10
@@ -35,9 +36,11 @@ MIN_UZ = 0.0174524
 
 # photon data
 nscat = nscata = ichi = ikd = 0
-x = y = z = ux = uy = uz = w = 0.0
+w = 0.0
+PhotonCoord = Position()
+VectorCoord = Position()
 
-# function parapeters
+# function parameters
 # real fsin, fcos, facos, r_acos,frnd
 
 Nid = 0
@@ -53,7 +56,7 @@ def simulateATM():
 
 def simulateNoATM(para):
 
-    global ux, uy, uz, x, y, z
+    global PhotonCoord, VectorCoord
     global nscat, nscata
     #global th, ph
 
@@ -67,12 +70,12 @@ def simulateNoATM(para):
         #  selection of beam or diffuse flux
         if (random.getRandom() > para.diffuse):
             # beam
-            ux = para.sinq0 * para.cosf0
-            uy = para.sinq0 * para.sinf0
-            uz = para.cosq0
+            VectorCoord.setPosition(para.sinq0 * para.cosf0,
+                                    para.sinq0 * para.sinf0,
+                                    para.cosq0)
 
-            if (abs(uz) < MIN_UZ):
-                uz = copysign(MIN_UZ, uz)
+            if (abs(VectorCoord.z) < MIN_UZ):
+                uz = copysign(MIN_UZ, VectorCoord.z)
 
             nscat = 0
             nscata = nscat
@@ -82,20 +85,21 @@ def simulateNoATM(para):
             th = 0.5 * pi + 0.5 * acos(1.0 - 2.0 * random.getRandom())
             ph = 2.0 * pi * random.getRandom()
 
-            ux = sin(th) * cos(ph)
-            uy = sin(th) * sin(ph)
-            uz = cos(th)
+            VectorCoord.setPosition(sin(th) * cos(ph),
+                                    sin(th) * sin(ph),
+                                    cos(th))
 
-            if (abs(uz) < MIN_UZ):
-                uz = copysign(MIN_UZ, uz)
+            if (abs(VectorCoord.z) < MIN_UZ):
+                uz = copysign(MIN_UZ, VectorCoord.z)
 
             nscat = 1
             nscata = nscat
 
         # initial position (x, y)
-        x = comm.X_MAX * random.getRandom()
-        y = comm.Y_MAX * random.getRandom()
-        print("Initial potion x = ", x, ", y = ", y)
+        PhotonCoord.setPosition(comm.X_MAX * random.getRandom(),
+                                comm.Y_MAX * random.getRandom(),
+                                0)
+        print("Initial potion x = ", PhotonCoord.x, ", y = ", PhotonCoord.y)
 
         para.tflx += w
         para.tpfd += w * para.wq

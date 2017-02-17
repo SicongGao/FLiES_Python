@@ -5,6 +5,8 @@ from Planes import Planes
 from TreeBoundary import TreeBoundary
 from G_Function import G_Function
 from MonteCarlo import MonteCarlo
+from Position import Position
+from iparam import Parameters
 
 # ##################################################
 # Simulator for forest light environment
@@ -19,28 +21,40 @@ class CanopyPhotonTrace:
 
     sFlag = 1
     tau = 0.0
+    weight = 0
+    cNscat = 0
+    cIchi = 0
+    cIkd = 0
 
     def __init__(self):
         return
 
-    def trace(self, x, y, uxr, uyr, uzr):
+    def save(self, w, nscat, ichi, ikd):
+        self.weight = w
+        self.cNscat = nscat
+        self.cIchi = ichi
+        self.cIkd = ikd
+
+        return ERRCODE.SUCCESS
+
+    def trace(self, phoCoord, vectCoord, w, wq, nscat, ichi, ikd, iParameter):
 
         iVOX = 0
         distancePho = 0.0
 
-        MIN_VALUE = 1.0e-8  # wieght minimum limit
+        MIN_VALUE = 1.0e-8  # weight minimum limit
         distanceObj = 1.0e5    # initial distance from object
         intv = [50.0 / comm.RES] * 4
         tObj = [0.0] * 6
+        face = 0
 
         # marginal value
         mgn = 1.0e-2
 
-        x0 = y0 = z0 = 0.0
-
-        x0 = x
-        y0 = y
-        z0 = comm.Z_MAX - mgn
+        #x = x0
+        #y = y0
+        phoCoord.z = comm.Z_MAX - mgn
+        objCoord = Position()
 
         planes = Planes()
         treeBoundary = TreeBoundary()
@@ -50,17 +64,20 @@ class CanopyPhotonTrace:
 
         # do wile photon exit from canopy space
         while (1):
-            x1 = trunc(x0 / intv[1])
-            y1 = trunc(y0 / intv[2])
-            z1 = trunc(z0 / intv[3])
+            # objCoord.x = trunc(phoCoord.x / intv[1])
+            # y1 = trunc(phoCoord.y / intv[2])
+            # z1 = trunc(phoCoord.z / intv[3])
+            objCoord.setPosition(trunc(phoCoord.x / intv[1]),
+                                 trunc(phoCoord.y / intv[2]),
+                                 trunc(phoCoord.z / intv[3]))
 
-            iVOX = comm.IX_MAX * comm.IY_MAX * int(z1)
-            iVOX += int(y1) * comm.IY_MAX
-            iVOX += int(x1) + 1
+            iVOX = comm.IX_MAX * comm.IY_MAX * int(objCoord.z)
+            iVOX += int(objCoord.y) * comm.IY_MAX
+            iVOX += int(objCoord.x) + 1
 
-            x1 *= intv[1]
-            y1 *= intv[2]
-            z1 *= intv[3]
+            objCoord.x *= intv[1]
+            objCoord.y *= intv[2]
+            objCoord.z *= intv[3]
 
             io = 1
             iNobj = -1
@@ -68,13 +85,13 @@ class CanopyPhotonTrace:
             distanceObj = 1.0e5
             
             # check the photon intersection with big-voxel walls
-            errCode = planes.calPlanes(x0, y0, z0, uxr, uyr, uzr, x1, y1, z1, intv)
+            errCode = planes.calPlanes(phoCoord, vectCoord, objCoord, intv)
             distancePho = planes.distance
             if (errCode == ERRCODE.CANNOT_FIND):
-                # update the x0, y0, z0
-                x0 = planes.x
-                y0 = planes.y
-                z0 = planes.z
+                # update the x, y, z
+                phoCoord.x = planes.x
+                phoCoord.y = planes.y
+                phoCoord.z = planes.z
 
             # check the photon intersection with objects
             if (comm.N_DIVS[iVOX] != 0):
@@ -84,13 +101,13 @@ class CanopyPhotonTrace:
 
                     index = comm.DIVS[iVOX][idiv]
 
-                    for l in range(1, 6):
-                        tObj[l] = comm.OBJ[index][l - 1]
+                    tObj[1:6] = comm.OBJ[index][0:5]
 
-                    treeBoundary.dealTreeType(comm.T_OBJ[index], x0, y0, z0, uxr, uyr, uzr, tObj)
+                    treeBoundary.dealTreeType(comm.T_OBJ[index], phoCoord, vectCoord, tObj)
 
                     tempDistance = treeBoundary.distance
                     tempIO = treeBoundary.io
+                    face = treeBoundary.face
 
                     if (tempDistance < distanceObj):
                         distanceObj = tempDistance
@@ -107,9 +124,26 @@ class CanopyPhotonTrace:
                 if (comm.T_OBJ[iNobj] == 4):
                     # if the photon is in the stem object by mistake, exit from stem
                     # in other case, photon go to the stem surface
+                    phoCoord.x += vectCoord.x * distanceObj
+                    phoCoord.y += vectCoord.y * distanceObj
+                    phoCoord.z += vectCoord.z * distanceObj
 
-                    return
+                    tObj[1:6] = comm.OBJ[iNobj][0:5]
 
+                    # !!!! modified the input parameters here !!!!
+                    mcSimulation.stem(w, wq, phoCoord, vectCoord, nscat,
+                                      tObj, face, ichi, ikd, iParameter)
+                    ichi = mcSimulation.cIchi
+                    ikd = mcSimulation.cIkd
+                    nscat = mcSimulation.cNscat
+
+                    # !!!! modified the weight here !!!!
+                    if (w < MIN_VALUE):
+                        return ERRCODE.CANNOT_FIND
+
+                    phoCoord.x += mgn * vectCoord.x
+                    phoCoord.y += mgn * vectCoord.y
+                    phoCoord.z += mgn * vectCoord.z
                 # canopy interaction [Monte Carlo in canopy media]
                 else:
                     return
@@ -130,8 +164,33 @@ class CanopyPhotonTrace:
 
 
 
-
-
-
+        self.save(w, nscat)
 
         return ERRCODE.SUCCESS
+
+# a = [1,2,3,4,5,6,7,8]
+# b = [0]*10
+#
+# print(a)
+# print(b)
+# b[1:5] = a[1:5]
+# print(b)
+#
+# class coo:
+#     x = 0
+#     y = 0
+#     z = 0
+#
+def change(a):
+    print(id(a))
+    a+= "a"
+    print(a)
+
+a = Position()
+b = Position()
+a.setPosition(1,2,3)
+b.setPosition(4,5,6)
+print(b.x)
+b = a
+del a
+print(b.x)
