@@ -64,7 +64,7 @@ AP_B = np.zeros(SIZE * SIZE * 100, dtype=float).reshape(SIZE, SIZE, 100)
 AP_F = np.zeros(SIZE * SIZE, dtype=float).reshape(SIZE, SIZE)
 AP_S = np.zeros(SIZE * SIZE, dtype=float).reshape(SIZE, SIZE)
 AP_FD = np.zeros(SIZE * SIZE, dtype=float).reshape(SIZE, SIZE)
-AP_NP = [0.0] * 100
+# AP_NP = [0.0] * 100
 T_FPR = C_FPR = B_FPR = F_FPR = S_FPR = 0.0
 FF_DIR = np.zeros(SIZE * SIZE, dtype=float).reshape(SIZE, SIZE)
 FF_DIF = np.zeros(SIZE * SIZE, dtype=float).reshape(SIZE, SIZE)

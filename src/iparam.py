@@ -54,16 +54,16 @@ class Parameters:
     alb = [0.0] * 100
     spcf = [0.0] * 400
     spcq = [0.0] * 400
-    ulr = [0.0] * 100
-    ult = [0.0] * 100
-    sor = [0.0] * 100
+    ulr = [0.0] * 100 # reflectance of forest floor vegetaion
+    ult = [0.0] * 100 # tansmittance of forest floor vegetaion
+    sor = [0.0] * 100 # soil reflectance
     tlr = [0.0] * 5
     tlt = [0.0] * 5
     tstr = [0.0] * 5
 
-    lr = np.zeros(5 * 100, dtype=float).reshape(5, 100)
-    lt = np.zeros(5 * 100, dtype=float).reshape(5, 100)
-    str = np.zeros(5 * 100, dtype=float).reshape(5, 100)
+    lr = np.zeros(5 * 100, dtype=float).reshape(5, 100) # reflectance of crown foliage
+    lt = np.zeros(5 * 100, dtype=float).reshape(5, 100) # transmittance of crown foliage
+    str = np.zeros(5 * 100, dtype=float).reshape(5, 100) # trunk reflectance
 
     fname = []
     rfname = ""
@@ -77,6 +77,9 @@ class Parameters:
     T_ACOS = [0.0] * comm.ACOOS_SHIFT * 2
     T_EXP = [0.0] * comm.ACOOS_SHIFT
     DLT = np.zeros((6 + 1) * (6 + 1), dtype=float).reshape((6 + 1), (6 + 1))
+
+    # for output
+    AP_NP = [0.0] * 100
 
     def __init__(self):
         self.initParameters()
@@ -534,6 +537,7 @@ class Parameters:
 
                 avelr /= float(self.nwl * self.nts)
                 avelt /= float(self.nwl * self.nts)
+                comm.EPSI = 0.5 * 0.1 * (avelr - avelt)
 
         return ERRCODE.SUCCESS
 
