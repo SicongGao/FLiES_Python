@@ -44,6 +44,10 @@ class G_Function:
             self.GT_BLB[i] = sb * xr
             self.GT_BLF[i] = sf * xr
 
+        common.GT_BLC = self.GT_BLC
+        common.GT_BLB = self.GT_BLB
+        common.GT_BLF = self.GT_BLF
+
         return ERRCODE.SUCCESS
 
     #     ********************************

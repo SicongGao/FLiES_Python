@@ -136,6 +136,7 @@ class CanopyPhotonTrace:
                     ichi = mcSimulation.cIchi
                     ikd = mcSimulation.cIkd
                     nscat = mcSimulation.cNscat
+                    w = mcSimulation.weight
 
                     # !!!! modified the weight here !!!!
                     if (w < MIN_VALUE):
@@ -181,16 +182,16 @@ class CanopyPhotonTrace:
 #     y = 0
 #     z = 0
 #
-def change(a):
-    print(id(a))
-    a+= "a"
-    print(a)
-
-a = Position()
-b = Position()
-a.setPosition(1,2,3)
-b.setPosition(4,5,6)
-print(b.x)
-b = a
-del a
-print(b.x)
+# def change(a):
+#     print(id(a))
+#     a+= "a"
+#     print(a)
+#
+# a = Position()
+# b = Position()
+# a.setPosition(1,2,3)
+# b.setPosition(4,5,6)
+# print(b.x)
+# b = a
+# del a
+# print(b.x)

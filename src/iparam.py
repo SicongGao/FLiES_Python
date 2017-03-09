@@ -356,9 +356,7 @@ class Parameters:
 
         if (self.cloudType >= 2):
             comm.N_ANG_C = 1
-            comm.UX_RC[0] = 0.0
-            comm.UY_RC[0] = 0.0
-            comm.UZ_RC[0] = 1.0
+            comm.URC_coord[0].setPosition(0.0, 0.0, 1.0)
 
         self.process201()
 
@@ -547,10 +545,12 @@ class Parameters:
         #self.nts = int(input("nts: # of group of tree species\n"))
         # debug
         self.nts = 1
+        comm.N_TS = self.nts
+
         if ((self.nPhoton == -4) or (self.nPhoton == -5)):
             return self.process202()
 
-        comm.U[5] = float(self.nts)
+        #comm.U[5] = float(self.nts)
 
         # currently max nts should be less than 5
         if ((self.nts <= 0) or (self.nts >= 5)):
@@ -695,9 +695,9 @@ class Parameters:
                     print("Zenith angle should be less than 80")
                     print(str(comm.ANG_T[j]) + " is ignored !")
                 else:
-                    comm.UX_RC[k] = math.sin(math.radians(comm.ANG_T[j])) * math.cos(math.radians(comm.ANG_P[i]))
-                    comm.UY_RC[k] = math.sin(math.radians(comm.ANG_T[j])) * math.sin(math.radians(comm.ANG_P[i]))
-                    comm.UZ_RC[k] = math.cos(math.radians(comm.ANG_T[j]))
+                    comm.URC_coord[k].x = math.sin(math.radians(comm.ANG_T[j])) * math.cos(math.radians(comm.ANG_P[i]))
+                    comm.URC_coord[k].y = math.sin(math.radians(comm.ANG_T[j])) * math.sin(math.radians(comm.ANG_P[i]))
+                    comm.URC_coord[k].z = math.cos(math.radians(comm.ANG_T[j]))
 
                     k += 1
 

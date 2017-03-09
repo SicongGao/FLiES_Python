@@ -1,5 +1,6 @@
 import numpy as np
 import math
+from Position import Position
 
 # DEFINE CONST
 OBJ_NUM_MAX = 6000
@@ -47,7 +48,7 @@ T_OBJ = [0] * OBJ_NUM_MAX   # type of the tree object
 DIF_TYPE = DIR_FLAG = BOUND = 0
 REFL = np.zeros(2 * SIZE * SIZE, dtype=float).reshape(2, SIZE, SIZE)
 I_REFL = np.zeros(2 * SIZE * SIZE, dtype=int).reshape(2, SIZE, SIZE)
-M_C = M_B = M_F = N_TS = 0
+M_C = M_B = M_F = N_TS = 0  # N_TS is the number of tree species.
 OBJ = np.zeros(OBJ_NUM_MAX * 5, dtype=float).reshape(OBJ_NUM_MAX, 5)
 S_BAR = [0.0] * 5   # index expressing degree of shoot clumping, always set to 0.25
 ANG_T = [0.0] * 100
@@ -74,6 +75,7 @@ G_LAI = 0.0
 U = [0.0] * 6
 BAD = [0.0] * 5
 IR = FE = BP1 = BP2 = 0.0
+URC_coord = [Position()]* K_NRDC
 UX_RC = [0.0] * K_NRDC
 UY_RC = [0.0] * K_NRDC
 UZ_RC = [0.0] * K_NRDC
@@ -97,6 +99,10 @@ T_ACOS = [0.0] * ACOOS_SHIFT * 2
 T_EXP = [0.0] * ACOOS_SHIFT
 DLT = np.zeros((6 + 1) * (6 + 1), dtype=float).reshape((6 + 1), (6 + 1))
 
+GT_BLC = [0.0] * 180
+GT_BLB = [0.0] * 180
+GT_BLF = [0.0] * 180
+
 for i in range(0, 62832 * 2):
     T_SIN[i] = math.sin(float(i - 62832) * 0.0001)
     T_COS[i] = math.cos(float(i - 62832) * 0.0001)
@@ -104,7 +110,7 @@ for i in range(0, 62832 * 2):
 for i in range(0, ACOOS_SHIFT * 2):
     T_ACOS[i] = math.acos(float(i - ACOOS_SHIFT) * 0.0001)
 
-for i in range(1,6):
+for i in range(1, 7):
     DLT[i, i] = 1.0
 
 def getSin(n):

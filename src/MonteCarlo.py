@@ -5,7 +5,8 @@ import common as comm
 from iparam import Parameters
 from Position import Position
 import RussianRoulette
-import common as comm
+import TransformCoordinate
+from VegRadiation import VegRadiation
 
 class MonteCarlo:
 
@@ -29,37 +30,6 @@ class MonteCarlo:
         self.cNscat = nscat
         self.weight = w
 
-    def transformCoordinate(self, oriVecCoord, angleA, angleB, destVecCoord):
-
-        MIN_VALUE = 1.0e-15
-
-        sinA = sin(angleA)
-        sinB = sin(angleB)
-        cosA = cos(angleA)
-        cosB = cos(angleB)
-        sinT = sqrt(oriVecCoord.x ** 2 + oriVecCoord.y ** 2)
-        sinP = oriVecCoord.y / sinT
-        cosP = oriVecCoord.x / sinT
-
-        if (oriVecCoord.x ** 2 + oriVecCoord.y ** 2 > MIN_VALUE):
-            destVecCoord.x = cosA * oriVecCoord.x + sinA * (cosB * oriVecCoord.z * cosP - sinB * sinP)
-            destVecCoord.y = cosA * oriVecCoord.y + sinA * (cosB * oriVecCoord.z * sinP + sinB * cosP)
-            destVecCoord.z = cosA * oriVecCoord.z - sinA * cosB * sinT
-
-        else:
-            destVecCoord.x = sinA * cosB * copysign(1.0, oriVecCoord.z)
-            destVecCoord.x = sinA * sinB * copysign(1.0, oriVecCoord.z)
-            destVecCoord.z = cosA * copysign(1.0, oriVecCoord.z)
-
-        # convert to unit vector
-        c = destVecCoord.x ** 2 + destVecCoord.y ** 2 + destVecCoord.z ** 2
-        c = sqrt(c)
-        destVecCoord.x /= c
-        destVecCoord.y /= c
-        destVecCoord.z /= c
-
-        return ERRCODE.SUCCESS
-
     def stem(self, w, wq, phoCoord, vectCoord, nscat, tObj, face, str, ichi, ikd, iParameter):
         MGN = 1.0e-2
         MIN_VALUE = 1.0e-8
@@ -67,8 +37,10 @@ class MonteCarlo:
         CB = 3
         UZM = 0.0174524
         a = 0
+        fd = 0.0
 
         randomMethod = Random()
+        vegRadiation = VegRadiation()
 
         # reflectance at the side of stem
         if (face == 1):
@@ -137,8 +109,7 @@ class MonteCarlo:
         w = RussianRoulette.roulette(w)
 
         # call vegrad()
-
-
+        vegRadiation.simulate(phoCoord, vectCoord, CB, 1.0, 0.0, a, w, fd, ichi, ikd)
 
         self.save(nscat, w)
         return ERRCODE.SUCCESS

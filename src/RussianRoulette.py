@@ -1,6 +1,7 @@
 from Random import Random
 import common as comm
 
+
 def roulette(w):
 
     randomMethod = Random()

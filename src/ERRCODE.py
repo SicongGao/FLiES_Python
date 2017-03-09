@@ -23,3 +23,11 @@ def printMessage(itr):
     else:
         print(ERR_MESSAGE[itr])
         print("Error Code: " + str(itr))
+
+import common as comm
+import numpy as np
+
+gmrx = np.zeros(2 * 2 * 2, dtype=float).reshape(2, 2, 2)
+
+for i in range(10,1, -1):
+    print(i)
