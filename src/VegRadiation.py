@@ -91,7 +91,7 @@ class VegRadiation:
 
     # a changed
 
-    def simulate(self, phoCoord, vectCoord, cb, lr, lt, a, w, fd, ichi, ikd):
+    def simulate(self, phoCoord, vectCoord, w, lr, lt, cb, a, fd, ichi, ikd):
 
         MAX_VALUE = 0.999999
         ua = sum(comm.U) / comm.N_TS

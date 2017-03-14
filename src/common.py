@@ -1,6 +1,6 @@
 import numpy as np
 import math
-from Position import Position
+#from Position import Position
 
 # DEFINE CONST
 OBJ_NUM_MAX = 6000
@@ -65,7 +65,7 @@ AP_B = np.zeros(SIZE * SIZE * 100, dtype=float).reshape(SIZE, SIZE, 100)
 AP_F = np.zeros(SIZE * SIZE, dtype=float).reshape(SIZE, SIZE)
 AP_S = np.zeros(SIZE * SIZE, dtype=float).reshape(SIZE, SIZE)
 AP_FD = np.zeros(SIZE * SIZE, dtype=float).reshape(SIZE, SIZE)
-# AP_NP = [0.0] * 100
+AP_NP = [0.0] * 100
 T_FPR = C_FPR = B_FPR = F_FPR = S_FPR = 0.0
 FF_DIR = np.zeros(SIZE * SIZE, dtype=float).reshape(SIZE, SIZE)
 FF_DIF = np.zeros(SIZE * SIZE, dtype=float).reshape(SIZE, SIZE)
@@ -75,7 +75,7 @@ G_LAI = 0.0
 U = [0.0] * 6
 BAD = [0.0] * 5
 IR = FE = BP1 = BP2 = 0.0
-URC_coord = [Position()]* K_NRDC
+URC_coord = [0.0]* K_NRDC
 UX_RC = [0.0] * K_NRDC
 UY_RC = [0.0] * K_NRDC
 UZ_RC = [0.0] * K_NRDC

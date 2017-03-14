@@ -1496,5 +1496,5 @@ class Random:
 
         randomValue = self.randArray[self.cnt + MOVE] * self.A_NORM
         self.cnt += 1
-        return randomValue
+        return float(randomValue)
 

@@ -1,7 +1,7 @@
 from math import *
 import ERRCODE
 
-def transformCoordinate(self, oriVecCoord, angleA, angleB, destVecCoord):
+def transformCoordinate(oriVecCoord, angleA, angleB, destVecCoord):
     MIN_VALUE = 1.0e-15
 
     sinA = sin(angleA)

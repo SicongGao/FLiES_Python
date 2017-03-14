@@ -37,7 +37,7 @@ class CanopyPhotonTrace:
 
         return ERRCODE.SUCCESS
 
-    def trace(self, phoCoord, vectCoord, w, wq, nscat, ichi, ikd, iParameter):
+    def trace(self, phoCoord, vectCoord, w, wq, nscat, ichi, ikd, iParameter, ST_R):
 
         iVOX = 0
         distancePho = 0.0
@@ -130,11 +130,9 @@ class CanopyPhotonTrace:
 
                     tObj[1:6] = comm.OBJ[iNobj][0:5]
 
-                    # !!!! modified the input parameters here !!!!
                     mcSimulation.stem(w, wq, phoCoord, vectCoord, nscat,
-                                      tObj, face, ichi, ikd, iParameter)
-                    ichi = mcSimulation.cIchi
-                    ikd = mcSimulation.cIkd
+                                      tObj, face, ST_R, ichi, ikd, iParameter)
+                    # load changes
                     nscat = mcSimulation.cNscat
                     w = mcSimulation.weight
 

@@ -27,6 +27,10 @@ class TreeBoundary:
     ############################################################
 
     def dealTreeType(self, treeType, phoCoord, vectCoord, tobj):
+
+        # init
+        self.__init__()
+
         if (treeType == 1):
             self.cones(phoCoord, vectCoord, tobj)
 
@@ -68,9 +72,6 @@ class TreeBoundary:
         h = tobj[4]
         r = tobj[5]
         rp = r / h
-
-        # init
-        self.__init__()
 
         # calculate the quadratic parameters
         # a*t^2+b*t+c=0
@@ -175,9 +176,6 @@ class TreeBoundary:
         crownCoord.setPosition(tobj[1], tobj[2], tobj[3])
         h = tobj[4]
         r = tobj[5]
-
-        # init
-        self.__init__()
 
         # calculate the quadratic parameters
         # a*t^2+b*t+c=0
@@ -297,9 +295,6 @@ class TreeBoundary:
         self.distance = 0.0
         elps = 0.0
 
-        # init
-        self.__init__()
-
         # calculate the quadratic parameters
         # a*t^2+b*t+c=0
         a = r1Square * vectCoord.x ** 2
@@ -376,9 +371,6 @@ class TreeBoundary:
 
         self.distance = 0.0
         elps = 0.0
-
-        # init
-        self.__init__()
 
         # calculate the quadratic parameters
         # a*t^2+b*t+c=0

@@ -79,7 +79,7 @@ class Parameters:
     DLT = np.zeros((6 + 1) * (6 + 1), dtype=float).reshape((6 + 1), (6 + 1))
 
     # for output
-    AP_NP = [0.0] * 100
+    #AP_NP = [0.0] * 100
 
     def __init__(self):
         self.initParameters()
