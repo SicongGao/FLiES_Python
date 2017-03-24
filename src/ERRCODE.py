@@ -27,14 +27,3 @@ def printMessage(itr):
         print(ERR_MESSAGE[itr])
         print("Error Code: " + str(itr))
 
-import common as comm
-import numpy as np
-
-gmrx = np.zeros(2 * 2 * 2, dtype=float).reshape(2, 2, 2)
-
-
-a= dict()
-a["abc"] = 4
-print(a["abc"])
-a= dict()
-print(a["abc"])

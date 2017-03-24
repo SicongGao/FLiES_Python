@@ -85,11 +85,10 @@ class Planes:
     # (x1, y1, z1) are minimum position of cubic apex
     # intv(1):x0, intv(2):y0, intv(3):z0
     ###############################################################
-    def calPlanes(self, d, phoCoord, vecCoord, objCoord, intv):
+    def calPlanes(self, phoCoord, vecCoord, objCoord, intv):
 
         errCode = 0
         MIN_VALUE = 1.0e-6
-        self.distance = d
 
         self.x = self.y = self.z = 0.0
 

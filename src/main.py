@@ -10,6 +10,7 @@ import datetime
 from Random import Random
 from math import *
 from Position import Position
+from CanopyPhotonTrace import CanopyPhotonTrace
 
 # only in main
 knmix = 10
@@ -51,6 +52,8 @@ random = Random()
 
 
 def simulateATM():
+
+
     return ERRCODE.SUCCESS
 
 
@@ -58,7 +61,12 @@ def simulateNoATM(para):
 
     global PhotonCoord, VectorCoord
     global nscat, nscata
+    global ichi
+    global random
+
     #global th, ph
+
+    canopyTrace = CanopyPhotonTrace()
 
     for iPhoton in range(para.nPhotonProcess):
 
@@ -112,17 +120,36 @@ def simulateNoATM(para):
         # surface reflection
         if (para.surfaceType == 1):
             # lambertian
+            w *= para.alb[1]
+            th = 0.5 * acos(1.0 - 2.0 * random.getRandom())
+            ph = 2 * pi * random.getRandom()
 
-            return
+            VectorCoord.setPosition(sin(th) * cos(ph),
+                                    sin(th) * sin(ph),
+                                    cos(th))
+
+            if (abs(VectorCoord.z) < MIN_VALUE):
+                VectorCoord.z = copysign(MIN_VALUE, VectorCoord.z)
         else:
             # 3D surface
-
+            tLR = [0.0] * (para.nts + 1)
+            tLT = [0.0] * (para.nts + 1)
+            tSTR = [0.0] * (para.nts + 1)
+            for i in range(para.nts):
+                tLR[i] = para.lr[i, 1]
+                tLT[i] = para.lt[i, 1]
+                tSTR[i] = para.truncRef[i, 1]
 
             # call the canopy radiation transfer module
+            canopyTrace.trace(PhotonCoord, VectorCoord, w, para.wq, nscat, ichi, ikd, tSTR, para.soilRef[1],
+                              tLR, tLT, para.ulr[1], para.ult[1])
 
+            w = canopyTrace.weight
+            nscat = canopyTrace.cNscat
 
-            return
-
+            para.rflx += w
+            para.rbflx += w * (1 - min(float(nscata), 1.0))
+            para.rdflx += w * min(float(nscata), 1.0)
 
     return ERRCODE.SUCCESS
 

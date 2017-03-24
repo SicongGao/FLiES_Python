@@ -120,7 +120,7 @@ class MonteCarlo:
 
         return ERRCODE.SUCCESS
 
-    def stem(self, w, wq, phoCoord, vectCoord, nscat, tObj, face, ST_R, ichi, ikd):
+    def stem(self, w, wq, phoCoord, vectCoord, nscat, tObj, face, truncRef, ichi, ikd):
         MGN = 1.0e-2
         MIN_VALUE = 1.0e-8
         FD = 0.0
@@ -182,8 +182,8 @@ class MonteCarlo:
             a = 1.0
 
         # fpar samping (leave or branch)
-        # every tree specie may have the same reflectance (ST_R)
-        comm.B_FPR += w * wq * (1.0 - ST_R)
+        # every tree specie may have the same reflectance (truncRef)
+        comm.B_FPR += w * wq * (1.0 - truncRef)
         # ipara.AP_NP range (0,100)
         iz = int(phoCoord.z) + 1
         if (iz > 99):
@@ -191,9 +191,9 @@ class MonteCarlo:
             self.save(nscat, w)
             return ERRCODE.OUT_OF_RANGE
         else:
-            comm.AP_NP[iz] += w * wq * (1.0 - ST_R)
+            comm.AP_NP[iz] += w * wq * (1.0 - truncRef)
 
-        w *= ST_R
+        w *= truncRef
         nscat += 1
 
         # Russian Roulette
@@ -206,7 +206,7 @@ class MonteCarlo:
         self.save(nscat, w)
         return ERRCODE.SUCCESS
 
-    def canopy(self, w, wq, phoCoord, vectCoord, nscat, tObj, inobj, face, ST_R, ichi, ikd, lr, lt):
+    def canopy(self, w, wq, phoCoord, vectCoord, nscat, tObj, inobj, truncRef, ichi, ikd, lr, lt):
 
         MIN_VALUE = 1.0e-8
         mgn = 1.0e-2
@@ -277,7 +277,7 @@ class MonteCarlo:
                     sgm += 4.0 * cf * comm.GT_BLC[ith] * la * (1.0 - bp)
                     sgm = sgm * bp + (sgm / comm.FE) * (1.0 - bp)
                     sgm = max(1.0e-5, sgm)
-                    ref = ST_R * bp + lr * (1.0 - bp)
+                    ref = truncRef * bp + lr * (1.0 - bp)
                     tr = lt * (1.0 - bp)
 
                     rand = randMethod.getRandom()
@@ -358,7 +358,7 @@ class MonteCarlo:
                     sgm= sgm * bp + (sgm / comm.FE) * (1.0 - bp)
                     sgm = max(1.0e-5, sgm)
 
-                    ref = ST_R * bp + lr * (1.0 - bp)
+                    ref = truncRef * bp + lr * (1.0 - bp)
                     tr = lt * (1.0 - bp)
 
                     rand = randMethod.getRandom()
@@ -443,7 +443,7 @@ class MonteCarlo:
                     sgm = sgm * bp + (sgm / comm.FE) * (1.0 - bp)
                     sgm = max(1.0e-5, sgm)
 
-                    ref = ST_R * bp + lr * (1.0 - bp)
+                    ref = truncRef * bp + lr * (1.0 - bp)
                     tr = lt * (1.0 - bp)
 
                     rand = randMethod.getRandom()
@@ -533,7 +533,7 @@ class MonteCarlo:
     # w        : weight of the photon
     # z (m)    : Height of the photon position from the upper grass boundary (-1.0<=z<0)
     # ##################################################################################S
-    def floor(self, w, wq, phoCoord, vectCoord, nscat, cmode, ulr, ult, sor, ichi, ikd):
+    def floor(self, w, wq, phoCoord, vectCoord, nscat, ulr, ult, sor, ichi, ikd):
 
         # tentative fd
         fd = 0.0
@@ -571,7 +571,7 @@ class MonteCarlo:
             # check the intersection
             objCoord = Position()
             objCoord.setPosition(0.0, 0.0, -1.0)
-            plane.calPlanes(distance, phoCoord, vectCoord, objCoord, intv)
+            plane.calPlanes(phoCoord, vectCoord, objCoord, intv)
 
             distancePlane = plane.distance
 
@@ -675,3 +675,8 @@ class MonteCarlo:
 #     PI = 4 * inside / allNum
 #     print("PI = ", PI)
 #     print("ERR = ", abs((math.pi - PI) / math.pi))
+# a = [1,2,3,4,5,6,7]
+# print(a)
+# a.remove(3)
+# print(a)
+# print(a[1 + 9])

@@ -40,6 +40,7 @@ PROC_F = np.zeros(K_NXR * K_NYR * K_NRDC, dtype=float).reshape(K_NXR, K_NYR, K_N
 PROC_Q = np.zeros(K_NXR * K_NYR * K_NRDC, dtype=float).reshape(K_NXR, K_NYR, K_NRDC)
 WRR = FS_ANG = 0.0
 N_Z = N_CHI = N_RDC = 0
+CloudType = -1
 
 # canopy common
 N_ANG_C = N_TH = N_PH = N_OBJ = 0

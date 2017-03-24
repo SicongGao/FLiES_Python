@@ -29,15 +29,15 @@ class CanopyPhotonTrace:
     def __init__(self):
         return
 
-    def save(self, w, nscat, ichi, ikd):
+    def save(self, w, nscat):
         self.weight = w
         self.cNscat = nscat
-        self.cIchi = ichi
-        self.cIkd = ikd
+        # self.cIchi = ichi
+        # self.cIkd = ikd
 
         return ERRCODE.SUCCESS
 
-    def trace(self, phoCoord, vectCoord, w, wq, nscat, ichi, ikd, iParameter, ST_R):
+    def trace(self, phoCoord, vectCoord, w, wq, nscat, ichi, ikd, truncRef, SO_R, lr, lt, ulr, ult):
 
         iVOX = 0
         distancePho = 0.0
@@ -131,37 +131,73 @@ class CanopyPhotonTrace:
                     tObj[1:6] = comm.OBJ[iNobj][0:5]
 
                     mcSimulation.stem(w, wq, phoCoord, vectCoord, nscat,
-                                      tObj, face, ST_R, ichi, ikd, iParameter)
+                                      tObj, face, truncRef, ichi, ikd)
                     # load changes
                     nscat = mcSimulation.cNscat
                     w = mcSimulation.weight
 
-                    # !!!! modified the weight here !!!!
                     if (w < MIN_VALUE):
-                        return ERRCODE.CANNOT_FIND
+                        self.save(w, nscat)
+                        return ERRCODE.LOW_WEIGHT
 
                     phoCoord.x += mgn * vectCoord.x
                     phoCoord.y += mgn * vectCoord.y
                     phoCoord.z += mgn * vectCoord.z
                 # canopy interaction [Monte Carlo in canopy media]
                 else:
-                    return
+                    phoCoord.x += ((distanceObj + mgn) * vectCoord.x) * float(io)
+                    phoCoord.y += ((distanceObj + mgn) * vectCoord.y) * float(io)
+                    phoCoord.z += ((distanceObj + mgn) * vectCoord.z) * float(io)
+
+                    index = comm.I_OBJ[iNobj]
+                    mcSimulation.canopy(w, wq, phoCoord, vectCoord, nscat, tObj, iNobj,
+                                        truncRef, ichi, ikd, lr[index], lt[index])
+                    # load changes
+                    nscat = mcSimulation.cNscat
+                    w = mcSimulation.weight
+                    if (w < MIN_VALUE):
+                        self.save(w, nscat)
+                        return ERRCODE.LOW_WEIGHT
+
+                    phoCoord.movePosition(distancePho, vectCoord, comm.X_MAX, comm.Y_MAX)
 
             # big-voxel wall interaction
             else:
+                phoCoord.movePosition(distancePho, vectCoord, comm.X_MAX, comm.Y_MAX)
+
                 # Monte Carlo in forest floor
-                if():
-                    return
+                # forest floor downward flux
+                if(phoCoord.z <= 0.0):
+                    ix = int(phoCoord.x * comm.RES) + 1
+                    iy = int(phoCoord.y * comm.RES) + 1
+                    ix = min(ix, comm.SIZE)
+                    iy = min(iy, comm.SIZE)
+
+                    comm.FF_DIR[ix, iy] += w * wq * (1.0 - min(nscat, 1))
+                    comm.FF_DIF[ix, iy] += w * wq * min(nscat, 1)
+
+                    mcSimulation.floor(w, wq, phoCoord, vectCoord, nscat, ulr, ult, SO_R, ichi, ikd)
+
+                    # load changes
+                    nscat = mcSimulation.cNscat
+                    w = mcSimulation.weight
+                    if (w < MIN_VALUE):
+                        self.save(w, nscat)
+                        return ERRCODE.LOW_WEIGHT
+
+                    phoCoord.x += mgn * vectCoord.x
+                    phoCoord.y += mgn * vectCoord.y
+                    phoCoord.z += mgn * vectCoord.z
 
                 # sky (exit from canopy space)
-                elif():
-                    return
+                elif(phoCoord.z >= comm.Z_MAX):
+                    self.save(w, nscat)
+                    return ERRCODE.OUTSIDE
 
                 # refresh the x, y position using the boundary condition
                 else:
-                    return
-
-
+                    phoCoord.x -= (trunc(phoCoord.x / comm.X_MAX) - 0.5 + copysign(0.5, phoCoord.x)) * comm.X_MAX
+                    phoCoord.y -= (trunc(phoCoord.y / comm.Y_MAX) - 0.5 + copysign(0.5, phoCoord.y)) * comm.Y_MAX
 
         self.save(w, nscat)
 

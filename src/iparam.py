@@ -1,7 +1,7 @@
 # Parameters Initialization
 
 import common as comm
-import math
+from math import *
 import numpy as np
 import ERRCODE
 
@@ -56,14 +56,16 @@ class Parameters:
     spcq = [0.0] * 400
     ulr = [0.0] * 100 # reflectance of forest floor vegetaion
     ult = [0.0] * 100 # tansmittance of forest floor vegetaion
-    sor = [0.0] * 100 # soil reflectance
+    soilRef = [0.0] * 100 # soil reflectance
     tlr = [0.0] * 5
     tlt = [0.0] * 5
     tstr = [0.0] * 5
 
     lr = np.zeros(5 * 100, dtype=float).reshape(5, 100) # reflectance of crown foliage
     lt = np.zeros(5 * 100, dtype=float).reshape(5, 100) # transmittance of crown foliage
-    str = np.zeros(5 * 100, dtype=float).reshape(5, 100) # trunk reflectance
+    truncRef = np.zeros(5 * 100, dtype=float).reshape(5, 100) # trunk reflectance
+    ext = np.zeros(10 * 200, dtype=float).reshape(10, 200)
+    wkd = [0.0] * 200
 
     fname = []
     rfname = ""
@@ -348,8 +350,8 @@ class Parameters:
         self.ulr[i] = float(input())
         self.ult[i] = float(input())
         for j in range(self.nts):
-            self.str[j] = float(input())
-        self.sor[i] = float(input())
+            self.truncRef[j] = float(input())
+        self.soilRef[i] = float(input())
         return ERRCODE.SUCCESS
 
     def process100(self):
@@ -596,11 +598,11 @@ class Parameters:
                     for j in range(self.nts):
                         self.lr[j, i] = self.lr[j, ispc]
                         self.lt[j, i] = self.lt[j, ispc]
-                        self.str[j, i] = self.str[j, ispc]
+                        self.truncRef[j, i] = self.truncRef[j, ispc]
 
                     self.ulr[i] = self.ult[ispc]
                     self.ult[i] = self.ult[ispc]
-                    self.sor[i] = self.sor[ispc]
+                    self.soilRef[i] = self.soilRef[ispc]
 
             # check the parameter range
             for j in range(self.nts):
@@ -621,14 +623,14 @@ class Parameters:
                 self.ult[i] = 0.0001
 
             for j in range(self.nts):
-                if (self.str[j, i] > 1.00):
+                if (self.truncRef[j, i] > 1.00):
                     print("stem reflectance is too large, exit!")
                     return ERRCODE.OUT_OF_RANGE
 
-                if (self.str[j, i] < 0.0001):
-                    self.str[j, i] = 0.0001
+                if (self.truncRef[j, i] < 0.0001):
+                    self.truncRef[j, i] = 0.0001
 
-            if (self.sor[i] > 1.0):
+            if (self.soilRef[i] > 1.0):
                 print("soil reflectance is too large, exit!")
                 return ERRCODE.OUT_OF_RANGE
 
@@ -651,6 +653,7 @@ class Parameters:
         #self.cloudType = int(input("1: BRF only 2: BRF Nadir Image 3: 3D APAR\n"))
         # debug
         self.cloudType = 3
+        comm.CloudType = self.cloudType
 
         if ((self.cloudType <= 0) or (self.cloudType >= 4)):
             print("Bad mode selection exit")
@@ -931,17 +934,17 @@ class Parameters:
                 self.atmType = int(input())
 
                 if (self.atmType == 1):
-                    self.rfname = "Data/gas_TR_" + ch[imode]
+                    self.rfname = "../Data/gas_TR_" + ch[imode]
                 elif (self.atmType == 2):
-                    self.rfname = "Data/gas_TMS_" + ch[imode]
+                    self.rfname = "../Data/gas_TMS_" + ch[imode]
                 elif (self.atmType == 3):
-                    self.rfname = "Data/gas_MW_" + ch[imode]
+                    self.rfname = "../Data/gas_MW_" + ch[imode]
                 elif (self.atmType == 4):
-                    self.rfname = "Data/gas_HS_" + ch[imode]
+                    self.rfname = "../Data/gas_HS_" + ch[imode]
                 elif (self.atmType == 5):
-                    self.rfname = "Data/gas_HW_" + ch[imode]
+                    self.rfname = "../Data/gas_HW_" + ch[imode]
                 elif (self.atmType == 6):
-                    self.rfname = "Data/gas_US_" + ch[imode]
+                    self.rfname = "../Data/gas_US_" + ch[imode]
                 else:
                     print("Input error!")
                     return ERRCODE.INPUT_ERROR
@@ -1020,6 +1023,7 @@ class Parameters:
                 print(" 9:  Cirrus 3 (-50 degC + small particles)")
 
                 self.cloudType = int(input())
+                comm.CloudType = self.cloudType
 
                 if (self.cloudType != 0):
                     self.ctaur = float(input("ctauref:COT at 0.55 micron\n" ))
@@ -1137,3 +1141,203 @@ class Parameters:
             return ERRCODE.INPUT_ERROR
 
         return ERRCODE.SUCCESS
+
+    def preparAtm(self, iWL,):
+
+        if (self.imode != 1):
+            # weight of photon for PPFD
+            self.wq = self.span[iWL] * self.spcq[iWL] / self.RQ
+            self.wq *= float(self.Nprocess) / float(self.npl[iWL])
+
+            if(iWL <= 20):
+                self.wl0 = self.wls + float(iWL - 1) * self.span[iWL] + self.span[iWL] / 2.0
+            else:
+                self.wl0 = 0.7 + float(iWL - 21) * self.span[iWL] + self.span[iWL] / 2.0
+
+        # get atomospheric parameters
+        with open(self.rfname, "r") as file:
+            for i in range(740):
+                file.readline() # read: ##---
+
+                result = file.readline()
+                result = result.split()
+                wl1 = int(result[1])
+                wl2 = int(result[2])
+                file.readline()
+
+                for iz in range(comm.N_Z):
+                    result = file.readline()
+                    result = result.split()
+
+                    self.ext[i, iz] = float(result[1])
+
+                    for j in range(self.nkd):
+                        comm.ABS_G1D[iz, j + 1] = float(result[2 + j])
+                    for j in range(self.nkd):
+                        self.wkd[j + 1] = float(result[5 + j])
+
+                    if ((wl2 > self.wl0) and (self.wl0 >= wl1)):
+                        wkd[self.nkd + 1] = 1.000001
+                        break
+            file.close()
+
+        # read optic file
+        self.self.Qext_ref = [0.0] * 10
+        self.Qext = [0.0] * 10
+        self.Qabs = [0.0] * 10
+        self.omg = [0.0] * 10
+        G = [0.0] * 10
+        self.ang = [0]
+        dphs = [0]
+        self.phs = np.zeros(10 * 200, dtype=float).reshape(10, 200)
+
+        for i in range(self.nmix - 1):
+            with open(self.fname[i - 1], "r") as file:
+
+                if (self.imode == 1):
+
+                    for j in range(740):
+                        file.readline()
+
+                        result = file.readline().split()
+                        wl1 = float(result[0])
+                        dum = float(result[1])
+
+                        for ii in range(4):
+                            file.readline()
+
+                        result = file.readline().split()
+                        self.self.Qext_ref[i + 1] = float(result[0])
+                        self.Qext[i + 1] = float(result[1])
+                        self.Qabs[i + 1] = float(result[2])
+                        self.omg[i + 1] = float(result[3])
+                        G[i + 1] = float(result[4])
+
+                        file.readline()
+
+                        result = file.readline().split()
+                        nAng = float(result[0])
+
+                        file.readline()
+
+                        for k in range(nAng):
+                            result = file.readline().split()
+                            self.ang.append(float(result[0]))
+                            dphs.append(float(result[1]))
+
+                        if ((wl1 + 0.005) > self.wl0):
+                            file.readline()
+
+                            result = file.readline()
+                            result = result.split()
+                            wl12 = float(result[0])
+                            dum = float(result[1])
+
+                            for ii in range(4):
+                                file.readline()
+
+                            result = file.readline().split()
+                            self.self.Qext_ref[i + 1] = float(result[0])
+                            dself.Qext = float(result[1])
+                            dself.Qabs = float(result[2])
+                            dself.omg = float(result[3])
+                            dG = float(result[4])
+
+                            file.readline()
+
+                            result = file.readline().split()
+                            nAng = float(result[0])
+
+                            file.readline()
+
+                            for k in range(nAng):
+                                result = file.readline().split()
+                                self.ang.append(float(result[0]))
+                                dphs.append(float(result[1]))
+
+                            self.Qext[i + 1] = ((self.wl0 - wl1) * dself.Qext + (wl2 - self.wl0) * self.Qext[i + 1]) \
+                                          * (1.0 / 0.005)
+                            self.Qabs[i + 1] = ((self.wl0 - wl1) * dself.Qabs + (wl2 - self.wl0) * self.Qabs[i + 1]) \
+                                          * (1.0 / 0.005)
+                            self.omg[i + 1] = ((self.wl0 - wl1) * dself.omg + (wl2 - self.wl0) * self.omg[i + 1]) \
+                                          * (1.0 / 0.005)
+                            G[i + 1] = ((self.wl0 - wl1) * dG + (wl2 - self.wl0) * G[i + 1]) \
+                                          * (1.0 / 0.005)
+
+                            for k in range(nAng):
+                                self.phs[i + 1, k + 1] = ((self.wl0 - wl1) * dphs + (wl2 - self.wl0) * self.phs[i + 1, k + 1]) \
+                                          * (1.0 / 0.005)
+
+                            break
+
+                else:
+                    for j in range(53):
+                        file.readline()
+
+                        result = file.readline().split()
+                        wl1 = float(result[0])
+                        wl2 = float(result[1])
+
+                        for ii in range(6):
+                            file.readline()
+
+                        result = file.readline().split()
+                        nAng = float(result[0])
+
+                        file.readline()
+
+                        for k in range(nAng):
+                            result = file.readline().split()
+                            self.ang.append(float(result[0]))
+                            self.phs[i + 1, j + 1] = float(result[1])
+
+                        if ((self.wl0 > wl1) and (self.wl0 < wl2)):
+                            break
+
+                file.close()
+
+        # make rayleigh scattering albedo
+        self.omg[1] = 1.0
+
+        fac = 3.0 / (16.0 * math.pi)
+
+        for i in range(nAng):
+            self.phs[1, i + 1] = fac * (1.0 + math.cos(math.radians(self.ang[i + 1])) ** 2)
+
+        # get the ratio of extinction corf. of each aerosol
+        rat = (1.0, 2.0)
+        zmd = []
+        # Calcualte the extinction coef. from total tau
+        for i in range(comm.N_Z):
+            temp = (0.5 * (exp(comm.Z_GRD[i + 1], self.d) + exp(comm.Z_GRD[i], self.d)))
+            temp = -self.d * log(temp)
+            zmd.append(temp)
+
+        # Calculate the scale factor (sfc)
+        sfc = [0.0] * 10
+        zsum = 0.0
+        for i in range(comm.N_Z):
+            zsum += exp(zmd[i], self.d)
+
+        for imix in range(2, self.nmix):
+            for i in range(comm.N_Z):
+                self.ext [imix, i + 1] = sfc[i + 1] * exp(zmd[i], self.d) /\
+                                         (comm.Z_GRD[i + 1] - comm.Z_GRD[i])
+                # Convert to ext from ext_ref
+                self.ext[imix, i + 1] *= self.Qext[imix - 1] / self.self.Qext_ref[imix - 1]
+
+        if (self.cflg == 1):
+            for i in range(self.cbnz, self.ctnz + 1):
+                self.ext[self.nmix + self.cflg, i + 1] = self.ctaur /\
+                (comm.Z_GRD[self.ctnz] - comm.Z_GRD[self.cbnz])
+                self.ext[self.nmix + self.cflg, i + 1] *= self.Qext(self.nmix) / self.self.Qext_ref[self.nmix]
+
+        return ERRCODE.SUCCESS
+
+#
+# rfname = "../Data/gas_TR_hi"
+# with open(rfname, "r") as file:
+#      file.readline()
+#      result = file.readline().split()
+#      print(result)
+#      file.close()
