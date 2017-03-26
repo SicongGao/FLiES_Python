@@ -104,6 +104,9 @@ GT_BLC = [0.0] * 180
 GT_BLB = [0.0] * 180
 GT_BLF = [0.0] * 180
 
+scmpf = np.zeros(4 * 101, dtype=float).reshape(4, 101)
+scmpp = np.zeros(4 * 101, dtype=float).reshape(4, 101)
+
 for i in range(0, 62832 * 2):
     T_SIN[i] = math.sin(float(i - 62832) * 0.0001)
     T_COS[i] = math.cos(float(i - 62832) * 0.0001)

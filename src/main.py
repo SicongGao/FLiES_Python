@@ -11,6 +11,7 @@ from Random import Random
 from math import *
 from Position import Position
 from CanopyPhotonTrace import CanopyPhotonTrace
+from MonteCarlo_1D import MonteCarlo_1D
 
 # only in main
 knmix = 10
@@ -18,7 +19,7 @@ knang = 2000
 knzext = 200
 fpv = [0.0] * 101
 fpc = fpf = 0.0
-i = ip = iwl = iz = num = 0
+i = ip = iz = num = 0
 
 plai = [0.0] * 100
 wkd = [0.0] * comm.K_NKD
@@ -48,11 +49,127 @@ Nid = 0
 Nprod = 1  # comm.T_SIN[-1] = 5
 # print(comm.T_SIN)
 
-random = Random()
+rand = Random()
 
 
-def simulateATM():
+def simulateATM(para):
+    global PhotonCoord, VectorCoord
+    global nscat, nscata
+    global ichi
+    global rand
 
+    mc1D = MonteCarlo_1D()
+    canopyTrace = CanopyPhotonTrace()
+
+    #print("simulate without atmosphere")
+
+    for iwl in range(1, para.nwl):
+        para.preparAtm(iwl)
+        mc1D.optics(para.ext, para.omg, para.phs, para.ang, para.nmix + para.cflg)
+        wq = para.wq
+
+        if (para.npl[iwl] == 0):
+            print("NPL ERROR")
+            return ERRCODE.FAILURE
+
+        # loop for single wavelength
+        for ip in range(1, para.npl[iwl] + 1):
+            if (fmod(ip, para.nPhoton) == 0):
+                print(str(ip) + " of " + str(para.npl[iwl]))
+
+            w = 1.0
+            PhotonCoord.setPosition(comm.X_MAX * float(rand.getRandom()),
+                                    comm.Y_MAX * float(rand.getRandom()),
+                                    comm.Z_GRD[comm.N_Z])
+            VectorCoord.setPosition(para.sinq0 * para.cosf0,
+                                    para.sinq0 * para.sinf0,
+                                    para.cosq0)
+
+            ftau = -log(max(1.0e-35, float(rand.getRandom())))
+            chi = 1.0
+            ichi = 1
+            iz = comm.N_Z
+
+            # determination of the k-term
+            randNum = rand.getRandom()
+            ikd = 1
+            while (randNum > para.wkd[ikd]):
+                ikd += 1
+
+            # monte carlo core loop
+            while (1):
+                mc1D.trace(PhotonCoord, VectorCoord, w, wq, ftau, chi, ikd, iz, nscat, ichi)
+                # load
+                w = mc1D.weight
+                nscat = mc1D.nscat
+                iz = mc1D.iz
+
+                nscata = nscat
+                if ((w <= 0.0) or (iz > comm.N_Z)):
+                    break
+
+                comm.scmpf[1, iwl] += w
+                comm.scmpf[2, iwl] += w * (1.0 - min(float(nscat), 1.0))
+                comm.scmpf[3, iwl] += w * min(float(nscat), 1.0)
+
+                comm.scmpp[1, iwl] += w * wq
+                comm.scmpp[2, iwl] += w * wq * (1.0 - min(float(nscat), 1.0))
+                comm.scmpp[3, iwl] += w * wq * min(float(nscat), 1.0)
+
+                # surface reflection
+                if (para.surfaceType == 1):
+                    # lambertian
+                    w *= para.alb[1]
+                    if (w < MIN_VALUE):
+                        break
+                    iz = 1
+
+                    th = 0.5 * acos(0.01 * rand.getRandom())
+                    ph = 2 * pi * rand.getRandom()
+
+                    VectorCoord.setPosition(sin(th) * cos(ph),
+                                            sin(th) * sin(ph),
+                                            cos(th))
+                    if (abs(VectorCoord.z) < 0.0174524):
+                        VectorCoord.z = copysign(0.0174524, VectorCoord.z)
+
+                    para.rflx += w
+                    para.rbflx += w * (1.0 - min(float(nscata), 1.0))
+                    para.rdflx += w * min(float(nscata), 1.0)
+
+                else:
+                    # 3-D surface
+                    tLR = [0.0] * (para.nts + 1)
+                    tLT = [0.0] * (para.nts + 1)
+                    tSTR = [0.0] * (para.nts + 1)
+                    for i in range(para.nts):
+                        tLR[i] = para.lr[i, 1]
+                        tLT[i] = para.lt[i, 1]
+                        tSTR[i] = para.truncRef[i, 1]
+
+                    # call the canopy radiation transfer module
+                    canopyTrace.trace(PhotonCoord, VectorCoord, w, para.wq, nscat, ichi, ikd, tSTR, para.soilRef[1],
+                                      tLR, tLT, para.ulr[1], para.ult[1])
+
+                    w = canopyTrace.weight
+                    nscat = canopyTrace.cNscat
+
+                    if (w < MIN_VALUE):
+                        break
+
+                    iz = 1
+                    para.rflx += w
+                    para.rbflx += w * (1 - min(float(nscata), 1.0))
+                    para.rdflx += w * min(float(nscata), 1.0)
+
+        # summary of spectral flx
+        para.tflx += comm.scmpf[1, iwl]
+        para.bflx += comm.scmpf[2, iwl]
+        para.dflx += comm.scmpf[3, iwl]
+
+        para.tpfd += comm.scmpp[1, iwl]
+        para.bpfd += comm.scmpp[2, iwl]
+        para.dpfd += comm.scmpp[3, iwl]
 
     return ERRCODE.SUCCESS
 
@@ -62,7 +179,7 @@ def simulateNoATM(para):
     global PhotonCoord, VectorCoord
     global nscat, nscata
     global ichi
-    global random
+    global rand
 
     #global th, ph
 
@@ -76,7 +193,7 @@ def simulateNoATM(para):
         ikd = 0     # initialization of CDK (correlated k-dist)
 
         #  selection of beam or diffuse flux
-        if (random.getRandom() > para.diffuse):
+        if (rand.getRandom() > para.diffuse):
             # beam
             VectorCoord.setPosition(para.sinq0 * para.cosf0,
                                     para.sinq0 * para.sinf0,
@@ -90,8 +207,8 @@ def simulateNoATM(para):
 
         else:
             # diffuse
-            th = 0.5 * pi + 0.5 * acos(1.0 - 2.0 * random.getRandom())
-            ph = 2.0 * pi * random.getRandom()
+            th = 0.5 * pi + 0.5 * acos(1.0 - 2.0 * rand.getRandom())
+            ph = 2.0 * pi * rand.getRandom()
 
             VectorCoord.setPosition(sin(th) * cos(ph),
                                     sin(th) * sin(ph),
@@ -104,8 +221,8 @@ def simulateNoATM(para):
             nscata = nscat
 
         # initial position (x, y)
-        PhotonCoord.setPosition(comm.X_MAX * random.getRandom(),
-                                comm.Y_MAX * random.getRandom(),
+        PhotonCoord.setPosition(comm.X_MAX * rand.getRandom(),
+                                comm.Y_MAX * rand.getRandom(),
                                 0)
         print("Initial potion x = ", PhotonCoord.x, ", y = ", PhotonCoord.y)
 
@@ -121,8 +238,8 @@ def simulateNoATM(para):
         if (para.surfaceType == 1):
             # lambertian
             w *= para.alb[1]
-            th = 0.5 * acos(1.0 - 2.0 * random.getRandom())
-            ph = 2 * pi * random.getRandom()
+            th = 0.5 * acos(1.0 - 2.0 * rand.getRandom())
+            ph = 2 * pi * rand.getRandom()
 
             VectorCoord.setPosition(sin(th) * cos(ph),
                                     sin(th) * sin(ph),
@@ -237,7 +354,7 @@ def main():
     # #################################
     else:
         print("with atmosphere simulation.")
-        simulateATM()
+        simulateATM(para)
 
     print("end simulation.")
 
@@ -245,7 +362,6 @@ def main():
     # Output
     print("Start to write results...")
     return ERRCODE.SUCCESS
-
 
 
 # ##################################################################

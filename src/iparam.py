@@ -1142,7 +1142,7 @@ class Parameters:
 
         return ERRCODE.SUCCESS
 
-    def preparAtm(self, iWL,):
+    def preparAtm(self, iWL):
 
         if (self.imode != 1):
             # weight of photon for PPFD
@@ -1333,6 +1333,10 @@ class Parameters:
                 self.ext[self.nmix + self.cflg, i + 1] *= self.Qext(self.nmix) / self.self.Qext_ref[self.nmix]
 
         return ERRCODE.SUCCESS
+
+        def writeData():
+
+            return ERRCODE.SUCCESS
 
 #
 # rfname = "../Data/gas_TR_hi"

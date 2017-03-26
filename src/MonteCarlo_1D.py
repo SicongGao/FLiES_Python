@@ -570,7 +570,7 @@ class MonteCarlo_1D:
         return p
 
     # Make LUTs for phase function & scattering angle.
-    def optics(self, ext, omg, phs, angle, knmix, nmix, iwl):
+    def optics(self, ext, omg, phs, angle, nmix):
         kNRaw = 5000
         nLut1 = comm.N_LUT1
         nLut = comm.N_LUT
