@@ -19,15 +19,13 @@ from iparam import Parameters
 
 class CanopyPhotonTrace:
 
-    sFlag = 1
-    tau = 0.0
-    weight = 0
-    cNscat = 0
-    cIchi = 0
-    cIkd = 0
-
     def __init__(self):
-        return
+        self.sFlag = 1
+        self.tau = 0.0
+        self.weight = 0.0
+        self.cNscat = 0
+        self.cIchi = 0
+        self.cIkd = 0
 
     def save(self, w, nscat):
         self.weight = w
@@ -49,11 +47,9 @@ class CanopyPhotonTrace:
         face = 0
 
         # marginal value
-        mgn = 1.0e-2
+        MGN = 1.0e-2
 
-        #x = x0
-        #y = y0
-        phoCoord.z = comm.Z_MAX - mgn
+        phoCoord.z = comm.Z_MAX - MGN
         objCoord = Position()
 
         planes = Planes()
@@ -64,9 +60,13 @@ class CanopyPhotonTrace:
 
         # do wile photon exit from canopy space
         while (1):
-            # objCoord.x = trunc(phoCoord.x / intv[1])
-            # y1 = trunc(phoCoord.y / intv[2])
-            # z1 = trunc(phoCoord.z / intv[3])
+            # determinatin of first input voxel
+            phoCoord.x = min(phoCoord.x, comm.X_MAX)
+            phoCoord.x = max(phoCoord.x, 0.0)
+            phoCoord.y = min(phoCoord.y, comm.Y_MAX)
+            phoCoord.y = max(phoCoord.y, 0.0)
+            phoCoord.z = min(phoCoord.z, comm.Z_MAX)
+
             objCoord.setPosition(trunc(phoCoord.x / intv[1]),
                                  trunc(phoCoord.y / intv[2]),
                                  trunc(phoCoord.z / intv[3]))
@@ -140,14 +140,14 @@ class CanopyPhotonTrace:
                         self.save(w, nscat)
                         return ERRCODE.LOW_WEIGHT
 
-                    phoCoord.x += mgn * vectCoord.x
-                    phoCoord.y += mgn * vectCoord.y
-                    phoCoord.z += mgn * vectCoord.z
+                    phoCoord.x += MGN * vectCoord.x
+                    phoCoord.y += MGN * vectCoord.y
+                    phoCoord.z += MGN * vectCoord.z
                 # canopy interaction [Monte Carlo in canopy media]
                 else:
-                    phoCoord.x += ((distanceObj + mgn) * vectCoord.x) * float(io)
-                    phoCoord.y += ((distanceObj + mgn) * vectCoord.y) * float(io)
-                    phoCoord.z += ((distanceObj + mgn) * vectCoord.z) * float(io)
+                    phoCoord.x += ((distanceObj + MGN) * vectCoord.x) * float(io)
+                    phoCoord.y += ((distanceObj + MGN) * vectCoord.y) * float(io)
+                    phoCoord.z += ((distanceObj + MGN) * vectCoord.z) * float(io)
 
                     index = comm.I_OBJ[iNobj]
                     mcSimulation.canopy(w, wq, phoCoord, vectCoord, nscat, tObj, iNobj,
@@ -185,9 +185,9 @@ class CanopyPhotonTrace:
                         self.save(w, nscat)
                         return ERRCODE.LOW_WEIGHT
 
-                    phoCoord.x += mgn * vectCoord.x
-                    phoCoord.y += mgn * vectCoord.y
-                    phoCoord.z += mgn * vectCoord.z
+                    phoCoord.x += MGN * vectCoord.x
+                    phoCoord.y += MGN * vectCoord.y
+                    phoCoord.z += MGN * vectCoord.z
 
                 # sky (exit from canopy space)
                 elif(phoCoord.z >= comm.Z_MAX):
@@ -203,29 +203,3 @@ class CanopyPhotonTrace:
 
         return ERRCODE.SUCCESS
 
-# a = [1,2,3,4,5,6,7,8]
-# b = [0]*10
-#
-# print(a)
-# print(b)
-# b[1:5] = a[1:5]
-# print(b)
-#
-# class coo:
-#     x = 0
-#     y = 0
-#     z = 0
-#
-# def change(a):
-#     print(id(a))
-#     a+= "a"
-#     print(a)
-#
-# a = Position()
-# b = Position()
-# a.setPosition(1,2,3)
-# b.setPosition(4,5,6)
-# print(b.x)
-# b = a
-# del a
-# print(b.x)

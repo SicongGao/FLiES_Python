@@ -48,7 +48,7 @@ class Parameters:
     # read parameters
     nPhoton = nmix = AtmMode = imode = cmode = surfaceType = 0
     diffuse = phi = th = ph = tgx = tgy = 0.0
-    wq = sinf0 = cosf0 = cosq0 = sinq0 = 0
+    wq = sin_f0 = cos_f0 = cos_q0 = sin_q0 = 0
 
     npl = [0] * 200
     alb = [0.0] * 100
@@ -720,8 +720,11 @@ class Parameters:
         # solar zenith angle
         # debug
         self.th0 = 60.0
+        comm.Z_MIN = 0.0
         #self.th0 = float(input("the0: Solar zenith angle(degree)\n"))
+        #comm.Z_MIN = float(input("Solar elevation \n"))
         q0 = math.pi - math.radians(self.th0)
+
 
         if (self.ph0 <= math.pi):
             f0 = math.radians(self.ph0) + math.pi
@@ -730,8 +733,8 @@ class Parameters:
 
         sin_q0 = math.sin(q0)
         cos_q0 = math.cos(q0)
-        sin_fo = math.sin(f0)
-        cos_fo = math.cos(f0)
+        sin_f0 = math.sin(f0)
+        cos_f0 = math.cos(f0)
 
         if (self.AtmMode == 2):
             return
@@ -924,6 +927,24 @@ class Parameters:
             else:
                 # read z profile
                 comm.Z_GRD = np.loadtxt("..\data\zgrd")
+
+                # rescaling of zgrd according to the elevation
+                for i in range(comm.N_Z + 1):
+                    comm.Z_GRD_BACK[i] = comm.Z_GRD[i]
+                    comm.Z_GRD[i] = (comm.Z_GRD[comm.N_Z] - comm.Z_MIN) * (comm.Z_GRD[i] / comm.Z_GRD[comm.N_Z]) + comm.Z_MIN
+                    comm.K_LAYER[i] = i
+
+                # mapping the iz to the actual height level corrected above
+                for i in range(comm.N_Z + 1):
+                    for j in range(comm.N_Z + 1):
+                        if (comm.Z_GRD[i] < comm.Z_GRD_BACK[j]):
+                            comm.K_LAYER[i] = j - 1
+                            break
+
+                # make the middle of the layer height of the original zgrd (zgrd_back)
+                for i in range(1, comm.N_Z + 1):
+                    comm.Z_GRD_M[i] = 0.5 * (comm.Z_GRD_BACK[i] + comm.Z_GRD_BACK[i - 1])
+
                 print("atmType: Atmospheric profile")
                 print(" 1: Tropical")
                 print(" 2: Mid latitude summer")
@@ -1155,6 +1176,9 @@ class Parameters:
                 self.wl0 = 0.7 + float(iWL - 21) * self.span[iWL] + self.span[iWL] / 2.0
 
         # get atomospheric parameters
+        ext_back = np.zeros(10 * 200, dtype=float).reshape(10, 200)
+        absg1d_back = np.zeros(200 * 3, dtype=float).reshape(200, 3)
+        zmed = 0
         with open(self.rfname, "r") as file:
             for i in range(740):
                 file.readline() # read: ##---
@@ -1175,6 +1199,31 @@ class Parameters:
                         comm.ABS_G1D[iz, j + 1] = float(result[2 + j])
                     for j in range(self.nkd):
                         self.wkd[j + 1] = float(result[5 + j])
+
+                    # the ext(1,iz) and absg1d values are adjusted according to the
+                    # actual height level
+                    # caution!! this is very rough mapping, I didn't do a extrapolation
+                    # I just used the values from closest layers.
+
+                    for iz in range(1, comm.N_Z + 1):
+                        ext_back[1, iz] = self.ext[1, iz]
+                        n1 = klayer[iz]
+                        zmed = 0.5 * (comm.Z_GRD[iz] + comm.Z_GRD[iz - 1])
+                        self.ext[1, iz] = (comm.Z_GRD_M[nl + 1] - zmed) * self.ext(1, nl)
+                        self.ext[1, iz] += (zmed - comm.Z_GRD_M[nl]) * self.ext[1, nl + 1]
+                        self.ext[1, iz] /= (comm.Z_GRD_M[nl + 1] - comm.Z_GRD_M[nl])
+
+                        if (iz == comm.N_Z):
+                            self.ext[1, iz] = self.ext[1, comm.K_LAYER[iz]]
+
+                        for j in range(1, 4):
+                            absg1d_back[iz, j] = comm.ABS_G1D[iz, j]
+                            comm.ABS_G1D[iz, j] = (comm.Z_GRD_M[nl + 1] - zmed) * comm.ABS_G1D[nl, j]
+                            comm.ABS_G1D[iz, j] += (zmed - comm.Z_GRD_M[nl]) * comm.ABS_G1D[nl + 1, j]
+                            comm.ABS_G1D[iz, j] /= (comm.Z_GRD_M[nl + 1] - comm.Z_GRD_M[nl])
+
+                            if (iz == comm.N_Z):
+                                comm.ABS_G1D[iz, j] = comm.ABS_G1D[comm.K_LAYER[iz], j]
 
                     if ((wl2 > self.wl0) and (self.wl0 >= wl1)):
                         wkd[self.nkd + 1] = 1.000001

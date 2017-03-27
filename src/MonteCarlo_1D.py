@@ -806,6 +806,10 @@ class MonteCarlo_1D:
                         iyr = resultCoord.y / comm.Y_MAX * comm.K_NYR + 1
 
                         p = w * adf * exp(-tau)
+
+                        ixr = min(ixr, comm.K_NXR)
+                        iyr = min(iyr, comm.K_NYR)
+
                         comm.PROC_F[ixr, iyr, irdc] += p
                         comm.PROC_Q[ixr, iyr, irdc] += p * wq
 

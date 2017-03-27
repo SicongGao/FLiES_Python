@@ -13,6 +13,8 @@ N_DIVS = [0] * 722
 DIVS = np.zeros(720 * 300, dtype=int).reshape(720, 300)
 M_DIV = 0
 IX_MAX = IY_MAX = IZ_MAX = 0
+NZ_MIN = 0
+Z_MIN = 0   # solar elevation
 X_MAX = Y_MAX = Z_MAX = 0
 RES = EPSI = 0
 
@@ -26,6 +28,8 @@ N_LUT = 2000
 N_LUT1 = N_LUT + 1
 N_ANG = 0
 Z_GRD = [0.0] * K_NZ
+Z_GRD_BACK = [0.0] * K_NZ
+Z_GRD_M = [0.0] * K_NZ
 CHI_GRD = [0.0] * 100
 TRU_LUT = np.zeros(6 * K_NCHI * K_NZ, dtype=float).reshape(6, K_NCHI, K_NZ)
 ABS_G1D = np.zeros(K_NZ * K_NKD, dtype=float).reshape(K_NZ, K_NKD)
@@ -38,6 +42,7 @@ UY_RTAB = [0.0] * K_NRDC
 UZ_RTAB = [0.0] * K_NRDC
 PROC_F = np.zeros(K_NXR * K_NYR * K_NRDC, dtype=float).reshape(K_NXR, K_NYR, K_NRDC)
 PROC_Q = np.zeros(K_NXR * K_NYR * K_NRDC, dtype=float).reshape(K_NXR, K_NYR, K_NRDC)
+K_LAYER = [0.0] * K_NZ
 WRR = FS_ANG = 0.0
 N_Z = N_CHI = N_RDC = 0
 CloudType = -1

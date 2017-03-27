@@ -33,8 +33,8 @@ class VegRadiation:
 
         # TODO check the math.degree or math.radians function.
         # change angles rad to degree
-        th1 = degrees(thi)
-        th2 = degrees(tho)
+        th1 = min(degrees(thi), 179.999999)
+        th2 = min(degrees(tho), 179.999999)
         ph = degrees(phr)
 
         # all angles are divided by 10.

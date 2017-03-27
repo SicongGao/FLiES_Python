@@ -19,7 +19,7 @@ knang = 2000
 knzext = 200
 fpv = [0.0] * 101
 fpc = fpf = 0.0
-i = ip = iz = num = 0
+ip = iz = num = 0
 
 plai = [0.0] * 100
 wkd = [0.0] * comm.K_NKD
@@ -81,9 +81,9 @@ def simulateATM(para):
             PhotonCoord.setPosition(comm.X_MAX * float(rand.getRandom()),
                                     comm.Y_MAX * float(rand.getRandom()),
                                     comm.Z_GRD[comm.N_Z])
-            VectorCoord.setPosition(para.sinq0 * para.cosf0,
-                                    para.sinq0 * para.sinf0,
-                                    para.cosq0)
+            VectorCoord.setPosition(para.sin_q0 * para.cos_f0,
+                                    para.sin_q0 * para.sin_f0,
+                                    para.cos_q0)
 
             ftau = -log(max(1.0e-35, float(rand.getRandom())))
             chi = 1.0
@@ -195,12 +195,12 @@ def simulateNoATM(para):
         #  selection of beam or diffuse flux
         if (rand.getRandom() > para.diffuse):
             # beam
-            VectorCoord.setPosition(para.sinq0 * para.cosf0,
-                                    para.sinq0 * para.sinf0,
-                                    para.cosq0)
+            VectorCoord.setPosition(para.sin_q0 * para.cos_f0,
+                                    para.sin_q0 * para.sin_f0,
+                                    para.cos_q0)
 
             if (abs(VectorCoord.z) < MIN_UZ):
-                uz = copysign(MIN_UZ, VectorCoord.z)
+                VectorCoord.z = copysign(MIN_UZ, VectorCoord.z)
 
             nscat = 0
             nscata = nscat
@@ -215,7 +215,7 @@ def simulateNoATM(para):
                                     cos(th))
 
             if (abs(VectorCoord.z) < MIN_UZ):
-                uz = copysign(MIN_UZ, VectorCoord.z)
+                VectorCoord.z = copysign(MIN_UZ, VectorCoord.z)
 
             nscat = 1
             nscata = nscat

@@ -49,6 +49,7 @@ def ipf():
                     comm.G_MRF[i, j, k] = gmr
                     comm.G_MTF[i, j, k] = gmt
 
+        # for reflection
         # write rfiles
         f = open(rfile[0], "w")
         f.write(comm.G_MRC)
@@ -62,6 +63,7 @@ def ipf():
         f.write(comm.G_MRF)
         f.close()
 
+        # for transmission
         # write tfiles
         f = open(tfile[0], "w")
         f.write(comm.G_MTC)
@@ -76,6 +78,7 @@ def ipf():
         f.close()
     # read from files
     else:
+        # for reflection
         contentFile = np.loadtxt(rfile[0])
         comm.G_MRC = transferToMatrix(contentFile)
 
@@ -85,6 +88,7 @@ def ipf():
         contentFile = np.loadtxt(rfile[2])
         comm.G_MRF = transferToMatrix(contentFile)
 
+        # for transmission
         contentFile = np.loadtxt(tfile[0])
         comm.G_MTC = transferToMatrix(contentFile)
 

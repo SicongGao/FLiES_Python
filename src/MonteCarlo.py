@@ -218,8 +218,7 @@ class MonteCarlo:
         la = comm.U[temp]
         tsobj = comm.T_OBJ[inobj]
 
-        # TODO check the cf12 value with fortran code
-        cf12 = cf
+        cf12 = comm.S_BAR[comm.I_OBJ[inobj]]
         rb12 = 1.0
         fd = 0.0
 
@@ -333,9 +332,10 @@ class MonteCarlo:
                                 vectCoord.z = copysign(UZ_MIN, vectCoord.z)
 
                         # check status
-                        treeBounday.dealTreeType(tsobj, phoCoord, vectCoord, tObjb)
-                        io2 = treeBounday.io
-                        distance2 = treeBounday.distance
+                        if (tsobj == 1):
+                            treeBounday.dealTreeType(tsobj, phoCoord, vectCoord, tObjb)
+                            io2 = treeBounday.io
+                            distance2 = treeBounday.distance
 
                         # for unexpected case(photon is outside of canopy)
                         if (io2 == 1):
@@ -420,9 +420,13 @@ class MonteCarlo:
                             if (abs(vectCoord.z < UZ_MIN)):
                                 vectCoord.z = copysign(UZ_MIN, vectCoord.z)
 
-                        treeBounday.dealTreeType(tsobj, phoCoord, vectCoord, tObj12)
-                        io12 = treeBounday.io
-                        distance12 = treeBounday.distance
+                        if (tsobj == 1):
+                            treeBounday.dealTreeType(tsobj, phoCoord, vectCoord, tObj12)
+                            io12 = treeBounday.io
+                            distance12 = treeBounday.distance
+                            treeBounday.dealTreeType(tsobj, phoCoord, vectCoord, tObjb)
+                            io2 = treeBounday.io
+                            distance2 = treeBounday.distance
 
                         # for unexpected case (photon is outside of canopy)
                         if (io12 == 1):
@@ -512,12 +516,13 @@ class MonteCarlo:
                                 vectCoord.z = copysign(UZ_MIN, vectCoord.z)
 
                         # check status
-                        treeBounday.dealTreeType(tsobj, phoCoord, vectCoord, tObj)
-                        distance1 = treeBounday.distance
-                        io1 = treeBounday.io
-                        treeBounday.dealTreeType(tsobj, phoCoord, vectCoord, tObj12)
-                        distance12 = treeBounday.distance
-                        io12 = treeBounday.io
+                        if (tsobj == 1):
+                            treeBounday.dealTreeType(tsobj, phoCoord, vectCoord, tObj)
+                            distance1 = treeBounday.distance
+                            io1 = treeBounday.io
+                            treeBounday.dealTreeType(tsobj, phoCoord, vectCoord, tObj12)
+                            distance12 = treeBounday.distance
+                            io12 = treeBounday.io
                         if (io1 == 1):
                             self.save(nscat, w)
                             return ERRCODE.OUTSIDE
@@ -625,6 +630,8 @@ class MonteCarlo:
 
                     ix = int(phoCoord.x * comm.RES) + 1
                     iy = int(phoCoord.y * comm.RES) + 1
+                    ix = min(ix, comm.SIZE)
+                    iy = min(iy, comm.SIZE)
 
                     comm.AP_S += w * wq * (1.0 - ulr - ulr)
 
