@@ -1707,15 +1707,3 @@ class Parameters:
                 self.printFishEye()
 
             return ERRCODE.SUCCESS
-
-#
-# rfname = "../Data/gas_TR_hi"
-# with open(rfname, "r") as file:
-#      file.readline()
-#      result = file.readline().split()
-#      print(result)
-#      file.close()
-
-f = open("../data/fff.txt","w")
-f.write(format("aaa",'10') + format("bbb",'10'))
-f.close()
