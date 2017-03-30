@@ -1,10 +1,11 @@
-# Parameters Initialization
-
 import common as comm
 from math import *
 import numpy as np
 import ERRCODE
 
+OUTPUT_PATH = "../data/"
+
+# Parameters Initialization
 class Parameters:
     ix = [0] * 1025
     wl0 = 0.0  # Default target wavelength(micron)
@@ -1193,7 +1194,7 @@ class Parameters:
                     result = file.readline()
                     result = result.split()
 
-                    self.ext[i, iz] = float(result[1])
+                    self.ext[1, iz] = float(result[1])
 
                     for j in range(self.nkd):
                         comm.ABS_G1D[iz, j + 1] = float(result[2 + j])
@@ -1383,7 +1384,327 @@ class Parameters:
 
         return ERRCODE.SUCCESS
 
+        def printFishEye():
+            print("Haven't finish finish eye function.")
+            return ERRCODE.SUCCESS
+
         def writeData():
+
+            app = [0.0] * 100
+
+            # summary of the radiative flux
+
+            # summary calculation of fulx
+            pixelNP = float(self.nPhoton) / float(comm.SIZE ** 2)
+            tm = tflx / float(self.nPhoton)
+
+            for i in range(1, self.nwl + 1):
+                comm.scmpf[1, i] *= 100.0 / self.tflx
+                comm.scmpp[1, i] *= 100.0 / self.tpfd
+                comm.scmpf[2, i] *= 100.0 / self.bplx
+                comm.scmpp[2, i] *= 100.0 / self.bpfd
+                comm.scmpf[3, i] *= 100.0 / self.dflx
+                comm.scmpp[3, i] *= 100.0 / self.dpfd
+
+            self.tflx *= self.RF * abs(self.cos_q0) / float(self.nPhoton)
+            self.bflx *= self.RF * abs(self.cos_q0) / float(self.nPhoton)
+            self.dflx *= self.RF * abs(self.cos_q0) / float(self.nPhoton)
+
+            self.rflx *= self.RF * abs(self.cos_q0) / float(self.nPhoton)
+            self.rbflx *= self.RF * abs(self.cos_q0) / float(self.nPhoton)
+            self.rdflx *= self.RF * abs(self.cos_q0) / float(self.nPhoton)
+
+            self.tpfd *= self.RQ * abs(self.cos_q0) / float(self.nPhoton)
+            self.bpfd *= self.RQ * abs(self.cos_q0) / float(self.nPhoton)
+            self.dpfd *= self.RQ * abs(self.cos_q0) / float(self.nPhoton)
+
+            comm.C_FPR *= self.RQ * abs(self.cos_q0) / float(self.nPhoton)
+            comm.B_FPR *= self.RQ * abs(self.cos_q0) / float(self.nPhoton)
+            comm.F_FPR *= self.RQ * abs(self.cos_q0) / float(self.nPhoton)
+            comm.S_FPR *= self.RQ * abs(self.cos_q0) / float(self.nPhoton)
+            comm.T_FPR = comm.C_FPR + comm.B_FPR + comm.F_FPR
+
+            comm.T_FPR /= self.tpfd
+            comm.C_FPR /= self.tpfd
+            comm.B_FPR /= self.tpfd
+            comm.F_FPR /= self.tpfd
+            comm.S_FPR /= self.tpfd
+
+            # summary of 3D far etc
+            th = acos(self.cos_q0)
+            ith = int(degrees(th))
+
+            for k in range(int(comm.Z_MAX) + 1, 0, -1):
+                for i in range(1, comm.SIZE + 1):
+                    for j in range(1, comm.SIZE + 1):
+                        comm.AP[i, j, k] *= self.RQ * abs(self.cos_q0) / pixelNP
+                        comm.AP_D[i, j, k] *= self.RQ * abs(self.cos_q0) / pixelNP
+                        comm.AP_B[i, j, k] *= abs(self.cos_q0) / pixelNP
+                        comm.AP_B[i, j, k] *= (1.0 / comm.GT_BLC[ith])
+                        comm.AP_B[i, j, k] *= min(comm.AP_B, 1.0)
+                        app[k] += comm.AP[i, j, k]
+
+                app[k] /= (self.tflx * float(comm.SIZE ** 2))
+                comm.AP_NP *= self.RQ * abs(self.cos_q0) / float(self.nPhoton) / self.tflx
+
+            #summary of forest floor far etc
+            for i in range(1, comm.SIZE + 1):
+                for j in range(1, comm.SIZE + 1):
+                    comm.AP_F *= self.RQ * abs(self.cos_q0) / pixelNP
+                    comm.AP_FD *= self.RQ * abs(self.cos_q0) / pixelNP
+
+            # summary of forest floor and surface downward flux
+            ffSum = 0.0
+            sfSum = 0.0
+
+            for i in range(1, comm.SIZE + 1):
+                for j in range(1, comm.SIZE + 1):
+                    comm.SF_DIR[i, j] *= self.RQ * abs(self.cos_q0) / pixelNP
+                    comm.SF_DIF[i, j] *= self.RQ * abs(self.cos_q0) / pixelNP
+                    comm.FF_DIR[i, j] *= self.RQ * abs(self.cos_q0) / pixelNP
+                    comm.FF_DIF[i, j] *= self.RQ * abs(self.cos_q0) / pixelNP
+
+                    ffSum += comm.FF_DIR[i, j] + comm.FF_DIF[i, j]
+                    sfSum += comm.SF_DIR[i, j] + comm.SF_DIF[i, j]
+
+            # writting
+            f = open(OUTPUT_PATH + "flxsum.txt", "w")
+            f.write("-- summary of radiative quantity --")
+            f.write("")
+            f.write("-- simulation mode --")
+
+            if (self.atmType == 1):
+                f.write(" Atmospheric module: Yes")
+            else:
+                f.write(" Atmospheric module: No")
+
+            if (self.atmType == 1):
+                if (self.imode == 1):
+                    f.write("Spectral domain: single wavelength, " + str(self.wl0))
+                if (self.imode == 2):
+                    f.write("Spectral domain: PAR")
+                if (self.imode == 3):
+                    f.write("Spectral domain: Shortwave total")
+
+            if (self.surfaceType == 1):
+                f.write("Surface type: lambertian")
+            else:
+                f.write("Surface type: 3-D canopy")
+
+            f.write("\n-- Solar zenith angle, Elv(m), atm. transmittance --")
+            f.write(format(radians(pi - cos(self.cos_q0)), '12.2f') + " " +
+                    format(comm.Z_MAX + '12.5f') + "  " +
+                    format(tm, '12.5f'))
+
+            f.write("\n-- Downward Irradiance at TOC --")
+
+            if (self.atmType == 2):
+                f.write("warning ! irradiance & PPFD are normalized by 1000.*cos(th) !!")
+
+            f.write("\nEnergy unit (W/m2)")
+            f.write(format("Total", '12') + format("Beam", '12') + format("Diffuse", '12') + format("Diff.Ratio", '12'))
+            f.write(format(self.tflx, '12.5f') + format(self.bflx, '12.5f') + format(self.dflx, '12.5f') + format(self.dflx / self.tflx, '12.5f'))
+
+            f.write("\nPhoton unit (W/m2)")
+            f.write(format("Total", '12') + format("Beam", '12') + format("Diffuse", '12') + format("Diff.Ratio", '12'))
+            f.write(format(self.tpfd, '12.5f') + format(self.bpfd, '12.5f') + format(self.dpfd, '12.5f') + format(self.dpfd / self.tpfd, '12.5f'))
+
+            f.write("\nAlbedo (A)")
+            f.write(format("Actual", '12') + format("black", '12') + format("white", '12'))
+            f.write(format("", '12') + format("black", '12') + format("white", '12'))
+            f.write(format(self.rflx / self.tflx, '12.5f') + format(self.rbflx / self.bflx, '12.5f') + format(self.rdflx / self.dflx, '12.5f'))
+
+            if (self.surfaceType == 2):
+                f.write("\n-- fraction of downward flux (T) -- ")
+                f.write(format("Forest Floor", '12') + format("Surface Floor", '12'))
+                f.write(format(ffSum / self.tpfd, '12.5f') + format(sfSum / self.tpfd, '12.5f'))
+
+                f.write("\n-- fraction of absorbed radiation (far) --")
+                f.write(format("total", '10') + format("leaf", '10') + format("non-leaf", '10') + format("floor", '10'))
+                f.write(format(comm.T_FPR, '10.7f') + format(comm.C_FPR, '10.7f') + format(comm.B_FPR, '10.7f') + format(comm.F_FPR, '10.7f'))
+
+                f.write("\nVertical profile of far")
+                f.write(format("H(m)", '10') + format("total", '10') + format("leaf", '10') + format("non-leaf", '10'))
+                string = ""
+                for k in range(comm.Z_MAX + 1, 0, -1):
+                    string += format(k, '6') + format(app[k] + comm.AP_NP[k], '10') + format(app[k], '10') + format(comm.AP_NP[k], '10')
+                f.write(string)
+
+            f.write("\n-- spctrl fraction. energy & photon flux(%) --")
+            f.write(format("wl(um)", '10') + format("Etot", '10') + format("Ebeam", '10') + format("Ediffuse", '10')
+                    + format("Ptot", '10') + format("Pbeam", '10') + format("Pdiffuse", '10'))
+            for i in range(1, self.nwl + 1):
+                if (i <= 20):
+                    temp = self.wls + self.span[i] * float(i) - self.span[i] / 2.0
+                else:
+                    temp = 0.7 + self.wls + self.span[i] * float(i - 20) - self.span[i] / 2.0
+
+                f.write(format(temp, '10.3f'))
+                string = ""
+                for j in range(3):
+                    string += format(comm.scmpf[j + 1, i], '10.5f')
+                for j in range(3):
+                    string += format(comm.scmpp[j + 1, i], '10.5f')
+
+                f.write(string)
+
+            f.write("\n-- Downward radiance at the top of canopy --")
+            f.write("# idrc theta phi radiance_F stdev_F radiance_Q stdev_Q")
+
+            pixelNP_A = float(self.nPhoton) / float(comm.K_NXR * comm.K_NYR)
+
+            for k in range(1, comm.N_RDC + 1):
+                sumF = sum2F = 0.0
+                pF_Max = 0.0
+                sumQ = sum2Q = 0.0
+                pQ_Max = 0.0
+
+                for i in range(comm.K_NXR + 1):
+                    for j in range(comm.K_NYR + 1):
+                        pF = comm.PROC_F[i, j, k] / pixelNP_A
+                        pQ = comm.PROC_Q[i, j, k] / pixelNP_A
+
+                        sumF += pF
+                        sumF += pF ** 2
+                        pF_Max = max(pF_Max, pF)
+
+                        sumQ += pQ
+                        sum2Q += pQ ** 2
+                        pQ_Max = max(pQ_Max, pQ)
+
+                aveF = sumF / float(comm.K_NXR * comm.KYXR)
+                sdvF = sqrt(sum2F / float(comm.K_NXR * comm.KYXR) - aveF ** 2)
+                aveQ = sumQ / float(comm.K_NXR * comm.KYXR)
+                sdvF = sqrt(sum2Q / float(comm.K_NXR * comm.KYXR) - aveQ ** 2)
+
+                uxc = copysign(max(1.0e-5, abs(comm.UX_RTAB[k])), comm.UX_RTAB[k])
+                phi = sqrt(comm.UX_RTAB[k] ** 2 + comm.UY_RTAB[k])
+                phi = max(1.0e-5, phi)
+                phi = radians(acos(uxc / phi))
+
+                f.write(format(k, "6") + format(radians(acos(comm.UZ_RTAB)), '8.3f') + format(phi, '8.3f') +
+                        format(avef, '12.5f') + format(sdvf, '12.5f') + format(aveQ, '12.5f') + format(sdvQ, '12.5f'))
+
+            f.close()
+
+            if (self.surfaceType == 1):
+                return ERRCODE.SUCCESS
+
+            if (self.cmode == 1):
+                # BRFD result output
+                for i in range(1, comm.N_ANG_C + 1):
+                    comm.BRF_C[1, i] /= comm.BRF[1, i]
+                    comm.BRF_S[1, i] /= comm.BRF[1, i]
+                    comm.BRF_F[1, i] /= comm.BRF[1, i]
+
+                    if (self.atmType == 1):
+                        comm.BRF[1, i] *= pi / (float(self.nPhoton) * tm)
+                    else:
+                        comm.BRF[1, i] *= pi / float(self.nPhoton)
+
+                    comm.BRF_C[2, i] /= comm.BRF[2, i]
+                    comm.BRF_S[2, i] /= comm.BRF[2, i]
+                    comm.BRF_F[2, i] /= comm.BRF[2, i]
+                    comm.BRF[2, i] *= pi / float(self.nPhoton)
+
+                    f = open(OUTPUT_PATH + "brfsum.txt", 'w')
+
+                    if (self.atmType == 1):
+                        f.write(format("Theta", '8') + format("Phi", '8') + format("BRF(TOC)", '10') + format("BRF(TOA)", '10') +
+                                format("rover", '10') + format("rbark", '10') + format("rfloor", '10'))
+                    else:
+                        f.write(
+                            format("Theta", '8') + format("Phi", '8') + format("BRF(TOC)", '10') +
+                            format("rover", '10') + format("rbark", '10') + format("rfloor", '10'))
+
+                    k = 1
+
+                    for j in range(1, comm.N_PH + 1):
+                        for i in range(1, comm.N_TH + 1):
+
+                            if (self.atmType == 1):
+                                f.write(format(comm.ANG_T[i], '8.2f') + format(comm.ANG_P[i], '8.2f') +
+                                        format(comm.BRF[1, k], '10.6f') + format(comm.BRF[2, k], '10.6f') +
+                                        format(comm.BRF_C[1, k], '10.6f') + format(comm.BRF_S[2, k], '10.6f') + format(comm.BRF_F[1, k], '10.6f'))
+                            else:
+                                f.write(format(comm.ANG_T[i], '8.2f') + format(comm.ANG_P[i], '8.2f') +
+                                        format(comm.BRF[1, k], '10.6f') + format(comm.BRF[2, k], '10.6f') +
+                                        format(comm.BRF_C[1, k], '10.6f') + format(comm.BRF_S[2, k], '10.6f') + format(comm.BRF_F[1, k], '10.6f'))
+
+                            k += 1
+
+                    f.close()
+
+            # Nadir view image
+            if (self.cmode != 1):
+                f = open(OUTPUT_PATH + "TOC_IMG.txt")
+
+                for j in range(comm.SIZE, 0, -1):
+                    string = ""
+                    if (self.atmType == 1):
+                        for i in range(1, comm.SIZE + 1):
+                             string += format(pi * comm.REFL[1, i, j] / (pixelNP * tm), '10.5f')
+                    else:
+                        for i in range(1, comm.SIZE + 1):
+                            string += format(pi * comm.REFL[1, i, j] / pixelNP, '10.5f')
+                    f.write(s)
+
+                f.close()
+
+                f = open(OUTPUT_PATH + "nTOC_IMG.txt", 'w')
+                for j in range(comm.SIZE, 0, -1):
+                    string = ""
+                    for i in range(1, comm.SIZE + 1):
+                        string += format(pi * comm.I_REFL[1, i, j] / pixelNP, '10.5f')
+                f.close()
+
+            if (self.cmode == 3):
+                f = open(OUTPUT_PATH + "apar.txt", 'w')
+                for k in range(comm.Z_MAX + 1, 0, -1):
+                    for j in range(comm.SIZE, 0, -1):
+                        string = ""
+                        for i in range(1, comm.SIZE + 1):
+                            string += format(comm.AP[i, j, k], '12.5f')
+                        f.write(string)
+                f.close()
+
+                f = open(OUTPUT_PATH + "aparb.txt", 'w')
+                for k in range(comm.Z_MAX + 1, 0, -1):
+                    for j in range(comm.SIZE, 0, -1):
+                        string = ""
+                        for i in range(1, comm.SIZE + 1):
+                            string += format(comm.AP_B[i, j, k], '12.5f')
+                        f.write(string)
+                f.close()
+
+                f = open(OUTPUT_PATH + "apard.txt", 'w')
+                for k in range(comm.Z_MAX + 1, 0, -1):
+                    for j in range(comm.SIZE, 0, -1):
+                        string = ""
+                        for i in range(1, comm.SIZE + 1):
+                            string += format(comm.AP_D[i, j, k], '12.5f')
+                        f.write(string)
+                f.close()
+
+                f = open(OUTPUT_PATH + "aparf.txt", 'w')
+                for j in range(comm.SIZE, 0, -1):
+                    string = ""
+                    for i in range(1, comm.SIZE + 1):
+                        string += format(comm.AP_F[i, j, k], '12.5f')
+                    f.write(string)
+                f.close()
+
+                f = open(OUTPUT_PATH + "aparfd.txt", 'w')
+                for j in range(comm.SIZE, 0, -1):
+                    string = ""
+                    for i in range(1, comm.SIZE + 1):
+                        string += format(comm.AP_FD[i, j, k], '12.5f')
+                    f.write(string)
+                f.close()
+
+            # print fish eye data
+            if (self.nPhoton == -4):
+                self.printFishEye()
 
             return ERRCODE.SUCCESS
 
@@ -1394,3 +1715,7 @@ class Parameters:
 #      result = file.readline().split()
 #      print(result)
 #      file.close()
+
+f = open("../data/fff.txt","w")
+f.write(format("aaa",'10') + format("bbb",'10'))
+f.close()
