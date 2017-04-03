@@ -2,7 +2,7 @@ import common as comm
 from math import *
 import numpy as np
 import ERRCODE
-import input_parameters
+#import input_parameters
 import config
 
 # Parameters Initialization
@@ -897,7 +897,7 @@ class Parameters:
                 self.RQ = swQ
 
             # read solar radiation
-            contentFile = np.loadtxt("..\data\solar_rad")
+            contentFile = np.loadtxt("../data/solar_rad")
             nspc = len(contentFile)
             for i in range(nspc):
                 wl0d.append(contentFile[i][0])
@@ -996,7 +996,7 @@ class Parameters:
 
             else:
                 # read z profile
-                comm.Z_GRD = np.loadtxt("..\data\zgrd")
+                comm.Z_GRD = np.loadtxt("../data/zgrd")
 
                 # rescaling of zgrd according to the elevation
                 for i in range(comm.N_Z + 1):

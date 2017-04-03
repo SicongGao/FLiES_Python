@@ -10,8 +10,8 @@ def ipf():
     th1 = th2 = ph = 0.0
     gmr = gmt = 0.0
 
-    rfile = ["..\data\gmr_uni.txt", "..\data\gmr_plano.txt", "..\data\gmr_erect.txt"]
-    tfile = ["..\data\gmt_uni.txt", "..\data\gmt_plano.txt", "..\data\gmt_erect.txt"]
+    rfile = ["../data/gmr_uni.txt", "../data/gmr_plano.txt", "../data/gmr_erect.txt"]
+    tfile = ["../data/gmt_uni.txt", "../data/gmt_plano.txt", "../data/gmt_erect.txt"]
 
     # leaf angle distribution
     # mc = 1
