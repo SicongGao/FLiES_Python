@@ -438,7 +438,7 @@ class MonteCarlo_1D:
         a1 = radians(wrkang[nwrk])
         sin_a1 = sin(a1)
 
-        for iwrk in range(nwrk - 1, 1, -1):
+        for iwrk in range(nwrk - 1, 0, -1):
             a0 = radians(wrkang[iwrk])
             sin_a0 = sin(a0)
             p = (a1 - a0) * (wrkphs[iwrk + 1] * sin_a1 + wrkphs[iwrk] * sin_a0)
@@ -452,7 +452,7 @@ class MonteCarlo_1D:
         # Normalizations
         aSum = 1.0 / sumNum
         f = 4.0 / sumNum
-        for iwrk in range(nwrk + 1):
+        for iwrk in range(1, nwrk + 1):
             wrkphs[iwrk] *= f
             wrkcum[iwrk] *= aSum
             wrkpdf[iwrk] *= aSum
@@ -490,7 +490,7 @@ class MonteCarlo_1D:
         wrkc2[2] = 2.0 * (rawang[3] - rawang[2])
         wrkc3[2] = wrkc1[2] - wrkc1[1]
 
-        for i in range(3, nraw - 1):
+        for i in range(3, nraw):
             h1 = rawang[i + 1] - rawang[i]
             h0 = rawang[i] - rawang[i - 1]
 
@@ -523,7 +523,7 @@ class MonteCarlo_1D:
         iraw = 1
         for iwrk in range(nwrk + 1):
             x = wrkang[iwrk]
-            iraw = self.i_rvctrssrch[rawang, x, iraw, iraw, nraw - 1]
+            iraw = self.i_rvctrssrch(rawang, x, iraw, iraw, nraw - 1)
             dx = x - rawang[iraw]
             y = rawphs[iraw] + (wrkc1[iraw] + (wrkc2[iraw] + wrkc3[iraw] * dx) * dx) * dx
             wrkphs[iwrk] = max(0.0, y)
@@ -601,24 +601,25 @@ class MonteCarlo_1D:
 
         # angle & cosine
         delt = 180.0 / float(nLut)
-        nwrk = nLut + 1
+        nwrk = nLut
+        # print()
         for iWrk in range(nwrk + 1):
             temp = delt * (iWrk - 1)
             wrkAngle[iWrk] = temp
             wrkCos[iWrk] = cos(radians(temp))
 
         # Normalization of the phase functions
-        for iMix in range(nmix + 1):
-            for iAng in range(comm.N_ANG + 1):
+        for iMix in range(1, nmix + 1):
+            for iAng in range(1, comm.N_ANG + 1):
                 rawPhs[iAng] = phs[iMix, iAng]
 
             self.nrmlzphsf(comm.N_ANG, angle, rawPhs, 1.0)
 
-            for iAng in range(comm.N_ANG + 1):
+            for iAng in range(1, comm.N_ANG + 1):
                 phs[iMix, iAng] = rawPhs[iAng]
 
         # loop for layers
-        for iz in range(comm.N_Z + 1):
+        for iz in range(1, comm.N_Z + 1):
 
             # mix optical properties
             sumA = 0.0
@@ -706,7 +707,7 @@ class MonteCarlo_1D:
             return ERRCODE.SUCCESS
 
         if (vectCoord.z >= 0.0):
-            for izr in range(iz, comm.N_Z):
+            for izr in range(iz, comm.N_Z + 1):
                 tau += (comm.Z_GRD(izr) - resultCoord.z) * (comm.ABS_G1D[izr, ikd] + comm.EXT_T1D[izr, ichi])
                 resultCoord.z = comm.Z_GRD[izr]
 

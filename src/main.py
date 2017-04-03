@@ -12,6 +12,7 @@ from math import *
 from Position import Position
 from CanopyPhotonTrace import CanopyPhotonTrace
 from MonteCarlo_1D import MonteCarlo_1D
+import input_parameters
 
 # only in main
 knmix = 10
@@ -271,7 +272,7 @@ def simulateNoATM(para):
     return ERRCODE.SUCCESS
 
 
-def main():
+def main(**args):
     if (Nid == 0):
         print("*********************************************")
         print("3D canopy-atmosphere radiative transfer model")
@@ -286,7 +287,7 @@ def main():
     print("iparam")
     print("Parameters initialization...")
     para = Parameters()
-    errCode = para.readParameters()
+    errCode = para.readParameters(**args)
 
     if (errCode):
         return errCode
@@ -345,23 +346,28 @@ def main():
     # #################################
     # Without atmosphere
     # #################################
-    if (para.atmType == 2):
+    if (para.AtmMode == 2):
         print("without atmosphere simulation.")
-        simulateNoATM(para)
+        errCode = simulateNoATM(para)
+        if (errCode != ERRCODE.SUCCESS):
+            return errCode
 
     # #################################
     # With atmosphere
     # #################################
     else:
         print("with atmosphere simulation.")
-        simulateATM(para)
+        errCode = simulateATM(para)
+        if (errCode != ERRCODE.SUCCESS):
+            return errCode
 
     print("end simulation.")
 
     # ---- end simulation --------
     # Output
+    errCode = para.writeData()
     print("Start to write results...")
-    return ERRCODE.SUCCESS
+    return errCode
 
 
 # ##################################################################
@@ -388,7 +394,7 @@ def main():
 # #################################################################
 START_TIME = datetime.datetime.now()
 
-err = main()
+err = main(**input_parameters.Atmosphere_Mode_Args)
 ERRCODE.printMessage(err)
 
 END_TIME = datetime.datetime.now()

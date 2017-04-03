@@ -1,6 +1,6 @@
 import numpy as np
 import math
-#from Position import Position
+from Position import Position
 
 # DEFINE CONST
 OBJ_NUM_MAX = 6000
@@ -19,8 +19,8 @@ X_MAX = Y_MAX = Z_MAX = 0
 RES = EPSI = 0
 
 # atmospheric common
-K_NZ = 200
-K_NKD = 3
+K_NZ = 201
+K_NKD = 4
 K_NCHI = 10
 K_NXR = K_NYR = 300
 K_NRDC = 700
@@ -81,7 +81,7 @@ G_LAI = 0.0
 U = [0.0] * 6
 BAD = [0.0] * 5
 IR = FE = BP1 = BP2 = 0.0
-URC_coord = [0.0]* K_NRDC
+URC_coord = [Position()] * K_NRDC
 UX_RC = [0.0] * K_NRDC
 UY_RC = [0.0] * K_NRDC
 UZ_RC = [0.0] * K_NRDC

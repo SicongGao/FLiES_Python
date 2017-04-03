@@ -2,8 +2,8 @@ import common as comm
 from math import *
 import numpy as np
 import ERRCODE
-
-OUTPUT_PATH = "../data/"
+import input_parameters
+import config
 
 # Parameters Initialization
 class Parameters:
@@ -68,7 +68,7 @@ class Parameters:
     ext = np.zeros(10 * 200, dtype=float).reshape(10, 200)
     wkd = [0.0] * 200
 
-    fname = []
+    fname = [""]
     rfname = ""
 
     nts = 0  # group of tree species
@@ -115,37 +115,37 @@ class Parameters:
         self.ph0 = 0.0  # solar azimuth angle in degree
         self.tm = 1.0  # atmopsheric transmittance
         self.hfov = 1.0  # detector half widt of the field of view
-        self.hfov = math.radians(self.hfov)
-        self.hfov = math.cos(self.hfov)
+        self.hfov = radians(self.hfov)
+        self.hfov = cos(self.hfov)
         self.cflg = 0  # cflg = 0 -> cloud - free, cflg = 1 -> cloud
 
         self.span[1: 20] = [0.02] * 20  # Wavelength span (0.3-0.7 micron)
         self.span[21: 100] = [0.1] * 80  # Wavelength span (0.7- micron)
 
-        #     Irradiance
+        # Irradiance
         self.tflx = 0.0  # Total downward flux at top of canopy
         self.bflx = 0.0  # Beam downward flux at TOC
         self.dflx = 0.0  # Diffuse downward flux at TOC
         self.obflx = 0.0  # Beam downawr flux at TOC(observed)
         self.odflx = 0.0  # Diffuse downward flux at TOC(observed)
 
-        #     reflected radiance from canopy
+        # reflected radiance from canopy
         self.rflx = 0.0  # total reflcted irradiaice
         self.rbflx = 0.0  # beam reflected irradiance
         self.rdflx = 0.0  # diffuse reflected irradiance
 
-        #     Photon flux density
+        # Photon flux density
         self.tpfd = 0.0  # Total downward PFD at top of canopy
         self.bpfd = 0.0  # Beam downward PFD at top of canopy
         self.dpfd = 0.0  # Diffuse downward PDF at top of canopy
         self.obpfd = 0.0  # Beam downawr PFD at TOC(observed)
         self.odpfd = 0.0  # Diffuse downward PFD at TOC(observed)
 
-        #     Number of cloud bottom and top layer
+        # Number of cloud bottom and top layer
         self.cbnz = 0
         self.ctnz = 1
 
-        #     incident irradiance and photon flux density at TOA or TOC
+        # incident irradiance and photon flux density at TOA or TOC
         self.RF = 0.0
         self.RQ = 0.0
 
@@ -332,56 +332,86 @@ class Parameters:
 
     def initMathparameters(self):
         for i in range(0, 62832 * 2):
-            self.T_SIN[i] = math.sin(float(i - 62832) * 0.0001)
-            self.T_COS[i] = math.cos(float(i - 62832) * 0.0001)
+            self.T_SIN[i] = sin(float(i - 62832) * 0.0001)
+            self.T_COS[i] = cos(float(i - 62832) * 0.0001)
 
         for i in range(0, comm.ACOOS_SHIFT * 2):
-            self.T_ACOS[i] = math.acos(float(i - comm.ACOOS_SHIFT) * 0.0001)
+            self.T_ACOS[i] = acos(float(i - comm.ACOOS_SHIFT) * 0.0001)
 
         for i in range(1, 6):
             comm.DLT[i, i] = 1.0
 
         return ERRCODE.SUCCESS
 
-    def getInputLR_LT_ULR_ULT(self, i):
-        for j in range(self.nts):
-            self.lr[j, i] = float(input())
-        for j in range(self.nts):
-            self.lt[j, i] = float(input())
-        self.ulr[i] = float(input())
-        self.ult[i] = float(input())
-        for j in range(self.nts):
-            self.truncRef[j] = float(input())
-        self.soilRef[i] = float(input())
+    def getInputLR_LT_ULR_ULT(self, i, **args):
+        if (config.INPUT_MODE):
+            tempList = list(args.get("optical_parameters"))
+            #print(args)
+            for j in range(self.nts):
+                self.lr[j,i] = tempList.pop(0)
+
+            for j in range(self.nts):
+                self.lt[j, i] = tempList.pop(0)
+
+            self.ulr[i] = tempList.pop(0)
+            self.ult[i] = tempList.pop(0)
+
+            for j in range(self.nts):
+                self.truncRef[j] = tempList.pop(0)
+
+            self.soilRef[i] = tempList.pop(0)
+        else:
+            for j in range(self.nts):
+                self.lr[j, i] = float(input())
+
+            for j in range(self.nts):
+                self.lt[j, i] = float(input())
+
+            self.ulr[i] = float(input())
+            self.ult[i] = float(input())
+
+            for j in range(self.nts):
+                self.truncRef[j] = float(input())
+            self.soilRef[i] = float(input())
+
         return ERRCODE.SUCCESS
 
-    def process100(self):
+    def process100(self, **args):
 
-        if (self.cloudType >= 2):
+        if (self.cmode >= 2):
             comm.N_ANG_C = 1
             comm.URC_coord[0].setPosition(0.0, 0.0, 1.0)
 
-        self.process201()
+        self.process201(**args)
 
         return ERRCODE.SUCCESS
 
-    def process202(self):
+    def process202(self, **args):
         umax = 0.0
 
-        print("u: leaf area density 1,2,3...# tree species")
-        # for i in range(self.nts):
-        #     comm.U[i] = float(input())
-        # debug
-        comm.U[1] = 1
+        print("\nu: leaf area density 1,2,3...# tree species")
+        if (config.INPUT_MODE):
+            comm.U = list(args.get("leaf_area_density"))
+            print(comm.U)
+        else:
+            for i in range(self.nts):
+                comm.U[i] = float(input())
 
         if (not((self.nPhoton == -4) or (self.nPhoton == -5))):
-            comm.G_LAI = float(input("gLAI: forest floor LAI\n"))
+            print("gLAI: forest floor LAI\n")
+            if (config.INPUT_MODE):
+                comm.G_LAI = args.get("forest_floor_LAI")
+                print(comm.G_LAI)
+            else:
+                comm.G_LAI = float(input())
 
-        print("BAD: branch area density 1,2,3... # of tree species")
-        # for i in range(self.nts):
-        #     comm.BAD[i] = float(input())
-        # debug
-        comm.BAD[1] = 1
+        print("\nBAD: branch area density 1,2,3... # of tree species")
+        if (config.INPUT_MODE):
+            comm.BAD = list(args.get("branch_area_density"))
+            print(comm.BAD)
+        else:
+            for i in range(self.nts):
+                comm.BAD[i] = float(input())
 
         for i in range(self.nts):
             if ((comm.U[i] < 0.0) or (comm.U[i] > 8.0)):
@@ -395,13 +425,15 @@ class Parameters:
             return ERRCODE.INPUT_ERROR
 
         if (self.nPhoton == -5):
-            print("sbar: Spherical ave. shoot silhouette to total needle area ratio")
+            print("\nsbar: Spherical ave. shoot silhouette to total needle area ratio")
             print("1,2,3... # of tree species (0.0-0.25)")
             print("For broadleaves, please input 0.25")
-            # for i in range(self.nts):
-            #     comm.S_BAR[i] = float(input())
-            # debug
-            comm.S_BAR[1] = 0.25
+            if (config.INPUT_MODE):
+                comm.S_BAR = list(args.get("sbar"))
+                print(comm.S_BAR)
+            else:
+                for i in range(self.nts):
+                    comm.S_BAR[i] = float(input())
 
         umax = comm.U[0]
         for i in range(1, self.nts):
@@ -485,7 +517,7 @@ class Parameters:
                     d = abs(xr * a[k] + yr * b[k] - c[k])
 
                     if (d <= comm.OBJ[j, 4]):   # partially in the out of range
-                        dd = math.sqrt(comm.OBJ[j, 4] * comm.OBJ[j, 4] - d * d)
+                        dd = sqrt(comm.OBJ[j, 4] * comm.OBJ[j, 4] - d * d)
                         p1 = b[k] * xr + a[k] * yr - dd
                         p2 = b[k] * xr + a[k] * yr + dd
 
@@ -508,7 +540,7 @@ class Parameters:
                     for l in range(2):
                         rx = xr - c[k]
                         ry = yr - c[l + 2]
-                        rr = math.sqrt(rx * rx + ry * ry)
+                        rr = sqrt(rx * rx + ry * ry)
 
                         if (rr <= comm.OBJ[j, 4]):
 
@@ -542,12 +574,16 @@ class Parameters:
 
         return ERRCODE.SUCCESS
 
-    def process201(self):
+    def process201(self, **args):
         ispc = 0
         # get the number of forest species
-        #self.nts = int(input("nts: # of group of tree species\n"))
-        # debug
-        self.nts = 1
+        print("\nnts: # of group of tree species")
+        if (config.INPUT_MODE):
+            self.nts = args.get("tree_species")
+            print(self.nts)
+        else:
+            self.nts = int(input())
+
         comm.N_TS = self.nts
 
         if ((self.nPhoton == -4) or (self.nPhoton == -5)):
@@ -566,7 +602,7 @@ class Parameters:
         if(self.nPhoton == -4):
             self.nwl = 1
 
-        for i in range(self.nwl + 1):
+        for i in range(1, self.nwl + 1):
             if (self.nwl == 1):
                 print("Input surface optical properties")
             else:
@@ -582,17 +618,17 @@ class Parameters:
             print("stmr: stem refl., soilr: soil refl.)")
 
             if (self.nwl == 1):
-                self.getInputLR_LT_ULR_ULT(i)
+                self.getInputLR_LT_ULR_ULT(i, **args)
 
             else:
                 if (i == 1):
                     print("Input PAR average values:")
-                    self.getInputLR_LT_ULR_ULT(i)
+                    self.getInputLR_LT_ULR_ULT(i, **args)
                     ispc = i
 
                 elif (i == 21):
                     print("Input NIR average values")
-                    self.getInputLR_LT_ULR_ULT(i)
+                    self.getInputLR_LT_ULR_ULT(i, **args)
                     ispc = i
 
                 else:
@@ -640,23 +676,25 @@ class Parameters:
             else:
                 ramda += 5 * self.span[i]
 
-        self.process202()
+        self.process202(**args)
 
         return ERRCODE.SUCCESS
 
-    def readVegParameters(self):
+    def readVegParameters(self, **args):
 
         if ((self.nPhoton == -4) or (self.nPhoton == -5)):
             return self.process201()
 
         # input output mode
-        print("cmode: calculation mode")
-        #self.cloudType = int(input("1: BRF only 2: BRF Nadir Image 3: 3D APAR\n"))
-        # debug
-        self.cloudType = 3
-        comm.CloudType = self.cloudType
+        print("\ncmode: calculation mode")
+        print("1: BRF only 2: BRF Nadir Image 3: 3D APAR")
+        if (config.INPUT_MODE):
+            self.cmode = args.get("calculation_mode")
+            print(self.cmode)
+        else:
+            self.cmode = int(input())
 
-        if ((self.cloudType <= 0) or (self.cloudType >= 4)):
+        if ((self.cmode <= 0) or (self.cmode >= 4)):
             print("Bad mode selection exit")
             return ERRCODE.INPUT_ERROR
 
@@ -666,18 +704,30 @@ class Parameters:
             print("  1: Periodic  2: Non-periodic")
             return ERRCODE.INPUT_ERROR
 
-        if (self.cloudType != 1):
+        if (self.cmode != 1):
             self.process100()
 
-        print("nth, angt: # of angle anfinished process 201 200d zenith angle(max 18)for BRF")
+        print("\nnth, angt: # of angle anfinished process 201 200d zenith angle(max 18)for BRF")
         print("eg. 5 10. 20. 45. 50. 70.")
-        for i in range(comm.N_TH):
-            comm.ANG_T[i] = float(input())
+        if (config.INPUT_MODE):
+            comm.ANG_T = list(args.get("BRF_zenith_angles"))
+            comm.N_TH = len(comm.ANG_T)
+            print(str(comm.N_TH) + ": " + str(comm.ANG_T))
+        else:
+            self.N_TH = int(input())
+            for i in range(comm.N_TH):
+                comm.ANG_T[i] = float(input())
 
-        print("nph, angp:# of angle and azimuth angle(max 36)for BRF")
+        print("\nnph, angp:# of angle and azimuth angle(max 36)for BRF")
         print("eg. 3 0. 90. 180.")
-        for i in range(comm.N_TH):
-            comm.ANG_P[i] = float(input())
+        if (config.INPUT_MODE):
+            comm.ANG_P = list(args.get("BRF_azimuth_angles"))
+            comm.N_PH = len(comm.ANG_P)
+            print(str(comm.N_PH) + ": " + str(comm.ANG_P))
+        else:
+            self.N_PH = int(input())
+            for i in range(comm.N_PH):
+                comm.ANG_P[i] = float(input())
 
         if (comm.N_TH * comm.N_PH > 700):
             print("The number of sampling angles are too huge! It should be theta*phi<348")
@@ -699,19 +749,19 @@ class Parameters:
                     print("Zenith angle should be less than 80")
                     print(str(comm.ANG_T[j]) + " is ignored !")
                 else:
-                    comm.URC_coord[k].x = math.sin(math.radians(comm.ANG_T[j])) * math.cos(math.radians(comm.ANG_P[i]))
-                    comm.URC_coord[k].y = math.sin(math.radians(comm.ANG_T[j])) * math.sin(math.radians(comm.ANG_P[i]))
-                    comm.URC_coord[k].z = math.cos(math.radians(comm.ANG_T[j]))
+                    comm.URC_coord[k].x = sin(radians(comm.ANG_T[j])) * cos(radians(comm.ANG_P[i]))
+                    comm.URC_coord[k].y = sin(radians(comm.ANG_T[j])) * sin(radians(comm.ANG_P[i]))
+                    comm.URC_coord[k].z = cos(radians(comm.ANG_T[j]))
 
                     k += 1
 
         comm.N_ANG_C = k
 
-        self.process100()
+        self.process100(**args)
 
         return ERRCODE.SUCCESS
 
-    def readGeoParameters(self):
+    def readGeoParameters(self, **args):
 
         f0 = q0 = 0.0
         ntha = npha = 0
@@ -719,46 +769,62 @@ class Parameters:
         ph = [0] * 36
 
         # solar zenith angle
-        # debug
-        self.th0 = 60.0
-        comm.Z_MIN = 0.0
+
         #self.th0 = float(input("the0: Solar zenith angle(degree)\n"))
-        #comm.Z_MIN = float(input("Solar elevation \n"))
-        q0 = math.pi - math.radians(self.th0)
+        #comm.Z_MIN = float(input(" \n"))
 
-
-        if (self.ph0 <= math.pi):
-            f0 = math.radians(self.ph0) + math.pi
+        print("\nthe0: Solar zenith angle(degree)")
+        if (config.INPUT_MODE):
+            self.th0 = args.get("solar_angle")
+            print(self.th0)
         else:
-            f0 = math.radians(self.ph0) - math.pi
+            self.th0 = float(input())
 
-        sin_q0 = math.sin(q0)
-        cos_q0 = math.cos(q0)
-        sin_f0 = math.sin(f0)
-        cos_f0 = math.cos(f0)
+        print("\nSolar elevation")
+        if (config.INPUT_MODE):
+            comm.Z_MIN = args.get("solar_elevation")
+            print(comm.Z_MIN)
+        else:
+            comm.Z_MIN = float(input())
+
+        q0 = pi - radians(self.th0)
+
+        if (self.ph0 <= pi):
+            f0 = radians(self.ph0) + pi
+        else:
+            f0 = radians(self.ph0) - pi
+
+        sin_q0 = sin(q0)
+        cos_q0 = cos(q0)
+        sin_f0 = sin(f0)
+        cos_f0 = cos(f0)
 
         if (self.AtmMode == 2):
             return
 
         # radiance smapling angle
-        print("Radiance at the bottom atmospheric boundary")
+        print("\nRadiance at the bottom atmospheric boundary")
         print("ntha, th: # of angle and zenith angle(degree,max 18)")
         print("ex. 5 100. 120. 140. 160. 170.")
-        # debug
-        ntha = 1
-        th[1] = 1
-        # ntha = int(input())
-        # for i in range(ntha):
-        #     th[i] = int(input())
+        if (config.INPUT_MODE):
+            th = list(args.get("zenith_angle"))
+            ntha = len(th)
+            print(str(ntha) + ": " + str(th))
+        else:
+            ntha = int(input())
+            for i in range(ntha):
+                th[i] = int(input())
 
-        print("npha, ph: # of angle and azimuth angle(degree,max 36)")
+        print("\nnpha, ph: # of angle and azimuth angle(degree,max 36)")
         print("ex. 3 0. 90. 180.")
-        # debug
-        npha = 1
-        ph[1] = 1
-        # npha = int(input())
-        # for i in range(npha):
-        #     ph[i] = int(input())
+        if (config.INPUT_MODE):
+            ph = list(args.get("azimuth_angle"))
+            npha = len(ph)
+            print(str(npha) + ": " + str(ph))
+        else:
+            npha = int(input())
+            for i in range(npha):
+                ph[i] = int(input())
 
         k = 0
         for i in range(1,npha):
@@ -768,15 +834,15 @@ class Parameters:
                     print(str(th[j]) + " is ignored !")
                 else:
                     k = k + 1
-                    comm.UX_RTAB[k] = math.sin(math.radians(th[j])) * math.cos(math.radians(ph[i]))
-                    comm.UY_RTAB[k] = math.sin(math.radians(th[j])) * math.sin(math.radians(ph[i]))
-                    comm.UX_RTAB[k] = math.cos(math.radians(th[j]))
+                    comm.UX_RTAB[k] = sin(radians(th[j])) * cos(radians(ph[i]))
+                    comm.UY_RTAB[k] = sin(radians(th[j])) * sin(radians(ph[i]))
+                    comm.UX_RTAB[k] = cos(radians(th[j]))
 
         comm.N_RDC = k
         return ERRCODE.SUCCESS
 
-    def readAtmParameters(self):
-        imode = nspc = 0
+    def readAtmParameters(self, **args):
+        nspc = 0
         ctop = cbot = 0.0
         parF = 531.2593
         parQ = 2423.93994
@@ -785,7 +851,6 @@ class Parameters:
 
         spcf = [0.0] * 400
         spcq = [0.0] * 400
-        npl = [0] * 200
         wl0d = []
         spcdf = []
         spcdq = []
@@ -794,33 +859,37 @@ class Parameters:
 
         if (self.AtmMode == 2):
             # "Only monochro wavelength calculation!"
-            imode = 1
+            self.imode = 1
             self.RF = 1000.0
             self.RQ = 1000.0
             self.wq = 1.0
             self.nwl = 1
 
         else:
-            # debug
-            imode = 2
-            #imode = int(input("imode: Integration mode 1:Monochro 2:PAR 3:Snow\n"))
-            if ((imode < 0) or (imode > 4)):
+            print("\nimode: Integration mode 1:Monochro 2:PAR 3:Snow")
+            if (config.INPUT_MODE):
+                self.imode = args.get("integration_mode")
+                print(self.imode)
+            else:
+                self.imode = int(input())
+
+            if ((self.imode < 0) or (self.imode > 4)):
                 print("Mode ERR: number should less than 4 and larger than 0.")
                 return ERRCODE.INPUT_ERROR
 
-            elif (imode == 1):
+            elif (self.imode == 1):
                 self.wl0 = float(input("wl0:wavelength (micron ex 0.55)\n"))
                 self.wls = 0.2
                 self.nwl = int(round((4.0 - 0.3) / self.span[1]))
-                npl[1] = self.nPhotonProcess
+                self.npl[1] = self.nPhotonProcess
 
-            elif (imode == 2):
+            elif (self.imode == 2):
                 self.wls = 0.4
                 self.nwl = int(round((0.7 - 0.4) / self.span[1]))
                 self.RF = parF
                 self.RQ = parQ
 
-            elif (imode == 3):
+            elif (self.imode == 3):
                 self.wls = 0.3
                 self.nwl = int(round((0.7 - 0.3) / self.span[1]))
                 self.nwl += int((4.0 - 0.7) / (5.0 * self.span[1]))
@@ -839,7 +908,7 @@ class Parameters:
             j = 1
             wlsd = self.wls + 0.0005
 
-            if (imode == 1):
+            if (self.imode == 1):
                 for i in range(nspc):
                     if ((wlsd > self.wl0 - 0.0025) and (wlsd < self.wl0 + 0.0025)):
                         self.RF = (wl0d[i + 1] * spcdf[i] + wl0d[i] * spcdf[i + 1]) / (wl0d[i] + wl0d[i + 1])
@@ -851,7 +920,7 @@ class Parameters:
                         break
                     wlsd += 0.001
 
-            elif (imode == 2):
+            elif (self.imode == 2):
                 for i in range(nspc):
                     if (abs(wl0d[i] - wlsd) < 1.0E-4):
                         for k in range(20):
@@ -866,7 +935,7 @@ class Parameters:
                             break
                         wlsd += self.span[1]
 
-            elif (imode == 3):
+            elif (self.imode == 3):
                 for i in range(nspc):
                     if (abs(wl0d[i] - wlsd) < 1.0E-4):
                         if (wlsd < 0.7):
@@ -905,14 +974,14 @@ class Parameters:
 
             for i in range(self.nwl):
                 if (i < 20):
-                    npl[i] = round(float(self.nPhotonProcess) * spcf[i] / sum)
+                    self.npl[i] = round(float(self.nPhotonProcess) * spcf[i] / sum)
                 else:
-                    npl[i] = round(float(self.nPhotonProcess) * 5.0 * spcf[i] / sum)
+                    self.npl[i] = round(float(self.nPhotonProcess) * 5.0 * spcf[i] / sum)
 
             sum = 0.0
 
             for i in range(self.nwl):
-                sum += npl[i]
+                sum += self.npl[i]
 
             self.nPhotonProcess = int(sum)
             self.nPhoton = self.nPhotonProcess * self.Nprocess
@@ -946,33 +1015,38 @@ class Parameters:
                 for i in range(1, comm.N_Z + 1):
                     comm.Z_GRD_M[i] = 0.5 * (comm.Z_GRD_BACK[i] + comm.Z_GRD_BACK[i - 1])
 
-                print("atmType: Atmospheric profile")
+                print("\natmType: Atmospheric profile")
                 print(" 1: Tropical")
                 print(" 2: Mid latitude summer")
                 print(" 3: Mid latitude winter")
                 print(" 4: High latitude summer")
                 print(" 5: High latitude winter")
                 print(" 6: US standard atm.")
-                self.atmType = int(input())
+
+                if (config.INPUT_MODE):
+                    self.atmType = args.get("atmosphere_type")
+                    print(self.atmType)
+                else:
+                    self.atmType = int(input())
 
                 if (self.atmType == 1):
-                    self.rfname = "../Data/gas_TR_" + ch[imode]
+                    self.rfname = "../data/gas_TR_" + ch[self.imode]
                 elif (self.atmType == 2):
-                    self.rfname = "../Data/gas_TMS_" + ch[imode]
+                    self.rfname = "../data/gas_MS_" + ch[self.imode]
                 elif (self.atmType == 3):
-                    self.rfname = "../Data/gas_MW_" + ch[imode]
+                    self.rfname = "../data/gas_MW_" + ch[self.imode]
                 elif (self.atmType == 4):
-                    self.rfname = "../Data/gas_HS_" + ch[imode]
+                    self.rfname = "../data/gas_HS_" + ch[self.imode]
                 elif (self.atmType == 5):
-                    self.rfname = "../Data/gas_HW_" + ch[imode]
+                    self.rfname = "../data/gas_HW_" + ch[self.imode]
                 elif (self.atmType == 6):
-                    self.rfname = "../Data/gas_US_" + ch[imode]
+                    self.rfname = "../data/gas_US_" + ch[self.imode]
                 else:
                     print("Input error!")
                     return ERRCODE.INPUT_ERROR
 
                 # read the aerosol data
-                print("aerosolType: aerosol type")
+                print("\naerosolType: aerosol type")
                 print(" 1:  Continental clean")
                 print(" 2:  Continental average")
                 print(" 3:  Continental polluted")
@@ -984,44 +1058,54 @@ class Parameters:
                 print(" 9:  Arctic")
                 print("10:  Antactic")
                 print("11:  Smoke")
-                self.aerosolType = int(input())
+
+                if (config.INPUT_MODE):
+                    self.aerosolType = args.get("aerosol_type")
+                    print(self.aerosolType)
+                else:
+                    self.aerosolType = int(input())
 
                 #AOT
-                taur = int(input("tauref: AOT at 0.550 micron\n"))
+                print("\ntauref: AOT at 0.550 micron")
                 print(" - this version uses a extinction with RH=70% -")
+                if (config.INPUT_MODE):
+                    self.taur = args.get("AOT")
+                    print(self.taur)
+                else:
+                    self.taur = float(input())
 
                 #current version uses a mixed extinction coef. by Iwabushi san
                 self.nmix = 2
 
                 if (self.aerosolType == 1):
-                    self.fname.append("../data/opt_type1_rh0.70_" + ch[imode])
+                    self.fname.append("../data/opt_type1_rh0.70_" + ch[self.imode])
                     self.d = 8000.0     # scale height (m)
                 elif (self.aerosolType == 2):
-                    self.fname.append("../data/opt_type2_rh0.70_" + ch[imode])
+                    self.fname.append("../data/opt_type2_rh0.70_" + ch[self.imode])
                     self.d = 8000.0  # scale height (m)
                 elif (self.aerosolType == 3):
-                    self.fname.append("../data/opt_type3_rh0.70_" + ch[imode])
+                    self.fname.append("../data/opt_type3_rh0.70_" + ch[self.imode])
                     self.d = 8000.0  # scale height (m)
                 elif (self.aerosolType == 4):
-                    self.fname.append("../data/opt_type4_rh0.70_" + ch[imode])
+                    self.fname.append("../data/opt_type4_rh0.70_" + ch[self.imode])
                     self.d = 8000.0  # scale height (m)
                 elif (self.aerosolType == 5):
-                    self.fname.append("../data/opt_type5_rh0.70_" + ch[imode])
+                    self.fname.append("../data/opt_type5_rh0.70_" + ch[self.imode])
                     self.d = 2000.0  # scale height (m)
                 elif ((self.aerosolType == 6) or (self.aerosolType == 8)):
-                    self.fname.append("../data/opt_type6_rh0.70_" + ch[imode])
+                    self.fname.append("../data/opt_type6_rh0.70_" + ch[self.imode])
                     self.d = 1000.0  # scale height (m)
                 elif (self.aerosolType == 7):
-                    self.fname.append("../data/opt_type7_rh0.70_" + ch[imode])
+                    self.fname.append("../data/opt_type7_rh0.70_" + ch[self.imode])
                     self.d = 1000.0  # scale height (m)
                 elif (self.aerosolType == 8):
-                    self.fname.append("../data/opt_type8_rh0.70_" + ch[imode])
+                    self.fname.append("../data/opt_type8_rh0.70_" + ch[self.imode])
                     self.d = 1000.0  # scale height (m)
                 elif (self.aerosolType == 9):
-                    self.fname.append("../data/opt_type9_rh0.70_" + ch[imode])
+                    self.fname.append("../data/opt_type9_rh0.70_" + ch[self.imode])
                     self.d = 99000.0  # scale height (m)
                 elif (self.aerosolType == 10):
-                    self.fname.append("../data/opt_type10_rh0.70_" + ch[imode])
+                    self.fname.append("../data/opt_type10_rh0.70_" + ch[self.imode])
                     self.d = 99000.0  # scale height (m)
                 elif (self.aerosolType == 11):
                     print("smoke aerosol under construction !!")
@@ -1032,7 +1116,7 @@ class Parameters:
                     return ERRCODE.INPUT_ERROR
 
                 # read cloud data
-                print("ctype: cloud type")
+                print("\nctype: cloud type")
                 print(" 0:  Cloud-free")
                 print(" 1:  Stratus continental")
                 print(" 2:  Stratus maritime")
@@ -1044,7 +1128,11 @@ class Parameters:
                 print(" 8:  Cirrus 2 (-50 degC)")
                 print(" 9:  Cirrus 3 (-50 degC + small particles)")
 
-                self.cloudType = int(input())
+                if (config.INPUT_MODE):
+                    self.cloudType = args.get("cloud_type")
+                    print(self.cloudType)
+                else:
+                    self.cloudType = int(input())
                 comm.CloudType = self.cloudType
 
                 if (self.cloudType != 0):
@@ -1059,23 +1147,23 @@ class Parameters:
                         return ERRCODE.INPUT_ERROR
 
                     if (self.cloudType == 1):
-                        self.fname.append("../data/opt_type101_" + ch[imode])
+                        self.fname.append("../data/opt_type101_" + ch[self.imode])
                     elif (self.cloudType == 2):
-                        self.fname.append("../data/opt_type102_" + ch[imode])
+                        self.fname.append("../data/opt_type102_" + ch[self.imode])
                     elif (self.cloudType == 3):
-                        self.fname.append("../data/opt_type103_" + ch[imode])
+                        self.fname.append("../data/opt_type103_" + ch[self.imode])
                     elif (self.cloudType == 4):
-                        self.fname.append("../data/opt_type104_" + ch[imode])
+                        self.fname.append("../data/opt_type104_" + ch[self.imode])
                     elif (self.cloudType == 5):
-                        self.fname.append("../data/opt_type105_" + ch[imode])
+                        self.fname.append("../data/opt_type105_" + ch[self.imode])
                     elif (self.cloudType == 6):
-                        self.fname.append("../data/opt_type106_" + ch[imode])
+                        self.fname.append("../data/opt_type106_" + ch[self.imode])
                     elif (self.cloudType == 7):
-                        self.fname.append("../data/opt_type107_" + ch[imode])
+                        self.fname.append("../data/opt_type107_" + ch[self.imode])
                     elif (self.cloudType == 8):
-                        self.fname.append("../data/opt_type108_" + ch[imode])
+                        self.fname.append("../data/opt_type108_" + ch[self.imode])
                     elif (self.cloudType == 9):
-                        self.fname.append("../data/opt_type109_" + ch[imode])
+                        self.fname.append("../data/opt_type109_" + ch[self.imode])
                     else:
                         print("Input error !!")
                         return ERRCODE.INPUT_ERROR
@@ -1091,10 +1179,14 @@ class Parameters:
                     print("clouds are located between " + str(self.ctnz) + " and " + str(self.cbnz))
         return ERRCODE.SUCCESS
 
-    def readParameters(self):
-        #self.nPhoton = int(input("np: Input number of photon\n"))
-        # debug
-        self.nPhoton = 10
+    def readParameters(self, **args):
+
+        print("\nnp: Input number of photon")
+        if (config.INPUT_MODE):
+            self.nPhoton = args.get("number_photon")
+            print(self.nPhoton)
+        else:
+            self.nPhoton = int(input())
 
         # fish eye simulation mode
         if (self.nPhoton == -4):
@@ -1104,7 +1196,7 @@ class Parameters:
                 return ERRCODE.INPUT_ERROR
 
             print("fish eye mode - selected")
-            self.readVegParameters()
+            self.readVegParameters(**args)
             self.surfaceType = 2
             return ERRCODE.SUCCESS
 
@@ -1123,9 +1215,12 @@ class Parameters:
         self.nPhotonProcess = int(self.nPhoton / self.Nprocess)
 
         # Atmospheric mode
-        # debug
-        self.AtmMode = 1
-        #self.AtmMode = int(input("AtmMode: 1:atmospheric mode, 2: without atmospheric\n"))
+        print("\nAtmMode: 1:atmospheric mode, 2: without atmospheric")
+        if (config.INPUT_MODE):
+            self.AtmMode = args.get("atm_type")
+            print(self.AtmMode)
+        else:
+            self.AtmMode = int(input())
 
         if (self.AtmMode == 2):
             self.diffuse = int(input("diffuse: Input frac. of diffuse radiation (0-1)\n"))
@@ -1134,13 +1229,19 @@ class Parameters:
                 return ERRCODE.INPUT_ERROR
 
         # Get geometrical parameters
-        self.readGeoParameters()
+        self.readGeoParameters(**args)
 
         # Get atmospheric parameters
-        self.readAtmParameters()
+        self.readAtmParameters(**args)
 
         # vegetation parameters read / initialize
-        self.surfaceType = int(input("stye: Surface mode 1: Lambertian, 2: 3-D Vegetation\n"))
+        print("\nstye: Surface mode 1: Lambertian, 2: 3-D Vegetation\n")
+        if (config.INPUT_MODE):
+            self.surfaceType = args.get("surface_type")
+            print(self.surfaceType)
+        else:
+            self.surfaceType = int(input())
+
         if (self.surfaceType == 1):
             for iwl in range(1, self.nwl):
                 if (self.imode == 1):
@@ -1156,7 +1257,7 @@ class Parameters:
                 self.alb[iwl] = float(input())
 
         elif (self.surfaceType == 2):
-            self.readVegParameters()
+            self.readVegParameters(**args)
 
         else:
             print("Bad surface type selection exit")
@@ -1178,7 +1279,7 @@ class Parameters:
 
         # get atomospheric parameters
         ext_back = np.zeros(10 * 200, dtype=float).reshape(10, 200)
-        absg1d_back = np.zeros(200 * 3, dtype=float).reshape(200, 3)
+        absg1d_back = np.zeros(200 * 4, dtype=float).reshape(200, 4)
         zmed = 0
         with open(self.rfname, "r") as file:
             for i in range(740):
@@ -1186,14 +1287,16 @@ class Parameters:
 
                 result = file.readline()
                 result = result.split()
-                wl1 = int(result[1])
-                wl2 = int(result[2])
+                wl1 = float(result[1])
+                wl2 = float(result[2])
                 file.readline()
 
                 for iz in range(comm.N_Z):
                     result = file.readline()
                     result = result.split()
 
+                    #print("i=", i)
+                    #print(iz)
                     self.ext[1, iz] = float(result[1])
 
                     for j in range(self.nkd):
@@ -1208,9 +1311,11 @@ class Parameters:
 
                     for iz in range(1, comm.N_Z + 1):
                         ext_back[1, iz] = self.ext[1, iz]
-                        n1 = klayer[iz]
+                        nl = comm.K_LAYER[iz]
                         zmed = 0.5 * (comm.Z_GRD[iz] + comm.Z_GRD[iz - 1])
-                        self.ext[1, iz] = (comm.Z_GRD_M[nl + 1] - zmed) * self.ext(1, nl)
+                        # print("iz = "+ str(iz))
+                        # print("nl = " + str(nl))
+                        self.ext[1, iz] = (comm.Z_GRD_M[nl + 1] - zmed) * self.ext[1, nl]
                         self.ext[1, iz] += (zmed - comm.Z_GRD_M[nl]) * self.ext[1, nl + 1]
                         self.ext[1, iz] /= (comm.Z_GRD_M[nl + 1] - comm.Z_GRD_M[nl])
 
@@ -1226,22 +1331,22 @@ class Parameters:
                             if (iz == comm.N_Z):
                                 comm.ABS_G1D[iz, j] = comm.ABS_G1D[comm.K_LAYER[iz], j]
 
-                    if ((wl2 > self.wl0) and (self.wl0 >= wl1)):
-                        wkd[self.nkd + 1] = 1.000001
-                        break
+                if ((wl2 > self.wl0) and (self.wl0 >= wl1)):
+                    self.wkd[self.nkd + 1] = 1.000001
+                    break
             file.close()
 
         # read optic file
-        self.self.Qext_ref = [0.0] * 10
+        self.Qext_ref = [0.0] * 10
         self.Qext = [0.0] * 10
         self.Qabs = [0.0] * 10
         self.omg = [0.0] * 10
         G = [0.0] * 10
         self.ang = [0]
-        dphs = [0]
-        self.phs = np.zeros(10 * 200, dtype=float).reshape(10, 200)
+        #dphs = [0]
+        self.phs = np.zeros(10 * 201, dtype=float).reshape(10, 201)
 
-        for i in range(self.nmix - 1):
+        for i in range(2, self.nmix + 1):
             with open(self.fname[i - 1], "r") as file:
 
                 if (self.imode == 1):
@@ -1257,11 +1362,11 @@ class Parameters:
                             file.readline()
 
                         result = file.readline().split()
-                        self.self.Qext_ref[i + 1] = float(result[0])
-                        self.Qext[i + 1] = float(result[1])
-                        self.Qabs[i + 1] = float(result[2])
-                        self.omg[i + 1] = float(result[3])
-                        G[i + 1] = float(result[4])
+                        self.self.Qext_ref[i - 1] = float(result[0])
+                        self.Qext[i - 1] = float(result[1])
+                        self.Qabs[i - 1] = float(result[2])
+                        self.omg[i - 1] = float(result[3])
+                        G[i - 1] = float(result[4])
 
                         file.readline()
 
@@ -1273,7 +1378,7 @@ class Parameters:
                         for k in range(nAng):
                             result = file.readline().split()
                             self.ang.append(float(result[0]))
-                            dphs.append(float(result[1]))
+                            self.phs[i, k + 1] = float(result[1])
 
                         if ((wl1 + 0.005) > self.wl0):
                             file.readline()
@@ -1287,7 +1392,7 @@ class Parameters:
                                 file.readline()
 
                             result = file.readline().split()
-                            self.self.Qext_ref[i + 1] = float(result[0])
+                            self.self.Qext_ref[i - 1] = float(result[0])
                             dself.Qext = float(result[1])
                             dself.Qabs = float(result[2])
                             dself.omg = float(result[3])
@@ -1305,17 +1410,17 @@ class Parameters:
                                 self.ang.append(float(result[0]))
                                 dphs.append(float(result[1]))
 
-                            self.Qext[i + 1] = ((self.wl0 - wl1) * dself.Qext + (wl2 - self.wl0) * self.Qext[i + 1]) \
+                            self.Qext[i - 1] = ((self.wl0 - wl1) * dself.Qext + (wl2 - self.wl0) * self.Qext[i + 1]) \
                                           * (1.0 / 0.005)
-                            self.Qabs[i + 1] = ((self.wl0 - wl1) * dself.Qabs + (wl2 - self.wl0) * self.Qabs[i + 1]) \
+                            self.Qabs[i - 1] = ((self.wl0 - wl1) * dself.Qabs + (wl2 - self.wl0) * self.Qabs[i + 1]) \
                                           * (1.0 / 0.005)
-                            self.omg[i + 1] = ((self.wl0 - wl1) * dself.omg + (wl2 - self.wl0) * self.omg[i + 1]) \
+                            self.omg[i] = ((self.wl0 - wl1) * dself.omg + (wl2 - self.wl0) * self.omg[i + 1]) \
                                           * (1.0 / 0.005)
-                            G[i + 1] = ((self.wl0 - wl1) * dG + (wl2 - self.wl0) * G[i + 1]) \
+                            G[i - 1] = ((self.wl0 - wl1) * dG + (wl2 - self.wl0) * G[i + 1]) \
                                           * (1.0 / 0.005)
 
                             for k in range(nAng):
-                                self.phs[i + 1, k + 1] = ((self.wl0 - wl1) * dphs + (wl2 - self.wl0) * self.phs[i + 1, k + 1]) \
+                                self.phs[i, k + 1] = ((self.wl0 - wl1) * dphs + (wl2 - self.wl0) * self.phs[i + 1, k + 1]) \
                                           * (1.0 / 0.005)
 
                             break
@@ -1328,18 +1433,21 @@ class Parameters:
                         wl1 = float(result[0])
                         wl2 = float(result[1])
 
+                        # skip reading RvDry, ReDry, rhoDry, RvWet, ReWet, rhoWet
+                        # because of not using
                         for ii in range(6):
                             file.readline()
 
                         result = file.readline().split()
-                        nAng = float(result[0])
+                        nAng = int(result[0])
+                        comm.N_ANG = nAng
 
                         file.readline()
 
                         for k in range(nAng):
                             result = file.readline().split()
                             self.ang.append(float(result[0]))
-                            self.phs[i + 1, j + 1] = float(result[1])
+                            self.phs[i, k + 1] = float(result[1])
 
                         if ((self.wl0 > wl1) and (self.wl0 < wl2)):
                             break
@@ -1349,17 +1457,18 @@ class Parameters:
         # make rayleigh scattering albedo
         self.omg[1] = 1.0
 
-        fac = 3.0 / (16.0 * math.pi)
+        fac = 3.0 / (16.0 * pi)
 
+        #print("nang = ", nAng)
         for i in range(nAng):
-            self.phs[1, i + 1] = fac * (1.0 + math.cos(math.radians(self.ang[i + 1])) ** 2)
+            self.phs[1, i + 1] = fac * (1.0 + cos(radians(self.ang[i + 1])) ** 2)
 
         # get the ratio of extinction corf. of each aerosol
         rat = (1.0, 2.0)
         zmd = []
         # Calcualte the extinction coef. from total tau
         for i in range(comm.N_Z):
-            temp = (0.5 * (exp(comm.Z_GRD[i + 1], self.d) + exp(comm.Z_GRD[i], self.d)))
+            temp = (0.5 * (exp(comm.Z_GRD[i + 1] / self.d) + exp(comm.Z_GRD[i] / self.d)))
             temp = -self.d * log(temp)
             zmd.append(temp)
 
@@ -1367,7 +1476,7 @@ class Parameters:
         sfc = [0.0] * 10
         zsum = 0.0
         for i in range(comm.N_Z):
-            zsum += exp(zmd[i], self.d)
+            zsum += exp(zmd[i] / self.d)
 
         for imix in range(2, self.nmix):
             for i in range(comm.N_Z):
@@ -1379,331 +1488,340 @@ class Parameters:
         if (self.cflg == 1):
             for i in range(self.cbnz, self.ctnz + 1):
                 self.ext[self.nmix + self.cflg, i + 1] = self.ctaur /\
-                (comm.Z_GRD[self.ctnz] - comm.Z_GRD[self.cbnz])
-                self.ext[self.nmix + self.cflg, i + 1] *= self.Qext(self.nmix) / self.self.Qext_ref[self.nmix]
+                                            (comm.Z_GRD[self.ctnz] - comm.Z_GRD[self.cbnz])
+                self.ext[self.nmix + self.cflg, i + 1] *= self.Qext(self.nmix) / \
+                                             self.self.Qext_ref[self.nmix]
 
         return ERRCODE.SUCCESS
 
-        def printFishEye():
-            print("Haven't finish finish eye function.")
+    def printFishEye():
+        print("Haven't finish finish eye function.")
+        return ERRCODE.SUCCESS
+
+    def writeData():
+
+        app = [0.0] * 100
+
+        # summary of the radiative flux
+
+        # summary calculation of fulx
+        pixelNP = float(self.nPhoton) / float(comm.SIZE ** 2)
+        tm = tflx / float(self.nPhoton)
+
+        for i in range(1, self.nwl + 1):
+            comm.scmpf[1, i] *= 100.0 / self.tflx
+            comm.scmpp[1, i] *= 100.0 / self.tpfd
+            comm.scmpf[2, i] *= 100.0 / self.bplx
+            comm.scmpp[2, i] *= 100.0 / self.bpfd
+            comm.scmpf[3, i] *= 100.0 / self.dflx
+            comm.scmpp[3, i] *= 100.0 / self.dpfd
+
+        self.tflx *= self.RF * abs(self.cos_q0) / float(self.nPhoton)
+        self.bflx *= self.RF * abs(self.cos_q0) / float(self.nPhoton)
+        self.dflx *= self.RF * abs(self.cos_q0) / float(self.nPhoton)
+
+        self.rflx *= self.RF * abs(self.cos_q0) / float(self.nPhoton)
+        self.rbflx *= self.RF * abs(self.cos_q0) / float(self.nPhoton)
+        self.rdflx *= self.RF * abs(self.cos_q0) / float(self.nPhoton)
+
+        self.tpfd *= self.RQ * abs(self.cos_q0) / float(self.nPhoton)
+        self.bpfd *= self.RQ * abs(self.cos_q0) / float(self.nPhoton)
+        self.dpfd *= self.RQ * abs(self.cos_q0) / float(self.nPhoton)
+
+        comm.C_FPR *= self.RQ * abs(self.cos_q0) / float(self.nPhoton)
+        comm.B_FPR *= self.RQ * abs(self.cos_q0) / float(self.nPhoton)
+        comm.F_FPR *= self.RQ * abs(self.cos_q0) / float(self.nPhoton)
+        comm.S_FPR *= self.RQ * abs(self.cos_q0) / float(self.nPhoton)
+        comm.T_FPR = comm.C_FPR + comm.B_FPR + comm.F_FPR
+
+        comm.T_FPR /= self.tpfd
+        comm.C_FPR /= self.tpfd
+        comm.B_FPR /= self.tpfd
+        comm.F_FPR /= self.tpfd
+        comm.S_FPR /= self.tpfd
+
+        # summary of 3D far etc
+        th = acos(self.cos_q0)
+        ith = int(degrees(th))
+
+        for k in range(int(comm.Z_MAX) + 1, 0, -1):
+            for i in range(1, comm.SIZE + 1):
+                for j in range(1, comm.SIZE + 1):
+                    comm.AP[i, j, k] *= self.RQ * abs(self.cos_q0) / pixelNP
+                    comm.AP_D[i, j, k] *= self.RQ * abs(self.cos_q0) / pixelNP
+                    comm.AP_B[i, j, k] *= abs(self.cos_q0) / pixelNP
+                    comm.AP_B[i, j, k] *= (1.0 / comm.GT_BLC[ith])
+                    comm.AP_B[i, j, k] *= min(comm.AP_B, 1.0)
+                    app[k] += comm.AP[i, j, k]
+
+            app[k] /= (self.tflx * float(comm.SIZE ** 2))
+            comm.AP_NP *= self.RQ * abs(self.cos_q0) / float(self.nPhoton) / self.tflx
+
+        # summary of forest floor far etc
+        for i in range(1, comm.SIZE + 1):
+            for j in range(1, comm.SIZE + 1):
+                comm.AP_F *= self.RQ * abs(self.cos_q0) / pixelNP
+                comm.AP_FD *= self.RQ * abs(self.cos_q0) / pixelNP
+
+        # summary of forest floor and surface downward flux
+        ffSum = 0.0
+        sfSum = 0.0
+
+        for i in range(1, comm.SIZE + 1):
+            for j in range(1, comm.SIZE + 1):
+                comm.SF_DIR[i, j] *= self.RQ * abs(self.cos_q0) / pixelNP
+                comm.SF_DIF[i, j] *= self.RQ * abs(self.cos_q0) / pixelNP
+                comm.FF_DIR[i, j] *= self.RQ * abs(self.cos_q0) / pixelNP
+                comm.FF_DIF[i, j] *= self.RQ * abs(self.cos_q0) / pixelNP
+
+                ffSum += comm.FF_DIR[i, j] + comm.FF_DIF[i, j]
+                sfSum += comm.SF_DIR[i, j] + comm.SF_DIF[i, j]
+
+        # writting
+        f = open(OUTPUT_PATH + "flxsum.txt", "w")
+        f.write("-- summary of radiative quantity --")
+        f.write("")
+        f.write("-- simulation mode --")
+
+        if (self.atmType == 1):
+            f.write(" Atmospheric module: Yes")
+        else:
+            f.write(" Atmospheric module: No")
+
+        if (self.atmType == 1):
+            if (self.imode == 1):
+                f.write("Spectral domain: single wavelength, " + str(self.wl0))
+            if (self.imode == 2):
+                f.write("Spectral domain: PAR")
+            if (self.imode == 3):
+                f.write("Spectral domain: Shortwave total")
+
+        if (self.surfaceType == 1):
+            f.write("Surface type: lambertian")
+        else:
+            f.write("Surface type: 3-D canopy")
+
+        f.write("\n-- Solar zenith angle, Elv(m), atm. transmittance --")
+        f.write(format(radians(pi - cos(self.cos_q0)), '12.2f') + " " +
+                format(comm.Z_MAX + '12.5f') + "  " +
+                format(tm, '12.5f'))
+
+        f.write("\n-- Downward Irradiance at TOC --")
+
+        if (self.atmType == 2):
+            f.write("warning ! irradiance & PPFD are normalized by 1000.*cos(th) !!")
+
+        f.write("\nEnergy unit (W/m2)")
+        f.write(format("Total", '12') + format("Beam", '12') + format("Diffuse", '12') + format("Diff.Ratio", '12'))
+        f.write(format(self.tflx, '12.5f') + format(self.bflx, '12.5f') + format(self.dflx, '12.5f') + format(
+            self.dflx / self.tflx, '12.5f'))
+
+        f.write("\nPhoton unit (W/m2)")
+        f.write(format("Total", '12') + format("Beam", '12') + format("Diffuse", '12') + format("Diff.Ratio", '12'))
+        f.write(format(self.tpfd, '12.5f') + format(self.bpfd, '12.5f') + format(self.dpfd, '12.5f') + format(
+            self.dpfd / self.tpfd, '12.5f'))
+
+        f.write("\nAlbedo (A)")
+        f.write(format("Actual", '12') + format("black", '12') + format("white", '12'))
+        f.write(format("", '12') + format("black", '12') + format("white", '12'))
+        f.write(format(self.rflx / self.tflx, '12.5f') + format(self.rbflx / self.bflx, '12.5f') + format(
+            self.rdflx / self.dflx, '12.5f'))
+
+        if (self.surfaceType == 2):
+            f.write("\n-- fraction of downward flux (T) -- ")
+            f.write(format("Forest Floor", '12') + format("Surface Floor", '12'))
+            f.write(format(ffSum / self.tpfd, '12.5f') + format(sfSum / self.tpfd, '12.5f'))
+
+            f.write("\n-- fraction of absorbed radiation (far) --")
+            f.write(format("total", '10') + format("leaf", '10') + format("non-leaf", '10') + format("floor", '10'))
+            f.write(format(comm.T_FPR, '10.7f') + format(comm.C_FPR, '10.7f') + format(comm.B_FPR, '10.7f') + format(
+                comm.F_FPR, '10.7f'))
+
+            f.write("\nVertical profile of far")
+            f.write(format("H(m)", '10') + format("total", '10') + format("leaf", '10') + format("non-leaf", '10'))
+            string = ""
+            for k in range(comm.Z_MAX + 1, 0, -1):
+                string += format(k, '6') + format(app[k] + comm.AP_NP[k], '10') + format(app[k], '10') + format(
+                    comm.AP_NP[k], '10')
+            f.write(string)
+
+        f.write("\n-- spctrl fraction. energy & photon flux(%) --")
+        f.write(format("wl(um)", '10') + format("Etot", '10') + format("Ebeam", '10') + format("Ediffuse", '10')
+                + format("Ptot", '10') + format("Pbeam", '10') + format("Pdiffuse", '10'))
+        for i in range(1, self.nwl + 1):
+            if (i <= 20):
+                temp = self.wls + self.span[i] * float(i) - self.span[i] / 2.0
+            else:
+                temp = 0.7 + self.wls + self.span[i] * float(i - 20) - self.span[i] / 2.0
+
+            f.write(format(temp, '10.3f'))
+            string = ""
+            for j in range(3):
+                string += format(comm.scmpf[j + 1, i], '10.5f')
+            for j in range(3):
+                string += format(comm.scmpp[j + 1, i], '10.5f')
+
+            f.write(string)
+
+        f.write("\n-- Downward radiance at the top of canopy --")
+        f.write("# idrc theta phi radiance_F stdev_F radiance_Q stdev_Q")
+
+        pixelNP_A = float(self.nPhoton) / float(comm.K_NXR * comm.K_NYR)
+
+        for k in range(1, comm.N_RDC + 1):
+            sumF = sum2F = 0.0
+            pF_Max = 0.0
+            sumQ = sum2Q = 0.0
+            pQ_Max = 0.0
+
+            for i in range(comm.K_NXR + 1):
+                for j in range(comm.K_NYR + 1):
+                    pF = comm.PROC_F[i, j, k] / pixelNP_A
+                    pQ = comm.PROC_Q[i, j, k] / pixelNP_A
+
+                    sumF += pF
+                    sumF += pF ** 2
+                    pF_Max = max(pF_Max, pF)
+
+                    sumQ += pQ
+                    sum2Q += pQ ** 2
+                    pQ_Max = max(pQ_Max, pQ)
+
+            aveF = sumF / float(comm.K_NXR * comm.KYXR)
+            sdvF = sqrt(sum2F / float(comm.K_NXR * comm.KYXR) - aveF ** 2)
+            aveQ = sumQ / float(comm.K_NXR * comm.KYXR)
+            sdvF = sqrt(sum2Q / float(comm.K_NXR * comm.KYXR) - aveQ ** 2)
+
+            uxc = copysign(max(1.0e-5, abs(comm.UX_RTAB[k])), comm.UX_RTAB[k])
+            phi = sqrt(comm.UX_RTAB[k] ** 2 + comm.UY_RTAB[k])
+            phi = max(1.0e-5, phi)
+            phi = radians(acos(uxc / phi))
+
+            f.write(format(k, "6") + format(radians(acos(comm.UZ_RTAB)), '8.3f') + format(phi, '8.3f') +
+                    format(avef, '12.5f') + format(sdvf, '12.5f') + format(aveQ, '12.5f') + format(sdvQ, '12.5f'))
+
+        f.close()
+
+        if (self.surfaceType == 1):
             return ERRCODE.SUCCESS
 
-        def writeData():
+        if (self.cmode == 1):
+            # BRFD result output
+            for i in range(1, comm.N_ANG_C + 1):
+                comm.BRF_C[1, i] /= comm.BRF[1, i]
+                comm.BRF_S[1, i] /= comm.BRF[1, i]
+                comm.BRF_F[1, i] /= comm.BRF[1, i]
 
-            app = [0.0] * 100
-
-            # summary of the radiative flux
-
-            # summary calculation of fulx
-            pixelNP = float(self.nPhoton) / float(comm.SIZE ** 2)
-            tm = tflx / float(self.nPhoton)
-
-            for i in range(1, self.nwl + 1):
-                comm.scmpf[1, i] *= 100.0 / self.tflx
-                comm.scmpp[1, i] *= 100.0 / self.tpfd
-                comm.scmpf[2, i] *= 100.0 / self.bplx
-                comm.scmpp[2, i] *= 100.0 / self.bpfd
-                comm.scmpf[3, i] *= 100.0 / self.dflx
-                comm.scmpp[3, i] *= 100.0 / self.dpfd
-
-            self.tflx *= self.RF * abs(self.cos_q0) / float(self.nPhoton)
-            self.bflx *= self.RF * abs(self.cos_q0) / float(self.nPhoton)
-            self.dflx *= self.RF * abs(self.cos_q0) / float(self.nPhoton)
-
-            self.rflx *= self.RF * abs(self.cos_q0) / float(self.nPhoton)
-            self.rbflx *= self.RF * abs(self.cos_q0) / float(self.nPhoton)
-            self.rdflx *= self.RF * abs(self.cos_q0) / float(self.nPhoton)
-
-            self.tpfd *= self.RQ * abs(self.cos_q0) / float(self.nPhoton)
-            self.bpfd *= self.RQ * abs(self.cos_q0) / float(self.nPhoton)
-            self.dpfd *= self.RQ * abs(self.cos_q0) / float(self.nPhoton)
-
-            comm.C_FPR *= self.RQ * abs(self.cos_q0) / float(self.nPhoton)
-            comm.B_FPR *= self.RQ * abs(self.cos_q0) / float(self.nPhoton)
-            comm.F_FPR *= self.RQ * abs(self.cos_q0) / float(self.nPhoton)
-            comm.S_FPR *= self.RQ * abs(self.cos_q0) / float(self.nPhoton)
-            comm.T_FPR = comm.C_FPR + comm.B_FPR + comm.F_FPR
-
-            comm.T_FPR /= self.tpfd
-            comm.C_FPR /= self.tpfd
-            comm.B_FPR /= self.tpfd
-            comm.F_FPR /= self.tpfd
-            comm.S_FPR /= self.tpfd
-
-            # summary of 3D far etc
-            th = acos(self.cos_q0)
-            ith = int(degrees(th))
-
-            for k in range(int(comm.Z_MAX) + 1, 0, -1):
-                for i in range(1, comm.SIZE + 1):
-                    for j in range(1, comm.SIZE + 1):
-                        comm.AP[i, j, k] *= self.RQ * abs(self.cos_q0) / pixelNP
-                        comm.AP_D[i, j, k] *= self.RQ * abs(self.cos_q0) / pixelNP
-                        comm.AP_B[i, j, k] *= abs(self.cos_q0) / pixelNP
-                        comm.AP_B[i, j, k] *= (1.0 / comm.GT_BLC[ith])
-                        comm.AP_B[i, j, k] *= min(comm.AP_B, 1.0)
-                        app[k] += comm.AP[i, j, k]
-
-                app[k] /= (self.tflx * float(comm.SIZE ** 2))
-                comm.AP_NP *= self.RQ * abs(self.cos_q0) / float(self.nPhoton) / self.tflx
-
-            #summary of forest floor far etc
-            for i in range(1, comm.SIZE + 1):
-                for j in range(1, comm.SIZE + 1):
-                    comm.AP_F *= self.RQ * abs(self.cos_q0) / pixelNP
-                    comm.AP_FD *= self.RQ * abs(self.cos_q0) / pixelNP
-
-            # summary of forest floor and surface downward flux
-            ffSum = 0.0
-            sfSum = 0.0
-
-            for i in range(1, comm.SIZE + 1):
-                for j in range(1, comm.SIZE + 1):
-                    comm.SF_DIR[i, j] *= self.RQ * abs(self.cos_q0) / pixelNP
-                    comm.SF_DIF[i, j] *= self.RQ * abs(self.cos_q0) / pixelNP
-                    comm.FF_DIR[i, j] *= self.RQ * abs(self.cos_q0) / pixelNP
-                    comm.FF_DIF[i, j] *= self.RQ * abs(self.cos_q0) / pixelNP
-
-                    ffSum += comm.FF_DIR[i, j] + comm.FF_DIF[i, j]
-                    sfSum += comm.SF_DIR[i, j] + comm.SF_DIF[i, j]
-
-            # writting
-            f = open(OUTPUT_PATH + "flxsum.txt", "w")
-            f.write("-- summary of radiative quantity --")
-            f.write("")
-            f.write("-- simulation mode --")
-
-            if (self.atmType == 1):
-                f.write(" Atmospheric module: Yes")
-            else:
-                f.write(" Atmospheric module: No")
-
-            if (self.atmType == 1):
-                if (self.imode == 1):
-                    f.write("Spectral domain: single wavelength, " + str(self.wl0))
-                if (self.imode == 2):
-                    f.write("Spectral domain: PAR")
-                if (self.imode == 3):
-                    f.write("Spectral domain: Shortwave total")
-
-            if (self.surfaceType == 1):
-                f.write("Surface type: lambertian")
-            else:
-                f.write("Surface type: 3-D canopy")
-
-            f.write("\n-- Solar zenith angle, Elv(m), atm. transmittance --")
-            f.write(format(radians(pi - cos(self.cos_q0)), '12.2f') + " " +
-                    format(comm.Z_MAX + '12.5f') + "  " +
-                    format(tm, '12.5f'))
-
-            f.write("\n-- Downward Irradiance at TOC --")
-
-            if (self.atmType == 2):
-                f.write("warning ! irradiance & PPFD are normalized by 1000.*cos(th) !!")
-
-            f.write("\nEnergy unit (W/m2)")
-            f.write(format("Total", '12') + format("Beam", '12') + format("Diffuse", '12') + format("Diff.Ratio", '12'))
-            f.write(format(self.tflx, '12.5f') + format(self.bflx, '12.5f') + format(self.dflx, '12.5f') + format(self.dflx / self.tflx, '12.5f'))
-
-            f.write("\nPhoton unit (W/m2)")
-            f.write(format("Total", '12') + format("Beam", '12') + format("Diffuse", '12') + format("Diff.Ratio", '12'))
-            f.write(format(self.tpfd, '12.5f') + format(self.bpfd, '12.5f') + format(self.dpfd, '12.5f') + format(self.dpfd / self.tpfd, '12.5f'))
-
-            f.write("\nAlbedo (A)")
-            f.write(format("Actual", '12') + format("black", '12') + format("white", '12'))
-            f.write(format("", '12') + format("black", '12') + format("white", '12'))
-            f.write(format(self.rflx / self.tflx, '12.5f') + format(self.rbflx / self.bflx, '12.5f') + format(self.rdflx / self.dflx, '12.5f'))
-
-            if (self.surfaceType == 2):
-                f.write("\n-- fraction of downward flux (T) -- ")
-                f.write(format("Forest Floor", '12') + format("Surface Floor", '12'))
-                f.write(format(ffSum / self.tpfd, '12.5f') + format(sfSum / self.tpfd, '12.5f'))
-
-                f.write("\n-- fraction of absorbed radiation (far) --")
-                f.write(format("total", '10') + format("leaf", '10') + format("non-leaf", '10') + format("floor", '10'))
-                f.write(format(comm.T_FPR, '10.7f') + format(comm.C_FPR, '10.7f') + format(comm.B_FPR, '10.7f') + format(comm.F_FPR, '10.7f'))
-
-                f.write("\nVertical profile of far")
-                f.write(format("H(m)", '10') + format("total", '10') + format("leaf", '10') + format("non-leaf", '10'))
-                string = ""
-                for k in range(comm.Z_MAX + 1, 0, -1):
-                    string += format(k, '6') + format(app[k] + comm.AP_NP[k], '10') + format(app[k], '10') + format(comm.AP_NP[k], '10')
-                f.write(string)
-
-            f.write("\n-- spctrl fraction. energy & photon flux(%) --")
-            f.write(format("wl(um)", '10') + format("Etot", '10') + format("Ebeam", '10') + format("Ediffuse", '10')
-                    + format("Ptot", '10') + format("Pbeam", '10') + format("Pdiffuse", '10'))
-            for i in range(1, self.nwl + 1):
-                if (i <= 20):
-                    temp = self.wls + self.span[i] * float(i) - self.span[i] / 2.0
+                if (self.atmType == 1):
+                    comm.BRF[1, i] *= pi / (float(self.nPhoton) * tm)
                 else:
-                    temp = 0.7 + self.wls + self.span[i] * float(i - 20) - self.span[i] / 2.0
+                    comm.BRF[1, i] *= pi / float(self.nPhoton)
 
-                f.write(format(temp, '10.3f'))
+                comm.BRF_C[2, i] /= comm.BRF[2, i]
+                comm.BRF_S[2, i] /= comm.BRF[2, i]
+                comm.BRF_F[2, i] /= comm.BRF[2, i]
+                comm.BRF[2, i] *= pi / float(self.nPhoton)
+
+                f = open(OUTPUT_PATH + "brfsum.txt", 'w')
+
+                if (self.atmType == 1):
+                    f.write(format("Theta", '8') + format("Phi", '8') + format("BRF(TOC)", '10') + format("BRF(TOA)",
+                                                                                                          '10') +
+                            format("rover", '10') + format("rbark", '10') + format("rfloor", '10'))
+                else:
+                    f.write(
+                        format("Theta", '8') + format("Phi", '8') + format("BRF(TOC)", '10') +
+                        format("rover", '10') + format("rbark", '10') + format("rfloor", '10'))
+
+                k = 1
+
+                for j in range(1, comm.N_PH + 1):
+                    for i in range(1, comm.N_TH + 1):
+
+                        if (self.atmType == 1):
+                            f.write(format(comm.ANG_T[i], '8.2f') + format(comm.ANG_P[i], '8.2f') +
+                                    format(comm.BRF[1, k], '10.6f') + format(comm.BRF[2, k], '10.6f') +
+                                    format(comm.BRF_C[1, k], '10.6f') + format(comm.BRF_S[2, k], '10.6f') + format(
+                                comm.BRF_F[1, k], '10.6f'))
+                        else:
+                            f.write(format(comm.ANG_T[i], '8.2f') + format(comm.ANG_P[i], '8.2f') +
+                                    format(comm.BRF[1, k], '10.6f') + format(comm.BRF[2, k], '10.6f') +
+                                    format(comm.BRF_C[1, k], '10.6f') + format(comm.BRF_S[2, k], '10.6f') + format(
+                                comm.BRF_F[1, k], '10.6f'))
+
+                        k += 1
+
+                f.close()
+
+        # Nadir view image
+        if (self.cmode != 1):
+            f = open(OUTPUT_PATH + "TOC_IMG.txt")
+
+            for j in range(comm.SIZE, 0, -1):
                 string = ""
-                for j in range(3):
-                    string += format(comm.scmpf[j + 1, i], '10.5f')
-                for j in range(3):
-                    string += format(comm.scmpp[j + 1, i], '10.5f')
-
-                f.write(string)
-
-            f.write("\n-- Downward radiance at the top of canopy --")
-            f.write("# idrc theta phi radiance_F stdev_F radiance_Q stdev_Q")
-
-            pixelNP_A = float(self.nPhoton) / float(comm.K_NXR * comm.K_NYR)
-
-            for k in range(1, comm.N_RDC + 1):
-                sumF = sum2F = 0.0
-                pF_Max = 0.0
-                sumQ = sum2Q = 0.0
-                pQ_Max = 0.0
-
-                for i in range(comm.K_NXR + 1):
-                    for j in range(comm.K_NYR + 1):
-                        pF = comm.PROC_F[i, j, k] / pixelNP_A
-                        pQ = comm.PROC_Q[i, j, k] / pixelNP_A
-
-                        sumF += pF
-                        sumF += pF ** 2
-                        pF_Max = max(pF_Max, pF)
-
-                        sumQ += pQ
-                        sum2Q += pQ ** 2
-                        pQ_Max = max(pQ_Max, pQ)
-
-                aveF = sumF / float(comm.K_NXR * comm.KYXR)
-                sdvF = sqrt(sum2F / float(comm.K_NXR * comm.KYXR) - aveF ** 2)
-                aveQ = sumQ / float(comm.K_NXR * comm.KYXR)
-                sdvF = sqrt(sum2Q / float(comm.K_NXR * comm.KYXR) - aveQ ** 2)
-
-                uxc = copysign(max(1.0e-5, abs(comm.UX_RTAB[k])), comm.UX_RTAB[k])
-                phi = sqrt(comm.UX_RTAB[k] ** 2 + comm.UY_RTAB[k])
-                phi = max(1.0e-5, phi)
-                phi = radians(acos(uxc / phi))
-
-                f.write(format(k, "6") + format(radians(acos(comm.UZ_RTAB)), '8.3f') + format(phi, '8.3f') +
-                        format(avef, '12.5f') + format(sdvf, '12.5f') + format(aveQ, '12.5f') + format(sdvQ, '12.5f'))
+                if (self.atmType == 1):
+                    for i in range(1, comm.SIZE + 1):
+                        string += format(pi * comm.REFL[1, i, j] / (pixelNP * tm), '10.5f')
+                else:
+                    for i in range(1, comm.SIZE + 1):
+                        string += format(pi * comm.REFL[1, i, j] / pixelNP, '10.5f')
+                f.write(s)
 
             f.close()
 
-            if (self.surfaceType == 1):
-                return ERRCODE.SUCCESS
+            f = open(OUTPUT_PATH + "nTOC_IMG.txt", 'w')
+            for j in range(comm.SIZE, 0, -1):
+                string = ""
+                for i in range(1, comm.SIZE + 1):
+                    string += format(pi * comm.I_REFL[1, i, j] / pixelNP, '10.5f')
+            f.close()
 
-            if (self.cmode == 1):
-                # BRFD result output
-                for i in range(1, comm.N_ANG_C + 1):
-                    comm.BRF_C[1, i] /= comm.BRF[1, i]
-                    comm.BRF_S[1, i] /= comm.BRF[1, i]
-                    comm.BRF_F[1, i] /= comm.BRF[1, i]
-
-                    if (self.atmType == 1):
-                        comm.BRF[1, i] *= pi / (float(self.nPhoton) * tm)
-                    else:
-                        comm.BRF[1, i] *= pi / float(self.nPhoton)
-
-                    comm.BRF_C[2, i] /= comm.BRF[2, i]
-                    comm.BRF_S[2, i] /= comm.BRF[2, i]
-                    comm.BRF_F[2, i] /= comm.BRF[2, i]
-                    comm.BRF[2, i] *= pi / float(self.nPhoton)
-
-                    f = open(OUTPUT_PATH + "brfsum.txt", 'w')
-
-                    if (self.atmType == 1):
-                        f.write(format("Theta", '8') + format("Phi", '8') + format("BRF(TOC)", '10') + format("BRF(TOA)", '10') +
-                                format("rover", '10') + format("rbark", '10') + format("rfloor", '10'))
-                    else:
-                        f.write(
-                            format("Theta", '8') + format("Phi", '8') + format("BRF(TOC)", '10') +
-                            format("rover", '10') + format("rbark", '10') + format("rfloor", '10'))
-
-                    k = 1
-
-                    for j in range(1, comm.N_PH + 1):
-                        for i in range(1, comm.N_TH + 1):
-
-                            if (self.atmType == 1):
-                                f.write(format(comm.ANG_T[i], '8.2f') + format(comm.ANG_P[i], '8.2f') +
-                                        format(comm.BRF[1, k], '10.6f') + format(comm.BRF[2, k], '10.6f') +
-                                        format(comm.BRF_C[1, k], '10.6f') + format(comm.BRF_S[2, k], '10.6f') + format(comm.BRF_F[1, k], '10.6f'))
-                            else:
-                                f.write(format(comm.ANG_T[i], '8.2f') + format(comm.ANG_P[i], '8.2f') +
-                                        format(comm.BRF[1, k], '10.6f') + format(comm.BRF[2, k], '10.6f') +
-                                        format(comm.BRF_C[1, k], '10.6f') + format(comm.BRF_S[2, k], '10.6f') + format(comm.BRF_F[1, k], '10.6f'))
-
-                            k += 1
-
-                    f.close()
-
-            # Nadir view image
-            if (self.cmode != 1):
-                f = open(OUTPUT_PATH + "TOC_IMG.txt")
-
-                for j in range(comm.SIZE, 0, -1):
-                    string = ""
-                    if (self.atmType == 1):
-                        for i in range(1, comm.SIZE + 1):
-                             string += format(pi * comm.REFL[1, i, j] / (pixelNP * tm), '10.5f')
-                    else:
-                        for i in range(1, comm.SIZE + 1):
-                            string += format(pi * comm.REFL[1, i, j] / pixelNP, '10.5f')
-                    f.write(s)
-
-                f.close()
-
-                f = open(OUTPUT_PATH + "nTOC_IMG.txt", 'w')
+        if (self.cmode == 3):
+            f = open(OUTPUT_PATH + "apar.txt", 'w')
+            for k in range(comm.Z_MAX + 1, 0, -1):
                 for j in range(comm.SIZE, 0, -1):
                     string = ""
                     for i in range(1, comm.SIZE + 1):
-                        string += format(pi * comm.I_REFL[1, i, j] / pixelNP, '10.5f')
-                f.close()
-
-            if (self.cmode == 3):
-                f = open(OUTPUT_PATH + "apar.txt", 'w')
-                for k in range(comm.Z_MAX + 1, 0, -1):
-                    for j in range(comm.SIZE, 0, -1):
-                        string = ""
-                        for i in range(1, comm.SIZE + 1):
-                            string += format(comm.AP[i, j, k], '12.5f')
-                        f.write(string)
-                f.close()
-
-                f = open(OUTPUT_PATH + "aparb.txt", 'w')
-                for k in range(comm.Z_MAX + 1, 0, -1):
-                    for j in range(comm.SIZE, 0, -1):
-                        string = ""
-                        for i in range(1, comm.SIZE + 1):
-                            string += format(comm.AP_B[i, j, k], '12.5f')
-                        f.write(string)
-                f.close()
-
-                f = open(OUTPUT_PATH + "apard.txt", 'w')
-                for k in range(comm.Z_MAX + 1, 0, -1):
-                    for j in range(comm.SIZE, 0, -1):
-                        string = ""
-                        for i in range(1, comm.SIZE + 1):
-                            string += format(comm.AP_D[i, j, k], '12.5f')
-                        f.write(string)
-                f.close()
-
-                f = open(OUTPUT_PATH + "aparf.txt", 'w')
-                for j in range(comm.SIZE, 0, -1):
-                    string = ""
-                    for i in range(1, comm.SIZE + 1):
-                        string += format(comm.AP_F[i, j, k], '12.5f')
+                        string += format(comm.AP[i, j, k], '12.5f')
                     f.write(string)
-                f.close()
+            f.close()
 
-                f = open(OUTPUT_PATH + "aparfd.txt", 'w')
+            f = open(OUTPUT_PATH + "aparb.txt", 'w')
+            for k in range(comm.Z_MAX + 1, 0, -1):
                 for j in range(comm.SIZE, 0, -1):
                     string = ""
                     for i in range(1, comm.SIZE + 1):
-                        string += format(comm.AP_FD[i, j, k], '12.5f')
+                        string += format(comm.AP_B[i, j, k], '12.5f')
                     f.write(string)
-                f.close()
+            f.close()
 
-            # print fish eye data
-            if (self.nPhoton == -4):
-                self.printFishEye()
+            f = open(OUTPUT_PATH + "apard.txt", 'w')
+            for k in range(comm.Z_MAX + 1, 0, -1):
+                for j in range(comm.SIZE, 0, -1):
+                    string = ""
+                    for i in range(1, comm.SIZE + 1):
+                        string += format(comm.AP_D[i, j, k], '12.5f')
+                    f.write(string)
+            f.close()
 
-            return ERRCODE.SUCCESS
+            f = open(OUTPUT_PATH + "aparf.txt", 'w')
+            for j in range(comm.SIZE, 0, -1):
+                string = ""
+                for i in range(1, comm.SIZE + 1):
+                    string += format(comm.AP_F[i, j, k], '12.5f')
+                f.write(string)
+            f.close()
+
+            f = open(OUTPUT_PATH + "aparfd.txt", 'w')
+            for j in range(comm.SIZE, 0, -1):
+                string = ""
+                for i in range(1, comm.SIZE + 1):
+                    string += format(comm.AP_FD[i, j, k], '12.5f')
+                f.write(string)
+            f.close()
+
+        # print fish eye data
+        if (self.nPhoton == -4):
+            self.printFishEye()
+
+        return ERRCODE.SUCCESS

@@ -69,9 +69,9 @@ def idivspace():
                     iMin = b[k] * divX + a[k] * divY
                     iMax = b[k] * divX + a[k] * divY + intv
 
-                    if ((iMin <= p1) and (max >= p1)):
+                    if ((iMin <= p1) and (iMax >= p1)):
                         flag = 1
-                    if ((iMax <= p2) and (max >= p2)):
+                    if ((iMin <= p2) and (iMax >= p2)):
                         flag = 1
 
             for k in range(2):
