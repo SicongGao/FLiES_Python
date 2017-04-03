@@ -20,7 +20,7 @@ class Position:
     def clearPotion(self):
         self.__init__()
 
-    def movePositon(self, distance, vectCoord, x_max, y_max):
+    def movePosition(self, distance, vectCoord, x_max, y_max):
         mgn = 1.0e-2
         self.x += (distance + mgn) * vectCoord.x
         self.y += (distance + mgn) * vectCoord.y

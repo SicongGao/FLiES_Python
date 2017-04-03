@@ -394,28 +394,31 @@ class MonteCarlo_1D:
         # Increasing vector
         if ((xGrd[ixMin]) < (xGrd[ixMax] + 1)):
             if (x < xGrd[ix]):
-                for i in range(ix - 1, ixMin, -1):
+                for i in range(ix - 1, ixMin - 1, -1):
                     if (x >= xGrd[i]):
                         result = i
                         break
+                result = max(ixMin, result)
             else:
-                for i in range(ix + 1, ixMax + 1):
+                for i in range(ix + 1, ixMax + 2):
                     if (x < xGrd[i]):
                         result = i
                         break
-
+                result = min(ixMax, result - 1)
         # Decreasing vector
         else:
             if (x >= xGrd[ix]):
-                for i in range(ix - 1, ixMin, -1):
+                for i in range(ix - 1, ixMin - 1, -1):
                     if (x < xGrd[i]):
                         result = i
                         break
+                result = max(ixMin, result)
             else:
-                for i in range(ix + 1, ixMax + 1):
+                for i in range(ix + 1, ixMax + 2):
                     if (x >= xGrd[i]):
                         result = i
                         break
+                result = min(ixMax, result - 1)
 
         return result
 
@@ -626,8 +629,7 @@ class MonteCarlo_1D:
             sumE = 0.0
             sumS = 0.0
 
-            for iAng in range(comm.N_ANG + 1):
-                rawPhs[iAng] = 0.0
+            rawPhs = [0.0] * (comm.N_ANG + 1)
 
             for iMix in range(nmix + 1):
                 ee = ext[iMix, iz]

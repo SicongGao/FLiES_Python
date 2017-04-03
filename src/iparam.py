@@ -393,6 +393,7 @@ class Parameters:
         if (config.INPUT_MODE):
             comm.U = list(args.get("leaf_area_density"))
             print(comm.U)
+            comm.U.insert(0, 0)
         else:
             for i in range(self.nts):
                 comm.U[i] = float(input())
@@ -409,9 +410,10 @@ class Parameters:
         if (config.INPUT_MODE):
             comm.BAD = list(args.get("branch_area_density"))
             print(comm.BAD)
+            comm.BAD.insert(0,0)
         else:
             for i in range(self.nts):
-                comm.BAD[i] = float(input())
+                comm.BAD[i + 1] = float(input())
 
         for i in range(self.nts):
             if ((comm.U[i] < 0.0) or (comm.U[i] > 8.0)):
@@ -612,10 +614,11 @@ class Parameters:
                 else:
                     print(str(ramda) + " and " + str(ramda + 5 * self.span[1]))
 
-            print("lr1 lr2.. lt1 lt2.. ulr ult str1 str2.. sor")
-            print("(lr, lt:leaf refl. & leaf transm.")
-            print("ulr,ult:understory leaf refl. & transm.")
-            print("stmr: stem refl., soilr: soil refl.)")
+            if (i == 1):
+                print("lr1 lr2.. lt1 lt2.. ulr ult str1 str2.. sor")
+                print("(lr, lt:leaf refl. & leaf transm.")
+                print("ulr,ult:understory leaf refl. & transm.")
+                print("stmr: stem refl., soilr: soil refl.)")
 
             if (self.nwl == 1):
                 self.getInputLR_LT_ULR_ULT(i, **args)
@@ -794,10 +797,10 @@ class Parameters:
         else:
             f0 = radians(self.ph0) - pi
 
-        sin_q0 = sin(q0)
-        cos_q0 = cos(q0)
-        sin_f0 = sin(f0)
-        cos_f0 = cos(f0)
+        self.sin_q0 = sin(q0)
+        self.cos_q0 = cos(q0)
+        self.sin_f0 = sin(f0)
+        self.cos_f0 = cos(f0)
 
         if (self.AtmMode == 2):
             return
@@ -974,9 +977,9 @@ class Parameters:
 
             for i in range(self.nwl):
                 if (i < 20):
-                    self.npl[i] = round(float(self.nPhotonProcess) * spcf[i] / sum)
+                    self.npl[i] = int(round(float(self.nPhotonProcess) * spcf[i] / sum))
                 else:
-                    self.npl[i] = round(float(self.nPhotonProcess) * 5.0 * spcf[i] / sum)
+                    self.npl[i] = int(round(float(self.nPhotonProcess) * 5.0 * spcf[i] / sum))
 
             sum = 0.0
 
@@ -1168,7 +1171,7 @@ class Parameters:
                         print("Input error !!")
                         return ERRCODE.INPUT_ERROR
 
-                    for i in range(comm.N_Z):
+                    for i in range(comm.N_Z + 1):
                         if (comm.Z_GRD[i] < cbot):
                             self.cbnz = i
                         if (comm.Z_GRD[i] > ctop):
@@ -1291,12 +1294,13 @@ class Parameters:
                 wl2 = float(result[2])
                 file.readline()
 
-                for iz in range(comm.N_Z):
+                for iz in range(1, comm.N_Z + 1):
                     result = file.readline()
                     result = result.split()
 
-                    #print("i=", i)
-                    #print(iz)
+                    # #print("i=", i)
+                    # print(iz)
+                    # print(self.ext[1, iz])
                     self.ext[1, iz] = float(result[1])
 
                     for j in range(self.nkd):
@@ -1332,7 +1336,7 @@ class Parameters:
                                 comm.ABS_G1D[iz, j] = comm.ABS_G1D[comm.K_LAYER[iz], j]
 
                 if ((wl2 > self.wl0) and (self.wl0 >= wl1)):
-                    self.wkd[self.nkd + 1] = 1.000001
+                    self.wkd[self.nkd] = 1.000001
                     break
             file.close()
 
@@ -1362,7 +1366,7 @@ class Parameters:
                             file.readline()
 
                         result = file.readline().split()
-                        self.self.Qext_ref[i - 1] = float(result[0])
+                        self.Qext_ref[i - 1] = float(result[0])
                         self.Qext[i - 1] = float(result[1])
                         self.Qabs[i - 1] = float(result[2])
                         self.omg[i - 1] = float(result[3])
@@ -1435,9 +1439,17 @@ class Parameters:
 
                         # skip reading RvDry, ReDry, rhoDry, RvWet, ReWet, rhoWet
                         # because of not using
-                        for ii in range(6):
+                        for ii in range(4):
                             file.readline()
 
+                        result = file.readline().split()
+                        self.Qext_ref[i - 1] = float(result[0])
+                        self.Qext[i - 1] = float(result[1])
+                        self.Qabs[i - 1] = float(result[2])
+                        self.omg[i - 1] = float(result[3])
+                        G[i - 1] = float(result[4])
+
+                        file.readline()
                         result = file.readline().split()
                         nAng = int(result[0])
                         comm.N_ANG = nAng
@@ -1465,7 +1477,7 @@ class Parameters:
 
         # get the ratio of extinction corf. of each aerosol
         rat = (1.0, 2.0)
-        zmd = []
+        zmd = [0]
         # Calcualte the extinction coef. from total tau
         for i in range(comm.N_Z):
             temp = (0.5 * (exp(comm.Z_GRD[i + 1] / self.d) + exp(comm.Z_GRD[i] / self.d)))
@@ -1478,12 +1490,12 @@ class Parameters:
         for i in range(comm.N_Z):
             zsum += exp(zmd[i] / self.d)
 
-        for imix in range(2, self.nmix):
-            for i in range(comm.N_Z):
-                self.ext [imix, i + 1] = sfc[i + 1] * exp(zmd[i], self.d) /\
-                                         (comm.Z_GRD[i + 1] - comm.Z_GRD[i])
+        for imix in range(2, self.nmix + 1):
+            for i in range(1, comm.N_Z + 1):
+                self.ext [imix, i + 1] = sfc[imix - 1] * exp(zmd[i] / self.d) /\
+                                         (comm.Z_GRD[i] - comm.Z_GRD[i - 1])
                 # Convert to ext from ext_ref
-                self.ext[imix, i + 1] *= self.Qext[imix - 1] / self.self.Qext_ref[imix - 1]
+                self.ext[imix, i + 1] *= self.Qext[imix - 1] / self.Qext_ref[imix - 1]
 
         if (self.cflg == 1):
             for i in range(self.cbnz, self.ctnz + 1):
@@ -1498,7 +1510,7 @@ class Parameters:
         print("Haven't finish finish eye function.")
         return ERRCODE.SUCCESS
 
-    def writeData():
+    def writeData(self):
 
         app = [0.0] * 100
 
@@ -1506,7 +1518,7 @@ class Parameters:
 
         # summary calculation of fulx
         pixelNP = float(self.nPhoton) / float(comm.SIZE ** 2)
-        tm = tflx / float(self.nPhoton)
+        tm = self.tflx / float(self.nPhoton)
 
         for i in range(1, self.nwl + 1):
             comm.scmpf[1, i] *= 100.0 / self.tflx
