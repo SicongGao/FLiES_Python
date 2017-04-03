@@ -117,7 +117,7 @@ class MonteCarlo_1D:
 
         if (irvrs <= 0):
             while (irvrs <= 0):
-                i = (i0 + i1) / 2
+                i = int((i0 + i1) / 2)
                 if (dat >= grd[i]):
                     i0 = i
                 else:
@@ -572,7 +572,7 @@ class MonteCarlo_1D:
     # Make LUTs for phase function & scattering angle.
     def optics(self, ext, omg, phs, angle, nmix):
         kNRaw = 5000
-        nLut1 = comm.N_LUT1
+        nLut1 = comm.N_LUT1 + 1
         nLut = comm.N_LUT
 
         rawAngle = [0.0] * kNRaw
@@ -656,11 +656,12 @@ class MonteCarlo_1D:
             self.artsanglut(wrkAngle, wrkPhs, wrkCum, wrkPdf, wrkSca, nwrk, nLut)
 
             for iLut in range(nLut + 1):
+                #print(iLut)
                 comm.PF_LUT[iLut, iz] = wrkPhs[iLut + 1]
                 comm.SA_LUT[iLut, iz] = radians(wrkSca[iLut])
 
-            comm.PF_LUT[nLut1, iz] = comm.PF_LUT[nLut, iz]
-            comm.SA_LUT[nLut1, iz] = comm.PF_LUT[nLut, iz]
+            comm.PF_LUT[comm.N_LUT1 - 1, iz] = comm.PF_LUT[nLut - 1, iz]
+            comm.SA_LUT[comm.N_LUT1 - 1, iz] = comm.PF_LUT[nLut - 1, iz]
 
             # truncation
             self.phsfbiasym2(wrkAngle, wrkPhs, nwrk, 90.0)

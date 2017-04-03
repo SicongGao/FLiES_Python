@@ -24,7 +24,7 @@ K_NKD = 4
 K_NCHI = 10
 K_NXR = K_NYR = 300
 K_NRDC = 700
-N_LUT = 2000
+N_LUT = 2001
 N_LUT1 = N_LUT + 1
 N_ANG = 0
 Z_GRD = [0.0] * K_NZ
