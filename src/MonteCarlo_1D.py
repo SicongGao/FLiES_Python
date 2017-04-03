@@ -116,7 +116,7 @@ class MonteCarlo_1D:
         i1 = n + 1
 
         if (irvrs <= 0):
-            while (irvrs <= 0):
+            while (i1 > i0 + 1):
                 i = int((i0 + i1) / 2)
                 if (dat >= grd[i]):
                     i0 = i
@@ -125,7 +125,7 @@ class MonteCarlo_1D:
             result = i0
         else:
             while (i1 > i0 + 1):
-                i = (i0 + i1) / 2
+                i = int((i0 + i1) / 2)
                 if (dat < grd[i]):
                     i0 = i
                 else:
@@ -161,7 +161,7 @@ class MonteCarlo_1D:
 
         # initializations
         fdc = 1.0 - self.fd
-        self.iangtf = self.i_rvctrssrch(cump, nang, 1, fdc)
+        self.iangtf = self.ifunc_vctrbinsrch(cump, nang, 1, fdc)
         self.iangtb = nang
         self.g1t = (self.g1 - self.fd) / (1.0 - self.fd)
         self.g2t = (self.g2 - self.fd) / (1.0 - self.fd)
@@ -220,7 +220,7 @@ class MonteCarlo_1D:
                 if (sum0 > 0.99):
                     iexit = 1
 
-                w = pdf(self.iangtf)
+                w = pdf[self.iangtf]
                 c0 = cosa[self.iangtf]
                 c1 = cosa[self.iangtf + 1]
                 sum0a = sum0 - w

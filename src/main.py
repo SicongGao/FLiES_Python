@@ -65,6 +65,7 @@ def simulateATM(para):
     #print("simulate without atmosphere")
 
     for iwl in range(1, para.nwl):
+        print("This is the ", iwl, " of ", para.nwl)
         para.preparAtm(iwl)
         mc1D.optics(para.ext, para.omg, para.phs, para.ang, para.nmix + para.cflg)
         wq = para.wq

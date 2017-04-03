@@ -31,7 +31,7 @@ Z_GRD = [0.0] * K_NZ
 Z_GRD_BACK = [0.0] * K_NZ
 Z_GRD_M = [0.0] * K_NZ
 CHI_GRD = [0.0] * 100
-TRU_LUT = np.zeros(6 * K_NCHI * K_NZ, dtype=float).reshape(6, K_NCHI, K_NZ)
+TRU_LUT = np.zeros(7 * K_NCHI * K_NZ, dtype=float).reshape(7, K_NCHI, K_NZ)
 ABS_G1D = np.zeros(K_NZ * K_NKD, dtype=float).reshape(K_NZ, K_NKD)
 EXT_T1D = np.zeros(K_NZ * K_NCHI, dtype=float).reshape(K_NZ, K_NCHI)
 ABS_T1D = [0.0] * K_NZ
