@@ -80,16 +80,16 @@ class CLAI:
                             tobjb[4] = tobj[4] * comm.RB
                             tobjb[5] = tobj[5] * comm.RB
 
-                            treeBoundary.dealTreeType(comm.T_OBJ[i], phoCoord, vectCoord, tobj)
+                            treeBoundary.dealTreeType(comm.OBJ_Shape[i], phoCoord, vectCoord, tobj)
                             io1 = treeBoundary.io
-                            treeBoundary.dealTreeType(comm.T_OBJ[i], phoCoord, vectCoord, tobjb)
+                            treeBoundary.dealTreeType(comm.OBJ_Shape[i], phoCoord, vectCoord, tobjb)
                             io2 = treeBoundary.io
 
                             if (io2 == 0):
-                                tLai += comm.U[comm.I_OBJ[index]] * (1.0 - comm.BP2)
+                                tLai += comm.U[comm.OBJ_Group[index]] * (1.0 - comm.BP2)
                                 its += 1
                             elif (io1 == 0):
-                                tLai += comm.U[comm.I_OBJ[index]] * (1.0 - comm.BP1)
+                                tLai += comm.U[comm.OBJ_Group[index]] * (1.0 - comm.BP1)
                                 its += 1
 
                         if (its != 0):

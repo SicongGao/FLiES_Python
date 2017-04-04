@@ -451,7 +451,7 @@ class Parameters:
 
         # canopy object parameters
         # object id initialization
-        comm.I_OBJ = [1] * 6000
+        comm.OBJ_Group = [1] * 6000
 
         # input obj_nt
         result = ''
@@ -459,7 +459,7 @@ class Parameters:
             comm.N_OBJ = int(file.readline())
 
             if (comm.N_OBJ == 0):
-                comm.N_OBJ = comm.T_OBJ = 1
+                comm.N_OBJ = comm.OBJ_Shape = 1
                 comm.OBJ[0, 0] = 0.01
                 comm.OBJ[0, 1] = 0.01
                 comm.OBJ[0, 2] = 0.01
@@ -472,9 +472,9 @@ class Parameters:
 
         obj_nt = comm.N_OBJ
         for i in range(len(result)):
-            comm.T_OBJ[i] = int(result[i][0])
+            comm.OBJ_Shape[i] = int(result[i][0])
             comm.OBJ[i][0:5] = result[i][1: 6]
-            comm.I_OBJ[i] = int(result[i][6])
+            comm.OBJ_Group[i] = int(result[i][6])
             if (result[i][0] != 4):
                 if ((result[i][4] < 0.01) or (result[i][5] < 0.01)):
                     print(str(i + 1) + "th canopy neglected!")
@@ -484,7 +484,7 @@ class Parameters:
 
         # check the obj id range
         for i in range(obj_nt):
-            if ((comm.I_OBJ[i] <= 0) or (comm.I_OBJ[i] > self.nts)):
+            if ((comm.OBJ_Group[i] <= 0) or (comm.OBJ_Group[i] > self.nts)):
                 print("species id should be the range betweem 0-" + str(self.nts))
                 return ERRCODE.OUT_OF_RANGE
 
@@ -492,7 +492,7 @@ class Parameters:
 
         # change from height to radius
         for i in range(obj_nt):
-            if (comm.T_OBJ[i] == 3):
+            if (comm.OBJ_Shape[i] == 3):
                 comm.OBJ[i, 3] /= 2
 
         # in case periodic boundary
@@ -519,14 +519,14 @@ class Parameters:
                     d = abs(xr * a[k] + yr * b[k] - c[k])
 
                     if (d <= comm.OBJ[j, 4]):   # partially in the out of range
-                        dd = sqrt(comm.OBJ[j, 4] * comm.OBJ[j, 4] - d * d)
+                        dd = sqrt(comm.OBJ[j, 4] ** 2 - d ** 2)
                         p1 = b[k] * xr + a[k] * yr - dd
                         p2 = b[k] * xr + a[k] * yr + dd
 
                         if (((iMin < p1) and (iMax > p1)) or
                                 ((iMin < p2) and (iMax > p2))):
 
-                            comm.N_OBJ += 1
+
 
                             n = comm.N_OBJ
                             comm.OBJ[n, 0] = comm.OBJ[j, 0] + a[k] * comm.X_MAX * (1.0 - 2.0 * cc[k])
@@ -535,8 +535,10 @@ class Parameters:
                             comm.OBJ[n, 3] = comm.OBJ[j, 3]
                             comm.OBJ[n, 4] = comm.OBJ[j, 4]
 
-                            comm.T_OBJ[n] = comm.T_OBJ[j]
-                            comm.I_OBJ[n] = comm.I_OBJ[j]
+                            comm.OBJ_Shape[n] = comm.OBJ_Shape[j]
+                            comm.OBJ_Group[n] = comm.OBJ_Group[j]
+
+                            comm.N_OBJ += 1
 
                 for k in range(2):
                     for l in range(2):
@@ -546,8 +548,6 @@ class Parameters:
 
                         if (rr <= comm.OBJ[j, 4]):
 
-                            comm.N_OBJ += 1
-
                             n = comm.N_OBJ
                             comm.OBJ[n, 0] = comm.OBJ[j, 0] + comm.X_MAX - 2.0 * cc[k]
                             comm.OBJ[n, 1] = comm.OBJ[j, 1] + comm.Y_MAX - 2.0 * cc[l + 2]
@@ -555,8 +555,10 @@ class Parameters:
                             comm.OBJ[n, 3] = comm.OBJ[j, 3]
                             comm.OBJ[n, 4] = comm.OBJ[j, 4]
 
-                            comm.T_OBJ[n] = comm.T_OBJ[j]
-                            comm.I_OBJ[n] = comm.I_OBJ[j]
+                            comm.OBJ_Shape[n] = comm.OBJ_Shape[j]
+                            comm.OBJ_Group[n] = comm.OBJ_Group[j]
+
+                            comm.N_OBJ += 1
 
             # determination of the epsi(epsiron) that is used to perform the
             # Russian Roulette

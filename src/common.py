@@ -49,8 +49,8 @@ CloudType = -1
 
 # canopy common
 N_ANG_C = N_TH = N_PH = N_OBJ = 0
-I_OBJ = [0] * OBJ_NUM_MAX   # tree type group number
-T_OBJ = [0] * OBJ_NUM_MAX   # type of the tree object
+OBJ_Group = [0] * OBJ_NUM_MAX   # tree type group number
+OBJ_Shape = [0] * OBJ_NUM_MAX   # type of the tree object
 DIF_TYPE = DIR_FLAG = BOUND = 0
 REFL = np.zeros(2 * SIZE * SIZE, dtype=float).reshape(2, SIZE, SIZE)
 I_REFL = np.zeros(2 * SIZE * SIZE, dtype=int).reshape(2, SIZE, SIZE)

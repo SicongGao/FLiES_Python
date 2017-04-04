@@ -132,6 +132,7 @@ class MonteCarlo:
         randomMethod = Random()
         vegRadiation = VegRadiation()
 
+        print("Monte Carlo stem simulation start...")
         # reflectance at the side of stem
         if (face == 1):
             # stem normal vector
@@ -203,6 +204,7 @@ class MonteCarlo:
         vegRadiation.simulate(phoCoord, vectCoord, CB, 1.0, 0.0, a, w, fd, ichi, ikd)
         a = vegRadiation.save_a
 
+        print("Monte Carlo stem simulation finish.")
         self.save(nscat, w)
         return ERRCODE.SUCCESS
 
@@ -212,13 +214,13 @@ class MonteCarlo:
         mgn = 1.0e-2
         UZ_MIN = 0.0174524
 
-        temp = comm.I_OBJ[inobj]
+        temp = comm.OBJ_Group[inobj]
         cf = comm.S_BAR[temp]
         branchAreaDensity = comm.BAD[temp]
         la = comm.U[temp]
-        tsobj = comm.T_OBJ[inobj]
+        tsobj = comm.OBJ_Shape[inobj]
 
-        cf12 = comm.S_BAR[comm.I_OBJ[inobj]]
+        cf12 = comm.S_BAR[comm.OBJ_Group[inobj]]
         rb12 = 1.0
         fd = 0.0
 
@@ -239,6 +241,8 @@ class MonteCarlo:
         treeBounday = TreeBoundary()
         randMethod = Random()
         vegRadiant = VegRadiation()
+
+        print("Monte Carlo canopy simulation start...")
 
         # check status:leaf dominant region, branch dominant or irregulary outside
         while (1):
@@ -528,6 +532,8 @@ class MonteCarlo:
                             return ERRCODE.OUTSIDE
 
         self.save(nscat, w)
+        print("Monte Carlo canopy simulation finish.")
+
         return ERRCODE.SUCCESS
 
     # ##################################################################################
@@ -563,12 +569,14 @@ class MonteCarlo:
         plane = Planes()
         vegRadiant = VegRadiation()
 
+        print("Monte Carlo floor simulation start...")
+
         # Monte Carlo loop
         while (1):
 
             rand = randMethod.getRandom()
             th = acos(vectCoord.z)
-            ith = degrees(th)
+            ith = int(degrees(th))
             sgm = comm.GT_BLF[ith] * comm.G_LAI
             sgm = max(1.0e-5, sgm)
             distance = -log(rand) / sgm
@@ -657,6 +665,8 @@ class MonteCarlo:
                     return ERRCODE.OUT_OF_RANGE
 
         self.save(nscat, w)
+        print("Monte Carlo floor simulation finish.")
+
         return ERRCODE.SUCCESS
 
 
@@ -664,26 +674,22 @@ class MonteCarlo:
 # FOR TEST
 # Monte Carlo in Calculating PI
 # ##############################
-#
-# def test():
-#     R = 0.5
-#     inside = 0
-#     allNum = 10000
-#     for i in range(allNum):
-#         rX = random.uniform(0, 1)
-#         rY = random.uniform(0, 1)
-#         rX = (rX - R) * (rX - R)
-#         rY = (rY - R) * (rY - R)
-#         rNEW = math.sqrt(rX + rY)
-#
-#         if (rNEW <= R):
-#             inside += 1
-#
-#     PI = 4 * inside / allNum
-#     print("PI = ", PI)
-#     print("ERR = ", abs((math.pi - PI) / math.pi))
-# a = [1,2,3,4,5,6,7]
-# print(a)
-# a.remove(3)
-# print(a)
-# print(a[1 + 9])
+
+def test():
+    R = 0.5
+    inside = 0
+    allNum = 10000
+    for i in range(allNum):
+        import Random
+        rX = Random.uniform(0, 1)
+        rY = Random.uniform(0, 1)
+        rX = (rX - R) * (rX - R)
+        rY = (rY - R) * (rY - R)
+        rNEW = math.sqrt(rX + rY)
+
+        if (rNEW <= R):
+            inside += 1
+
+    PI = 4 * inside / allNum
+    print("PI = ", PI)
+    print("ERR = ", abs((math.pi - PI) / math.pi))

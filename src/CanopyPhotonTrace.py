@@ -58,6 +58,8 @@ class CanopyPhotonTrace:
         gFunction.igtbl()
         mcSimulation = MonteCarlo()
 
+        print("CanopyPhotonTrace start...")
+
         # do wile photon exit from canopy space
         while (1):
             # determinatin of first input voxel
@@ -83,6 +85,7 @@ class CanopyPhotonTrace:
             iNobj = -1
             index = -1
             distanceObj = 1.0e5
+            distancePho = 1.0e5
             
             # check the photon intersection with big-voxel walls
             errCode = planes.calPlanes(phoCoord, vectCoord, objCoord, intv)
@@ -103,7 +106,7 @@ class CanopyPhotonTrace:
 
                     tObj[1:6] = comm.OBJ[index][0:5]
 
-                    treeBoundary.dealTreeType(comm.T_OBJ[index], phoCoord, vectCoord, tObj)
+                    treeBoundary.dealTreeType(comm.OBJ_Shape[index], phoCoord, vectCoord, tObj)
 
                     tempDistance = treeBoundary.distance
                     tempIO = treeBoundary.io
@@ -118,10 +121,10 @@ class CanopyPhotonTrace:
                         break
 
             # canopy interaction
-            if ((distanceObj < distancePho) or (io == 0)):
+            if ((distanceObj <= distancePho) or (io == 0)):
 
                 # stem interaction
-                if (comm.T_OBJ[iNobj] == 4):
+                if (comm.OBJ_Shape[iNobj] == 4):
                     # if the photon is in the stem object by mistake, exit from stem
                     # in other case, photon go to the stem surface
                     phoCoord.x += vectCoord.x * distanceObj
@@ -144,12 +147,12 @@ class CanopyPhotonTrace:
                     phoCoord.y += MGN * vectCoord.y
                     phoCoord.z += MGN * vectCoord.z
                 # canopy interaction [Monte Carlo in canopy media]
-                else:
+                elif (comm.OBJ_Shape[iNobj] in {1, 2, 4, 5}):
                     phoCoord.x += ((distanceObj + MGN) * vectCoord.x) * float(io)
                     phoCoord.y += ((distanceObj + MGN) * vectCoord.y) * float(io)
                     phoCoord.z += ((distanceObj + MGN) * vectCoord.z) * float(io)
 
-                    index = comm.I_OBJ[iNobj]
+                    index = comm.OBJ_Group[iNobj]
                     mcSimulation.canopy(w, wq, phoCoord, vectCoord, nscat, tObj, iNobj,
                                         truncRef, ichi, ikd, lr[index], lt[index])
                     # load changes
@@ -160,6 +163,9 @@ class CanopyPhotonTrace:
                         return ERRCODE.LOW_WEIGHT
 
                     phoCoord.movePosition(distancePho, vectCoord, comm.X_MAX, comm.Y_MAX)
+                else:
+                    print("OBJ Shape number is wrong!")
+                    return ERRCODE.CANNOT_FIND
 
             # big-voxel wall interaction
             else:
@@ -200,6 +206,7 @@ class CanopyPhotonTrace:
                     phoCoord.y -= (trunc(phoCoord.y / comm.Y_MAX) - 0.5 + copysign(0.5, phoCoord.y)) * comm.Y_MAX
 
         self.save(w, nscat)
+        print("CanopyPhotonTrace finish")
 
         return ERRCODE.SUCCESS
 

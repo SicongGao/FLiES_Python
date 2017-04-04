@@ -110,6 +110,8 @@ class VegRadiation:
         vegTrace = VegTrace()
         mc1D = MonteCarlo_1D()
 
+        print("Vegetation simulation start...")
+
         for i in range(comm.N_ANG_C): # nangc = nph * nth
             #  preparation of Haple-type hotspot function
             cosa = vectCoord.x * comm.URC_coord[i].x + \
@@ -203,4 +205,5 @@ class VegRadiation:
             comm.I_REFL[2, ix, iy] += 1
 
         self.save(a)
+        print("Vegetation simulation finish.")
         return ERRCODE.SUCCESS

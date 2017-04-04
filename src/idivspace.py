@@ -1,7 +1,7 @@
 import common as comm
 import math
 import ERRCODE
-
+import config
 
 def idivspace():
     intv = 50.0 / comm.RES
@@ -37,22 +37,22 @@ def idivspace():
         for j in range(comm.N_OBJ):
             flag = 0
 
-            if (comm.T_OBJ[j] == 1):                            # cone
+            if (comm.OBJ_Shape[j] == 1):                            # cone
                 xr = comm.OBJ[j][0]
                 yr = comm.OBJ[j][1]
                 zu = comm.OBJ[j][2]
                 zb = comm.OBJ[j][2] - comm.OBJ[j][3]
-            elif (comm.T_OBJ[j] == 2) or (comm.T_OBJ[j] == 4):  # cylinder, 4 for trunk
+            elif (comm.OBJ_Shape[j] == 2) or (comm.OBJ_Shape[j] == 4):  # cylinder, 4 for trunk
                 xr = comm.OBJ[j][0]
                 yr = comm.OBJ[j][1]
                 zu = comm.OBJ[j][2]
                 zb = comm.OBJ[j][2] - comm.OBJ[j][3]            # zb is always 0 for trunk
-            elif (comm.T_OBJ[j] == 3):                          # ellipsoid
+            elif (comm.OBJ_Shape[j] == 3):                          # ellipsoid
                 xr = comm.OBJ[j][0]
                 yr = comm.OBJ[j][1]
                 zu = comm.OBJ[j][2] + comm.OBJ[j][3]            # zb, zu is bottom and upper coordinate of objects
                 zb = comm.OBJ[j][2] - comm.OBJ[j][3]            # if T_OBJ[3] == 3, T_OBJ[3] =/ 2 in iparam.py, line 280
-            elif (comm.T_OBJ[j] == 5):                          # half ellipsoid
+            elif (comm.OBJ_Shape[j] == 5):                          # half ellipsoid
                 xr = comm.OBJ[j][0]
                 yr = comm.OBJ[j][1]
                 zu = comm.OBJ[j][2] + comm.OBJ[j][3]
@@ -122,5 +122,18 @@ def idivspace():
     print(comm.N_DIVS)
     print("DIVS")
     print(comm.DIVS)
+
+    f = open(config.OUTPUT_PATH + "div.txt", "w")
+
+    f.write(str(comm.Z_MAX) + '\n')
+    f.write(str(comm.M_DIV) + '\n')
+
+    for i in range(1, idiv + 1):
+        #string = ""
+        string = format(i, '5')
+        for j in range(1, comm.N_DIVS[i]):
+            string += format(comm.DIVS[i, j], '5')
+        f.write(string + '\n')
+    f.close()
 
     return ERRCODE.SUCCESS
