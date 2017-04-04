@@ -23,8 +23,8 @@ def idivspace():
     print("idiv = ", idiv)
 
     # start the idiv loop
-    for i in range(idiv):
-        n = 0
+    for i in range(1, idiv + 1):
+        n = 1
 
         # preparation of the i-th grid for space divided method
         divX = (float(ix) - 1.0) * intv
@@ -37,22 +37,26 @@ def idivspace():
         for j in range(comm.N_OBJ):
             flag = 0
 
-            if (comm.OBJ_Shape[j] == 1):                            # cone
+            # cone
+            if (comm.OBJ_Shape[j] == 1):
                 xr = comm.OBJ[j][0]
                 yr = comm.OBJ[j][1]
                 zu = comm.OBJ[j][2]
                 zb = comm.OBJ[j][2] - comm.OBJ[j][3]
-            elif (comm.OBJ_Shape[j] == 2) or (comm.OBJ_Shape[j] == 4):  # cylinder, 4 for trunk
+            # cylinder, 4 for trunk
+            elif (comm.OBJ_Shape[j] == 2) or (comm.OBJ_Shape[j] == 4):
                 xr = comm.OBJ[j][0]
                 yr = comm.OBJ[j][1]
                 zu = comm.OBJ[j][2]
                 zb = comm.OBJ[j][2] - comm.OBJ[j][3]            # zb is always 0 for trunk
-            elif (comm.OBJ_Shape[j] == 3):                          # ellipsoid
+            # ellipsoid
+            elif (comm.OBJ_Shape[j] == 3):
                 xr = comm.OBJ[j][0]
                 yr = comm.OBJ[j][1]
                 zu = comm.OBJ[j][2] + comm.OBJ[j][3]            # zb, zu is bottom and upper coordinate of objects
                 zb = comm.OBJ[j][2] - comm.OBJ[j][3]            # if T_OBJ[3] == 3, T_OBJ[3] =/ 2 in iparam.py, line 280
-            elif (comm.OBJ_Shape[j] == 5):                          # half ellipsoid
+            # half ellipsoid
+            elif (comm.OBJ_Shape[j] == 5):
                 xr = comm.OBJ[j][0]
                 yr = comm.OBJ[j][1]
                 zu = comm.OBJ[j][2] + comm.OBJ[j][3]
@@ -101,7 +105,7 @@ def idivspace():
             # s: current voxel contains obj, then record
             if (flag == 2):
                 comm.N_DIVS[i] += 1
-                comm.DIVS[i][n] = j
+                comm.DIVS[i][n] = j + 1
                 n += 1
                 comm.M_DIV = i
 
@@ -118,10 +122,10 @@ def idivspace():
     # determination of zmax at the boundary of the big voxel
     comm.Z_MAX = intv * (1.0 + float((comm.M_DIV - 1) / (comm.IX_MAX * comm.IY_MAX)))
 
-    print("N_DIVS")
-    print(comm.N_DIVS)
-    print("DIVS")
-    print(comm.DIVS)
+    # print("N_DIVS")
+    # print(comm.N_DIVS)
+    # print("DIVS")
+    # print(comm.DIVS)
 
     f = open(config.OUTPUT_PATH + "div.txt", "w")
 
