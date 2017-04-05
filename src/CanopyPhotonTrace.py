@@ -96,6 +96,11 @@ class CanopyPhotonTrace:
                 phoCoord.y = planes.y
                 phoCoord.z = planes.z
 
+            if (iVOX > 720 or iVOX < 0):
+                print("comm.N_DIVS is out of range!!!")
+                print("objCoord = ", objCoord.x, objCoord.y, objCoord.z)
+                print("phoCoord = ", phoCoord.x, phoCoord.y, phoCoord.z)
+            # print(iVOX)
             # check the photon intersection with objects
             if (comm.N_DIVS[iVOX] != 0):
 
@@ -147,7 +152,7 @@ class CanopyPhotonTrace:
                     phoCoord.y += MGN * vectCoord.y
                     phoCoord.z += MGN * vectCoord.z
                 # canopy interaction [Monte Carlo in canopy media]
-                elif (comm.OBJ_Shape[iNobj] in {1, 2, 4, 5}):
+                elif (comm.OBJ_Shape[iNobj] in {1, 2, 3, 5}):
                     phoCoord.x += ((distanceObj + MGN) * vectCoord.x) * float(io)
                     phoCoord.y += ((distanceObj + MGN) * vectCoord.y) * float(io)
                     phoCoord.z += ((distanceObj + MGN) * vectCoord.z) * float(io)
@@ -164,7 +169,7 @@ class CanopyPhotonTrace:
 
                     phoCoord.movePosition(distancePho, vectCoord, comm.X_MAX, comm.Y_MAX)
                 else:
-                    print("OBJ Shape number is wrong!")
+                    print("No. ", iNobj, " OBJ Shape number is wrong!")
                     return ERRCODE.CANNOT_FIND
 
             # big-voxel wall interaction

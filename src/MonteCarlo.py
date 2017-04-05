@@ -29,6 +29,7 @@ class MonteCarlo:
     def save(self, nscat, w):
         self.cNscat = nscat
         self.weight = w
+        print("Monte Carlo canopy simulation finish.")
         return ERRCODE.SUCCESS
 
     # recollision loop for shoot clumping effect
@@ -73,7 +74,7 @@ class MonteCarlo:
         # step 1: determination of the leaf normal vector
         cRandom = Random()
         rnd = 1
-        cosa = rnd - 1
+        cosa = rnd + 1
         ref = rnd - 1
         vectLCoord = Position()
         vectObjCoord = Position()
@@ -85,7 +86,7 @@ class MonteCarlo:
                 thl = 0.5 * pi * cRandom.getRandom()
                 # TODO check fgl
                 ref = G_Function.fgl(thl, m) / fglm[m]
-                rnd = cRandom > ref
+                rnd = cRandom.getRandom()
 
             vectLCoord.setPosition(sin(thl) * cos(phl),
                                    sin(thl) * sin(phl),
@@ -225,18 +226,18 @@ class MonteCarlo:
         fd = 0.0
 
         # define the second canopy area
-        tObj12 = {0, tObj[1],
+        tObj12 = (0, tObj[1],
                      tObj[2],
                      tObj[3] - tObj[4] * (1.0 - rb12) * min(1, abs(tsobj - 5)),
                      tObj[4] * rb12,
-                     tObj[5] * rb12}
+                     tObj[5] * rb12)
 
         # define the branch dominant region
-        tObjb = {0, tObj[1],
+        tObjb = (0, tObj[1],
                     tObj[2],
                     tObj[3] - tObj[4] * (1.0 - comm.RB) * min(1, abs(tsobj - 5)),
                     tObj[4] * comm.RB,
-                    tObj[5] * comm.RB}
+                    tObj[5] * comm.RB)
 
         treeBounday = TreeBoundary()
         randMethod = Random()
@@ -276,9 +277,9 @@ class MonteCarlo:
                     ith = int(degrees(th))
                     bp = 0.5 + copysign(0.5, comm.BP2 - rand)
 
-                    sgm = comm.GT_BLB(ith) * branchAreaDensity * bp
+                    sgm = comm.GT_BLB[ith] * branchAreaDensity * bp
                     sgm += 4.0 * cf * comm.GT_BLC[ith] * la * (1.0 - bp)
-                    sgm = sgm * bp + (sgm / comm.FE) * (1.0 - bp)
+                    sgm *= bp + (sgm / comm.FE) * (1.0 - bp)
                     sgm = max(1.0e-5, sgm)
                     ref = truncRef * bp + lr * (1.0 - bp)
                     tr = lt * (1.0 - bp)
@@ -298,7 +299,7 @@ class MonteCarlo:
                             fd = (1.0 - comm.FE) / ssa
                             fd *= (1.0 - bp)
 
-                            # fpar samping (leave or branch)
+                            # fpar sampling (leave or branch)
                             comm.B_FPR += w * wq * (1.0 - ssa) * bp
                             comm.C_FPR += w * wq * (1.0 - ssa) * (1.0 - bp)
 
@@ -532,7 +533,7 @@ class MonteCarlo:
                             return ERRCODE.OUTSIDE
 
         self.save(nscat, w)
-        print("Monte Carlo canopy simulation finish.")
+        #print("Monte Carlo canopy simulation finish.")
 
         return ERRCODE.SUCCESS
 

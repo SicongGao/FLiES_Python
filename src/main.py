@@ -144,13 +144,13 @@ def simulateATM(para):
                     tLR = [0.0] * (para.nts + 1)
                     tLT = [0.0] * (para.nts + 1)
                     tSTR = [0.0] * (para.nts + 1)
-                    for i in range(para.nts):
+                    for i in range(1, para.nts + 1):
                         tLR[i] = para.lr[i, 1]
                         tLT[i] = para.lt[i, 1]
                         tSTR[i] = para.truncRef[i, 1]
 
                     # call the canopy radiation transfer module
-                    canopyTrace.trace(PhotonCoord, VectorCoord, w, para.wq, nscat, ichi, ikd, tSTR, para.soilRef[1],
+                    canopyTrace.trace(PhotonCoord, VectorCoord, w, para.wq, nscat, ichi, ikd, tSTR[1], para.soilRef[1],
                                       tLR, tLT, para.ulr[1], para.ult[1])
 
                     w = canopyTrace.weight

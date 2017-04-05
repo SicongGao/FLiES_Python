@@ -95,8 +95,8 @@ class Parameters:
 
         # branch portion in region 1(outer canopy) and 2(internal canopy)
         # 1.0 = 100 % branch, 0.0: 100 % leaf
-        comm.bp1 = 0.0
-        comm.bp2 = 1.0
+        comm.BP1 = 0.0
+        comm.BP2 = 1.0
 
         # leaf angle distribution of canopy, branches, and floor
         comm.M_C = comm.M_B = comm.M_F = 1
@@ -347,30 +347,30 @@ class Parameters:
         if (config.INPUT_MODE):
             tempList = list(args.get("optical_parameters"))
             #print(args)
-            for j in range(self.nts):
+            for j in range(1, self.nts + 1):
                 self.lr[j,i] = tempList.pop(0)
 
-            for j in range(self.nts):
+            for j in range(1, self.nts + 1):
                 self.lt[j, i] = tempList.pop(0)
 
             self.ulr[i] = tempList.pop(0)
             self.ult[i] = tempList.pop(0)
 
-            for j in range(self.nts):
+            for j in range(1, self.nts + 1):
                 self.truncRef[j] = tempList.pop(0)
 
             self.soilRef[i] = tempList.pop(0)
         else:
-            for j in range(self.nts):
+            for j in range(1, self.nts + 1):
                 self.lr[j, i] = float(input())
 
-            for j in range(self.nts):
+            for j in range(1, self.nts + 1):
                 self.lt[j, i] = float(input())
 
             self.ulr[i] = float(input())
             self.ult[i] = float(input())
 
-            for j in range(self.nts):
+            for j in range(1, self.nts + 1):
                 self.truncRef[j] = float(input())
             self.soilRef[i] = float(input())
 
@@ -393,9 +393,9 @@ class Parameters:
         if (config.INPUT_MODE):
             comm.U = list(args.get("leaf_area_density"))
             print(comm.U)
-            comm.U.insert(0, 0)
+            comm.U.insert(0, -1)
         else:
-            for i in range(self.nts):
+            for i in range(1, self.nts + 1):
                 comm.U[i] = float(input())
 
         if (not((self.nPhoton == -4) or (self.nPhoton == -5))):
@@ -410,12 +410,12 @@ class Parameters:
         if (config.INPUT_MODE):
             comm.BAD = list(args.get("branch_area_density"))
             print(comm.BAD)
-            comm.BAD.insert(0,0)
+            comm.BAD.insert(0, -1)
         else:
-            for i in range(self.nts):
+            for i in range(1, self.nts + 1):
                 comm.BAD[i + 1] = float(input())
 
-        for i in range(self.nts):
+        for i in range(1, self.nts + 1):
             if ((comm.U[i] < 0.0) or (comm.U[i] > 8.0)):
                 print(str(i) + "th leaf area density " + str(comm.U[i]) + " should be set in the range (0.0-8.0)")
                 print("EXIT")
@@ -426,18 +426,19 @@ class Parameters:
             print("EXIT")
             return ERRCODE.INPUT_ERROR
 
-        if (self.nPhoton == -5):
+        if (self.nPhoton != -5):
             print("\nsbar: Spherical ave. shoot silhouette to total needle area ratio")
             print("1,2,3... # of tree species (0.0-0.25)")
             print("For broadleaves, please input 0.25")
             if (config.INPUT_MODE):
                 comm.S_BAR = list(args.get("sbar"))
                 print(comm.S_BAR)
+                comm.S_BAR.insert(0, -1)
             else:
                 for i in range(self.nts):
                     comm.S_BAR[i] = float(input())
 
-        umax = comm.U[0]
+        umax = comm.U[1]
         for i in range(1, self.nts):
             if (umax < comm.U[i]):
                 umax = comm.U[i]
@@ -645,7 +646,7 @@ class Parameters:
                     self.soilRef[i] = self.soilRef[ispc]
 
             # check the parameter range
-            for j in range(self.nts):
+            for j in range(1, self.nts + 1):
                 if (self.lr[j,i] + self.lt[j,i] > 0.99):
                     print("canopy leaf reflectance+transmittance is too large, exit!")
                     return ERRCODE.OUT_OF_RANGE
@@ -662,7 +663,7 @@ class Parameters:
                 self.ulr[i] = 0.0001
                 self.ult[i] = 0.0001
 
-            for j in range(self.nts):
+            for j in range(1, self.nts + 1):
                 if (self.truncRef[j, i] > 1.00):
                     print("stem reflectance is too large, exit!")
                     return ERRCODE.OUT_OF_RANGE

@@ -74,9 +74,9 @@ class VegRadiation:
         gmt = ttt[0] * (float(k) - ph) + trr[1] * (ph - float(k - 1))
 
         gm = lr * gmr + lt * gmt
-        gfunc = comm.DLT[cb, 1] * comm.GT_BLC(int(th1 * 10.0)) +\
-                comm.DLT[cb, 2] * comm.GT_BLB(int(th1 * 10.0)) + \
-                comm.DLT[cb, 4] * comm.GT_BLF(int(th1 * 10.0)) + \
+        gfunc = comm.DLT[cb, 1] * comm.GT_BLC[int(th1 * 10.0)] +\
+                comm.DLT[cb, 2] * comm.GT_BLB[int(th1 * 10.0)] + \
+                comm.DLT[cb, 4] * comm.GT_BLF[int(th1 * 10.0)] + \
                 float(comm.DLT[cb, 3] + comm.DLT[cb, 5] + comm.DLT[cb, 6])
 
         gm = (1.0 / gfunc) * gm / ((lr + lt) * pi)

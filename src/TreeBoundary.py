@@ -285,6 +285,7 @@ class TreeBoundary:
         t = 0.0
 
         # crown related parameters
+        #print("elpss")
         crownCoord = Position()
         crownCoord.setPosition(tobj[1], tobj[2], tobj[3])
         r1 = tobj[4]

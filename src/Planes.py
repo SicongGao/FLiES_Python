@@ -32,7 +32,7 @@ class Planes:
         if((self.x >= objCoord.x) and (self.x <= objCoord.x + intv[1])):
             self.y = phoCoord.y + self.distance * vecCoord.y
             if ((self.y >= objCoord.y) and (self.y <= objCoord.y + intv[2])):
-                print("In x - y plane")
+                #print("In x - y plane")
                 return ERRCODE.SUCCESS
 
         return ERRCODE.CANNOT_FIND
@@ -53,7 +53,7 @@ class Planes:
         if((self.y >= objCoord.y) and (self.y <= objCoord.y + intv[2])):
             self.z =phoCoord.z + self.distance * vecCoord.z
             if ((self.z >= objCoord.z) and (self.z <= objCoord.z + intv[3])):
-                print("In y - z plane")
+                #print("In y - z plane")
                 return ERRCODE.SUCCESS
 
         return ERRCODE.CANNOT_FIND
@@ -74,7 +74,7 @@ class Planes:
         if ((self.z >= objCoord.z) and (self.z <= objCoord.z + intv[3])):
             self.x = phoCoord.x + self.distance * vecCoord.x
             if ((self.x >= objCoord.x) and (self.x <= objCoord.x + intv[1])):
-                print("In x - z plane")
+                #print("In x - z plane")
                 return ERRCODE.SUCCESS
 
         return ERRCODE.CANNOT_FIND
@@ -105,7 +105,7 @@ class Planes:
                 return ERRCODE.SUCCESS
 
         errCode = self.deal_X_Y_Plane(phoCoord, vecCoord, objCoord, intv)
-        if (errCode == 0):
+        if (errCode == ERRCODE.SUCCESS):
             return ERRCODE.SUCCESS
 
         # if cannot find the intersection due to the limitation of numerical calculation

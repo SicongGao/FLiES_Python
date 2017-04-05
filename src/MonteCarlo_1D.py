@@ -711,13 +711,13 @@ class MonteCarlo_1D:
 
         if (vectCoord.z >= 0.0):
             for izr in range(iz, comm.N_Z + 1):
-                tau += (comm.Z_GRD(izr) - resultCoord.z) * (comm.ABS_G1D[izr, ikd] + comm.EXT_T1D[izr, ichi])
+                tau += (comm.Z_GRD[izr] - resultCoord.z) * (comm.ABS_G1D[izr, ikd] + comm.EXT_T1D[izr, ichi])
                 resultCoord.z = comm.Z_GRD[izr]
 
             tau /= vectCoord.z
         else:
             for izr in range(iz, 0, -1):
-                tau += (resultCoord.z - comm.Z_GRD(izr - 1)) * (comm.ABS_G1D[izr, ikd] + comm.EXT_T1D[izr, ichi])
+                tau += (resultCoord.z - comm.Z_GRD[izr - 1]) * (comm.ABS_G1D[izr, ikd] + comm.EXT_T1D[izr, ichi])
                 resultCoord.z = comm.Z_GRD[izr - 1]
 
             tau /= (-1.0 * vectCoord.z)

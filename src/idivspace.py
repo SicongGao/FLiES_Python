@@ -23,8 +23,8 @@ def idivspace():
     print("idiv = ", idiv)
 
     # start the idiv loop
-    for i in range(1, idiv + 1):
-        n = 1
+    for i in range(idiv):
+        n = 0
 
         # preparation of the i-th grid for space divided method
         divX = (float(ix) - 1.0) * intv
@@ -104,10 +104,10 @@ def idivspace():
             # input data number for the ndivs & divs
             # s: current voxel contains obj, then record
             if (flag == 2):
-                comm.N_DIVS[i - 1] += 1
-                comm.DIVS[i - 1][n] = j
+                comm.N_DIVS[i] += 1
+                comm.DIVS[i][n] = j
                 n += 1
-                comm.M_DIV = i - 1
+                comm.M_DIV = i
 
         # count
         ix += 1
@@ -132,9 +132,9 @@ def idivspace():
     f.write(str(comm.Z_MAX) + '\n')
     f.write(str(comm.M_DIV) + '\n')
 
-    for i in range(1, idiv + 1):
-        string = format(i, '5')
-        for j in range(1, comm.N_DIVS[i] + 1):
+    for i in range(idiv):
+        string = format(i + 1, '5')
+        for j in range(comm.N_DIVS[i]):
             string += format(comm.DIVS[i, j], '5')
         f.write(string + '\n')
     f.close()
