@@ -61,17 +61,16 @@ class CLAI:
 
                     ivox = comm.IX_MAX * comm.IY_MAX * z1
                     ivox += int(y1) * comm.IY_MAX
-                    ivox += int(x1) + 1
+                    ivox += int(x1)
                     # print(ivox, x1, y1)
                     if (comm.N_DIVS[ivox] != 0):
 
-                        for idiv in range(1, comm.N_DIVS[ivox]):
+                        for idiv in range(comm.N_DIVS[ivox]):
 
                             # selected object number
                             index = comm.DIVS[ivox, idiv]
 
-                            for l in range(0, 5):
-                                tobj[l + 1] = comm.OBJ[index, l]
+                            tobj[1:6] = comm.OBJ[index][0:5]
 
                             # define the branch dominant region
                             tobjb[1] = tobj[1]

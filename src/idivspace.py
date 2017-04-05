@@ -67,7 +67,7 @@ def idivspace():
                 d = abs(xr * a[k] + yr * b[k] - c[k])
 
                 if (d <= comm.OBJ[j][4]):   # (xr, yr) near the boundary
-                    dd = math.sqrt(comm.OBJ[j][4] * comm.OBJ[j][4] - d * d)
+                    dd = math.sqrt(comm.OBJ[j][4] ** 2 - d ** 2)
                     p1 = b[k] * xr + a[k] * yr - dd
                     p2 = b[k] * xr + a[k] * yr + dd
                     iMin = b[k] * divX + a[k] * divY
@@ -98,16 +98,16 @@ def idivspace():
                     flag = 2
                 elif ((zb >= c[4]) and (zb < c[5])):
                     flag = 2
-                elif ((zu >= c[5]) and (zu <= c[4])):
+                elif ((zu >= c[5]) and (zb <= c[4])):
                     flag = 2
 
             # input data number for the ndivs & divs
             # s: current voxel contains obj, then record
             if (flag == 2):
-                comm.N_DIVS[i] += 1
-                comm.DIVS[i][n] = j + 1
+                comm.N_DIVS[i - 1] += 1
+                comm.DIVS[i - 1][n] = j
                 n += 1
-                comm.M_DIV = i
+                comm.M_DIV = i - 1
 
         # count
         ix += 1
@@ -120,7 +120,7 @@ def idivspace():
                 iz += 1
 
     # determination of zmax at the boundary of the big voxel
-    comm.Z_MAX = intv * (1.0 + float((comm.M_DIV - 1) / (comm.IX_MAX * comm.IY_MAX)))
+    comm.Z_MAX = intv * (1.0 + int((comm.M_DIV) / (comm.IX_MAX * comm.IY_MAX)))
 
     # print("N_DIVS")
     # print(comm.N_DIVS)
@@ -133,9 +133,8 @@ def idivspace():
     f.write(str(comm.M_DIV) + '\n')
 
     for i in range(1, idiv + 1):
-        #string = ""
         string = format(i, '5')
-        for j in range(1, comm.N_DIVS[i]):
+        for j in range(1, comm.N_DIVS[i] + 1):
             string += format(comm.DIVS[i, j], '5')
         f.write(string + '\n')
     f.close()

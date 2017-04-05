@@ -526,11 +526,9 @@ class Parameters:
                         if (((iMin < p1) and (iMax > p1)) or
                                 ((iMin < p2) and (iMax > p2))):
 
-
-
                             n = comm.N_OBJ
                             comm.OBJ[n, 0] = comm.OBJ[j, 0] + a[k] * comm.X_MAX * (1.0 - 2.0 * cc[k])
-                            comm.OBJ[n, 1] = comm.OBJ[j, 1] + a[k] * comm.Y_MAX * (1.0 - 2.0 * cc[k])
+                            comm.OBJ[n, 1] = comm.OBJ[j, 1] + b[k] * comm.Y_MAX * (1.0 - 2.0 * cc[k])
                             comm.OBJ[n, 2] = comm.OBJ[j, 2]
                             comm.OBJ[n, 3] = comm.OBJ[j, 3]
                             comm.OBJ[n, 4] = comm.OBJ[j, 4]
@@ -549,8 +547,8 @@ class Parameters:
                         if (rr <= comm.OBJ[j, 4]):
 
                             n = comm.N_OBJ
-                            comm.OBJ[n, 0] = comm.OBJ[j, 0] + comm.X_MAX - 2.0 * cc[k]
-                            comm.OBJ[n, 1] = comm.OBJ[j, 1] + comm.Y_MAX - 2.0 * cc[l + 2]
+                            comm.OBJ[n, 0] = comm.OBJ[j, 0] + comm.X_MAX - 2.0 * c[k]
+                            comm.OBJ[n, 1] = comm.OBJ[j, 1] + comm.Y_MAX - 2.0 * c[l + 2]
                             comm.OBJ[n, 2] = comm.OBJ[j, 2]
                             comm.OBJ[n, 3] = comm.OBJ[j, 3]
                             comm.OBJ[n, 4] = comm.OBJ[j, 4]

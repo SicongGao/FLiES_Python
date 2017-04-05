@@ -79,7 +79,7 @@ class VegTrace:
 
             iVOX = comm.IX_MAX * comm.IY_MAX * int(objCoord.z)
             iVOX += int(objCoord.y) * comm.IY_MAX
-            iVOX += int(objCoord.x) + 1
+            iVOX += int(objCoord.x)
 
             objCoord.x *= intv[1]
             objCoord.y *= intv[2]
@@ -102,12 +102,11 @@ class VegTrace:
             if (comm.N_DIVS[iVOX] != 0):
 
                 distanceObj = 1.0e5
-                for idiv in range(1, comm.N_DIVS[iVOX]):
+                for idiv in range(comm.N_DIVS[iVOX]):
 
                     index = comm.DIVS[iVOX][idiv]
 
-                    for l in range(1, 6):
-                        tobj[l] = comm.OBJ[index][l-1]
+                    tobj[1:6] = comm.OBJ[index][0:5]
 
                     treeBoundary.dealTreeType(comm.OBJ_Shape[index], phoCoord, vectCoord, tobj)
 
