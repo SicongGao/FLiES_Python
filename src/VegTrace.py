@@ -5,6 +5,7 @@ from Planes import Planes
 from TreeBoundary import TreeBoundary
 from G_Function import G_Function
 from Position import Position
+import logging
 
 # #####################################################
 # simulate the optical thickness in the canopy
@@ -68,7 +69,7 @@ class VegTrace:
         gFunction = G_Function()
         gFunction.igtbl()
 
-        print("Vegetation trace start...")
+        logging.debug("Vegetation trace start...")
 
         # do while photon reaches the terminal point
         while(1):
@@ -124,7 +125,7 @@ class VegTrace:
                 # if stem collision, return
                 if (comm.OBJ_Shape[iNobj] == 4) and (distanceObj < 1.0e5):
                     self.sFlag = 0
-                    print("Vegetation trace finish (stem collision).")
+                    logging.debug("Vegetation trace finish (stem collision).")
                     return ERRCODE.FAILURE
 
             # increment of the optical path
@@ -205,11 +206,11 @@ class VegTrace:
 
             # check upper or bottom boundary condition
             if (copysign(1.0, vectCoord.z) * (phoCoord.z - zlim[flag]) >= 0.0):
-                print("Vegetation trace finish (upper or bottom boundary).")
+                logging.debug("Vegetation trace finish (upper or bottom boundary).")
                 return ERRCODE.SUCCESS
 
             phoCoord.x -= (trunc(phoCoord.x / comm.X_MAX) - 0.5 + copysign(0.5, phoCoord.x)) * comm.X_MAX
             phoCoord.y -= (trunc(phoCoord.y / comm.Y_MAX) - 0.5 + copysign(0.5, phoCoord.y)) * comm.Y_MAX
 
-        print("Vegetation trace finish.")
+            logging.debug("Vegetation trace finish.")
         return ERRCODE.SUCCESS

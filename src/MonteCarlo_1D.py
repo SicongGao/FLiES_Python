@@ -4,6 +4,8 @@ from Position import Position
 from math import *
 from VegTrace import VegTrace
 from Random import Random
+import logging
+
 
 class MonteCarlo_1D:
 
@@ -734,7 +736,7 @@ class MonteCarlo_1D:
 
         rand = Random()
 
-        print("Monte Carlo 1-D simulation start...")
+        logging.debug("Monte Carlo 1-D simulation start...")
         # loop for layers
         while ((iz >= 1) and (iz <= comm.N_Z)):
             absg = comm.ABS_G1D[iz, ikd]
@@ -890,7 +892,7 @@ class MonteCarlo_1D:
                 phoCoord.y = self.arthshift(phoCoord.y, vectCoord.y, path, comm.Y_MAX)
 
         self.save(w, nscat, iz)
-        print("Monte Carlo 1-D simulation finish.")
+        logging.debug("Monte Carlo 1-D simulation finish.")
         return ERRCODE.SUCCESS
 
 

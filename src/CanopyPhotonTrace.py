@@ -7,6 +7,7 @@ from G_Function import G_Function
 from MonteCarlo import MonteCarlo
 from Position import Position
 from iparam import Parameters
+import logging
 
 # ##################################################
 # Simulator for forest light environment
@@ -58,7 +59,7 @@ class CanopyPhotonTrace:
         gFunction.igtbl()
         mcSimulation = MonteCarlo()
 
-        print("CanopyPhotonTrace start...")
+        logging.debug("CanopyPhotonTrace start...")
 
         # do wile photon exit from canopy space
         while (1):
@@ -97,9 +98,9 @@ class CanopyPhotonTrace:
                 phoCoord.z = planes.z
 
             if (iVOX > 720 or iVOX < 0):
-                print("comm.N_DIVS is out of range!!!")
-                print("objCoord = ", objCoord.x, objCoord.y, objCoord.z)
-                print("phoCoord = ", phoCoord.x, phoCoord.y, phoCoord.z)
+                logging.critical("comm.N_DIVS is out of range!!!")
+                logging.warning("objCoord = ", objCoord.x, objCoord.y, objCoord.z)
+                logging.warning("phoCoord = ", phoCoord.x, phoCoord.y, phoCoord.z)
             # print(iVOX)
             # check the photon intersection with objects
             if (comm.N_DIVS[iVOX] != 0):
@@ -169,7 +170,7 @@ class CanopyPhotonTrace:
 
                     phoCoord.movePosition(distancePho, vectCoord, comm.X_MAX, comm.Y_MAX)
                 else:
-                    print("No. ", iNobj, " OBJ Shape number is wrong!")
+                    logging.critical("No. ", iNobj, " OBJ Shape number is wrong!")
                     return ERRCODE.CANNOT_FIND
 
             # big-voxel wall interaction
@@ -211,7 +212,7 @@ class CanopyPhotonTrace:
                     phoCoord.y -= (trunc(phoCoord.y / comm.Y_MAX) - 0.5 + copysign(0.5, phoCoord.y)) * comm.Y_MAX
 
         self.save(w, nscat)
-        print("CanopyPhotonTrace finish")
+        logging.debug("CanopyPhotonTrace finish")
 
         return ERRCODE.SUCCESS
 

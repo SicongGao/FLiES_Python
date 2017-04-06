@@ -10,6 +10,8 @@ from VegRadiation import VegRadiation
 import G_Function
 from TreeBoundary import TreeBoundary
 from Planes import Planes
+import logging
+
 
 class MonteCarlo:
 
@@ -29,7 +31,7 @@ class MonteCarlo:
     def save(self, nscat, w):
         self.cNscat = nscat
         self.weight = w
-        print("Monte Carlo canopy simulation finish.")
+        logging.debug("Monte Carlo canopy simulation finish.")
         return ERRCODE.SUCCESS
 
     # recollision loop for shoot clumping effect
@@ -133,7 +135,7 @@ class MonteCarlo:
         randomMethod = Random()
         vegRadiation = VegRadiation()
 
-        print("Monte Carlo stem simulation start...")
+        logging.debug("Monte Carlo stem simulation start...")
         # reflectance at the side of stem
         if (face == 1):
             # stem normal vector
@@ -189,7 +191,7 @@ class MonteCarlo:
         # ipara.AP_NP range (0,100)
         iz = int(phoCoord.z) + 1
         if (iz > 99):
-            print("Z overhight: MonteCarlo.py")
+            logging.ERROR("Z overhight: MonteCarlo.py")
             self.save(nscat, w)
             return ERRCODE.OUT_OF_RANGE
         else:
@@ -205,7 +207,7 @@ class MonteCarlo:
         vegRadiation.simulate(phoCoord, vectCoord, w, 1.0, 0.0, CB, a, fd, ichi, ikd)
         a = vegRadiation.save_a
 
-        print("Monte Carlo stem simulation finish.")
+        logging.debug("Monte Carlo stem simulation finish.")
         self.save(nscat, w)
         return ERRCODE.SUCCESS
 
@@ -243,7 +245,7 @@ class MonteCarlo:
         randMethod = Random()
         vegRadiant = VegRadiation()
 
-        print("Monte Carlo canopy simulation start...")
+        logging.debug("Monte Carlo canopy simulation start...")
 
         # check status:leaf dominant region, branch dominant or irregulary outside
         while (1):
@@ -570,7 +572,7 @@ class MonteCarlo:
         plane = Planes()
         vegRadiant = VegRadiation()
 
-        print("Monte Carlo floor simulation start...")
+        logging.debug("Monte Carlo floor simulation start...")
 
         # Monte Carlo loop
         while (1):
@@ -666,7 +668,7 @@ class MonteCarlo:
                     return ERRCODE.OUT_OF_RANGE
 
         self.save(nscat, w)
-        print("Monte Carlo floor simulation finish.")
+        logging.debug("Monte Carlo floor simulation finish.")
 
         return ERRCODE.SUCCESS
 

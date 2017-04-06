@@ -1,3 +1,5 @@
+import logging
+
 # Error code
 SUCCESS = 0
 FAILURE = 1
@@ -22,8 +24,8 @@ ERR_MESSAGE = ["Run Success!",
 
 def printMessage(itr):
     if (itr >= len(ERR_MESSAGE)):
-        print("Return unknown error message number! Please check!")
+        logging.ERROR("Return unknown error message number! Please check!")
     else:
-        print(ERR_MESSAGE[itr])
-        print("Error Code: " + str(itr))
+        logging.info(ERR_MESSAGE[itr])
+        logging.info("Error Code: " + str(itr))
 

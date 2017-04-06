@@ -4,6 +4,7 @@ import common as comm
 from math import *
 from VegTrace import VegTrace
 from Position import Position
+import logging
 
 # *****************************************
 # LAI calculation
@@ -105,7 +106,7 @@ class CLAI:
         self.LAI = sum(self.pLAI) * multiSpnXYMAX
 
         # crown cover calculation
-        print("crown cover calculation ...")
+        logging.info("crown cover calculation ...")
 
         phoCoord.z = 0.01
 

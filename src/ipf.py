@@ -3,7 +3,7 @@ import ERRCODE
 from G_Function import G_Function
 import common as comm
 import numpy as np
-
+import logging
 
 def ipf():
 
@@ -23,15 +23,15 @@ def ipf():
     # generate by itself
     if (op == 1):
         for i in range(1, 19):
-            print("i = ", i)
+            logging.debug("i = ", i)
             th1 = radians(float(i - 1) * 10.0)
 
             for j in range(1, 19):
-                print("j = ", j)
+                logging.debug("j = ", j)
                 th2 = radians(float(j - 1) * 10.0)
 
                 for k in range(1, 37):
-                    print("k = ", k)
+                    logging.debug("k = ", k)
                     ph = radians(float(k - 1) * 10.0)
 
                     # canopy

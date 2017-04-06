@@ -2,8 +2,8 @@ import common as comm
 from math import *
 import numpy as np
 import ERRCODE
-#import input_parameters
-import config
+import config.config as config
+import logging
 
 # Parameters Initialization
 class Parameters:
@@ -90,7 +90,7 @@ class Parameters:
     def initParameters(self):
         comm.N_Z = 12  # of layers
         comm.X_MAX = comm.Y_MAX = 30.0  # X domain size (m), Y domain size (m)
-        comm.RES = comm.SIZE / comm.X_MAX  # inverse of the spatial resolution
+        comm.RES = (comm.SIZE - 1) / comm.X_MAX  # inverse of the spatial resolution
         comm.WRR = 0.1  # ideal weight (used for Russian roulette in atm.
 
         # branch portion in region 1(outer canopy) and 2(internal canopy)
@@ -389,27 +389,27 @@ class Parameters:
     def process202(self, **args):
         umax = 0.0
 
-        print("\nu: leaf area density 1,2,3...# tree species")
+        logging.info("u: leaf area density 1,2,3...# tree species")
         if (config.INPUT_MODE):
             comm.U = list(args.get("leaf_area_density"))
-            print(comm.U)
+            logging.info(comm.U)
             comm.U.insert(0, -1)
         else:
             for i in range(1, self.nts + 1):
                 comm.U[i] = float(input())
 
         if (not((self.nPhoton == -4) or (self.nPhoton == -5))):
-            print("gLAI: forest floor LAI\n")
+            logging.info("gLAI: forest floor LAI")
             if (config.INPUT_MODE):
                 comm.G_LAI = args.get("forest_floor_LAI")
-                print(comm.G_LAI)
+                logging.info(comm.G_LAI)
             else:
                 comm.G_LAI = float(input())
 
-        print("\nBAD: branch area density 1,2,3... # of tree species")
+        logging.info("BAD: branch area density 1,2,3... # of tree species")
         if (config.INPUT_MODE):
             comm.BAD = list(args.get("branch_area_density"))
-            print(comm.BAD)
+            logging.info(comm.BAD)
             comm.BAD.insert(0, -1)
         else:
             for i in range(1, self.nts + 1):
@@ -417,22 +417,22 @@ class Parameters:
 
         for i in range(1, self.nts + 1):
             if ((comm.U[i] < 0.0) or (comm.U[i] > 8.0)):
-                print(str(i) + "th leaf area density " + str(comm.U[i]) + " should be set in the range (0.0-8.0)")
-                print("EXIT")
+                logging.ERROR(str(i) + "th leaf area density " + str(comm.U[i]) + " should be set in the range (0.0-8.0)")
+                logging.ERROR("EXIT")
                 return ERRCODE.INPUT_ERROR
 
         if ((comm.G_LAI < 0.0) or (comm.G_LAI > 8.0)):
-            print(str(comm.G_LAI) + " should be set in the range (0.0-8.0)")
-            print("EXIT")
+            logging.ERROR(str(comm.G_LAI) + " should be set in the range (0.0-8.0)")
+            logging.ERROR("EXIT")
             return ERRCODE.INPUT_ERROR
 
         if (self.nPhoton != -5):
-            print("\nsbar: Spherical ave. shoot silhouette to total needle area ratio")
-            print("1,2,3... # of tree species (0.0-0.25)")
-            print("For broadleaves, please input 0.25")
+            logging.info("sbar: Spherical ave. shoot silhouette to total needle area ratio")
+            logging.info("1,2,3... # of tree species (0.0-0.25)")
+            logging.info("For broadleaves, please input 0.25")
             if (config.INPUT_MODE):
                 comm.S_BAR = list(args.get("sbar"))
-                print(comm.S_BAR)
+                logging.info(comm.S_BAR)
                 comm.S_BAR.insert(0, -1)
             else:
                 for i in range(self.nts):
@@ -478,7 +478,7 @@ class Parameters:
             comm.OBJ_Group[i] = int(result[i][6])
             if (result[i][0] != 4):
                 if ((result[i][4] < 0.01) or (result[i][5] < 0.01)):
-                    print(str(i + 1) + "th canopy neglected!")
+                    logging.info(str(i + 1) + "th canopy neglected!")
                     obj_nt -= 1
 
         comm.N_OBJ = obj_nt
@@ -486,10 +486,10 @@ class Parameters:
         # check the obj id range
         for i in range(obj_nt):
             if ((comm.OBJ_Group[i] <= 0) or (comm.OBJ_Group[i] > self.nts)):
-                print("species id should be the range betweem 0-" + str(self.nts))
+                logging.info("species id should be the range betweem 0-" + str(self.nts))
                 return ERRCODE.OUT_OF_RANGE
 
-        print("Total Object is " + str(obj_nt))
+        logging.info("Total Object is " + str(obj_nt))
 
         # change from height to radius
         for i in range(obj_nt):
@@ -580,10 +580,10 @@ class Parameters:
     def process201(self, **args):
         ispc = 0
         # get the number of forest species
-        print("\nnts: # of group of tree species")
+        logging.info("nts: # of group of tree species")
         if (config.INPUT_MODE):
             self.nts = args.get("tree_species")
-            print(self.nts)
+            logging.info(self.nts)
         else:
             self.nts = int(input())
 
@@ -596,8 +596,8 @@ class Parameters:
 
         # currently max nts should be less than 5
         if ((self.nts <= 0) or (self.nts >= 5)):
-            print("Error # of tree species")
-            print("tree species should be 1-5")
+            logging.ERROR("Error # of tree species")
+            logging.ERROR("tree species should be 1-5")
             return ERRCODE.INPUT_ERROR
 
         # read leaf reflectance/transmittance
@@ -607,31 +607,31 @@ class Parameters:
 
         for i in range(1, self.nwl + 1):
             if (self.nwl == 1):
-                print("Input surface optical properties")
+                logging.info("Input surface optical properties")
             else:
-                print("Input surface optical properties in")
+                logging.info("Input surface optical properties in")
                 if (i <= 20):
-                    print(str(ramda) + " and " + str(ramda + self.span[1]))
+                    logging.info(str(ramda) + " and " + str(ramda + self.span[1]))
                 else:
-                    print(str(ramda) + " and " + str(ramda + 5 * self.span[1]))
+                    logging.info(str(ramda) + " and " + str(ramda + 5 * self.span[1]))
 
             if (i == 1):
-                print("lr1 lr2.. lt1 lt2.. ulr ult str1 str2.. sor")
-                print("(lr, lt:leaf refl. & leaf transm.")
-                print("ulr,ult:understory leaf refl. & transm.")
-                print("stmr: stem refl., soilr: soil refl.)")
+                logging.info("lr1 lr2.. lt1 lt2.. ulr ult str1 str2.. sor")
+                logging.info("(lr, lt:leaf refl. & leaf transm.")
+                logging.info("ulr,ult:understory leaf refl. & transm.")
+                logging.info("stmr: stem refl., soilr: soil refl.)")
 
             if (self.nwl == 1):
                 self.getInputLR_LT_ULR_ULT(i, **args)
 
             else:
                 if (i == 1):
-                    print("Input PAR average values:")
+                    logging.info("Input PAR average values:")
                     self.getInputLR_LT_ULR_ULT(i, **args)
                     ispc = i
 
                 elif (i == 21):
-                    print("Input NIR average values")
+                    logging.info("Input NIR average values")
                     self.getInputLR_LT_ULR_ULT(i, **args)
                     ispc = i
 
@@ -648,7 +648,7 @@ class Parameters:
             # check the parameter range
             for j in range(1, self.nts + 1):
                 if (self.lr[j,i] + self.lt[j,i] > 0.99):
-                    print("canopy leaf reflectance+transmittance is too large, exit!")
+                    logging.ERROR("canopy leaf reflectance+transmittance is too large, exit!")
                     return ERRCODE.OUT_OF_RANGE
 
                 if (self.lr[j, i] + self.lt[j, i] < 0.0001):
@@ -656,7 +656,7 @@ class Parameters:
                     self.lt[j,i] = 0.0001
 
             if (self.ulr[i] + self.ult[i] > 0.99):
-                print("floor leaf reflectance+transmittance is too large, exit!")
+                logging.ERROR("floor leaf reflectance+transmittance is too large, exit!")
                 return ERRCODE.OUT_OF_RANGE
 
             if (self.ulr[i] + self.ult[i] < 0.0001):
@@ -665,14 +665,14 @@ class Parameters:
 
             for j in range(1, self.nts + 1):
                 if (self.truncRef[j, i] > 1.00):
-                    print("stem reflectance is too large, exit!")
+                    logging.ERROR("stem reflectance is too large, exit!")
                     return ERRCODE.OUT_OF_RANGE
 
                 if (self.truncRef[j, i] < 0.0001):
                     self.truncRef[j, i] = 0.0001
 
             if (self.soilRef[i] > 1.0):
-                print("soil reflectance is too large, exit!")
+                logging.ERROR("soil reflectance is too large, exit!")
                 return ERRCODE.OUT_OF_RANGE
 
             if (self.nwl <= 20):
@@ -690,59 +690,59 @@ class Parameters:
             return self.process201()
 
         # input output mode
-        print("\ncmode: calculation mode")
-        print("1: BRF only 2: BRF Nadir Image 3: 3D APAR")
+        logging.info("cmode: calculation mode")
+        logging.info("1: BRF only 2: BRF Nadir Image 3: 3D APAR")
         if (config.INPUT_MODE):
             self.cmode = args.get("calculation_mode")
-            print(self.cmode)
+            logging.info(self.cmode)
         else:
             self.cmode = int(input())
 
         if ((self.cmode <= 0) or (self.cmode >= 4)):
-            print("Bad mode selection exit")
+            logging.ERROR("Bad mode selection exit")
             return ERRCODE.INPUT_ERROR
 
         # read the condition file
         if ((self.bound != 1) and (self.bound != 2)):
-            print("boundary condition should be 1 or 2.")
-            print("  1: Periodic  2: Non-periodic")
+            logging.info("boundary condition should be 1 or 2.")
+            logging.info("  1: Periodic  2: Non-periodic")
             return ERRCODE.INPUT_ERROR
 
         if (self.cmode != 1):
             self.process100()
 
-        print("\nnth, angt: # of angle anfinished process 201 200d zenith angle(max 18)for BRF")
-        print("eg. 5 10. 20. 45. 50. 70.")
+        logging.info("nth, angt: # of angle anfinished process 201 200d zenith angle(max 18)for BRF")
+        logging.info("eg. 5 10. 20. 45. 50. 70.")
         if (config.INPUT_MODE):
             comm.ANG_T = list(args.get("BRF_zenith_angles"))
             comm.N_TH = len(comm.ANG_T)
-            print(str(comm.N_TH) + ": " + str(comm.ANG_T))
+            logging.info(str(comm.N_TH) + ": " + str(comm.ANG_T))
         else:
             self.N_TH = int(input())
             for i in range(comm.N_TH):
                 comm.ANG_T[i] = float(input())
 
-        print("\nnph, angp:# of angle and azimuth angle(max 36)for BRF")
-        print("eg. 3 0. 90. 180.")
+        logging.info("nph, angp:# of angle and azimuth angle(max 36)for BRF")
+        logging.info("eg. 3 0. 90. 180.")
         if (config.INPUT_MODE):
             comm.ANG_P = list(args.get("BRF_azimuth_angles"))
             comm.N_PH = len(comm.ANG_P)
-            print(str(comm.N_PH) + ": " + str(comm.ANG_P))
+            logging.info(str(comm.N_PH) + ": " + str(comm.ANG_P))
         else:
             self.N_PH = int(input())
             for i in range(comm.N_PH):
                 comm.ANG_P[i] = float(input())
 
         if (comm.N_TH * comm.N_PH > 700):
-            print("The number of sampling angles are too huge! It should be theta*phi<348")
+            logging.ERROR("The number of sampling angles are too huge! It should be theta*phi<348")
             return ERRCODE.INPUT_ERROR
 
         if (comm.N_TH > 18):
-            print("The number of sampling theta are too huge! It should be theta*phi<100")
+            logging.ERROR("The number of sampling theta are too huge! It should be theta*phi<100")
             return ERRCODE.INPUT_ERROR
 
         if (comm.N_PH > 36):
-            print("The number of sampling phi are too huge! It should be theta*phi<100")
+            logging.ERROR("The number of sampling phi are too huge! It should be theta*phi<100")
             return ERRCODE.INPUT_ERROR
 
         k = 0
@@ -750,8 +750,8 @@ class Parameters:
         for i in range(comm.N_PH):
             for j in range(comm.N_TH):
                 if (comm.ANG_T[j] > 80.0):
-                    print("Zenith angle should be less than 80")
-                    print(str(comm.ANG_T[j]) + " is ignored !")
+                    logging.warning("Zenith angle should be less than 80")
+                    logging.warning(str(comm.ANG_T[j]) + " is ignored !")
                 else:
                     comm.URC_coord[k].x = sin(radians(comm.ANG_T[j])) * cos(radians(comm.ANG_P[i]))
                     comm.URC_coord[k].y = sin(radians(comm.ANG_T[j])) * sin(radians(comm.ANG_P[i]))
@@ -777,17 +777,17 @@ class Parameters:
         #self.th0 = float(input("the0: Solar zenith angle(degree)\n"))
         #comm.Z_MIN = float(input(" \n"))
 
-        print("\nthe0: Solar zenith angle(degree)")
+        logging.info("the0: Solar zenith angle(degree)")
         if (config.INPUT_MODE):
             self.th0 = args.get("solar_angle")
-            print(self.th0)
+            logging.info(self.th0)
         else:
             self.th0 = float(input())
 
-        print("\nSolar elevation")
+        logging.info("Solar elevation")
         if (config.INPUT_MODE):
             comm.Z_MIN = args.get("solar_elevation")
-            print(comm.Z_MIN)
+            logging.info(comm.Z_MIN)
         else:
             comm.Z_MIN = float(input())
 
@@ -807,24 +807,24 @@ class Parameters:
             return
 
         # radiance smapling angle
-        print("\nRadiance at the bottom atmospheric boundary")
-        print("ntha, th: # of angle and zenith angle(degree,max 18)")
-        print("ex. 5 100. 120. 140. 160. 170.")
+        logging.info("Radiance at the bottom atmospheric boundary")
+        logging.info("ntha, th: # of angle and zenith angle(degree,max 18)")
+        logging.info("ex. 5 100. 120. 140. 160. 170.")
         if (config.INPUT_MODE):
             th = list(args.get("zenith_angle"))
             ntha = len(th)
-            print(str(ntha) + ": " + str(th))
+            logging.info(str(ntha) + ": " + str(th))
         else:
             ntha = int(input())
             for i in range(ntha):
                 th[i] = int(input())
 
-        print("\nnpha, ph: # of angle and azimuth angle(degree,max 36)")
-        print("ex. 3 0. 90. 180.")
+        logging.info("npha, ph: # of angle and azimuth angle(degree,max 36)")
+        logging.info("ex. 3 0. 90. 180.")
         if (config.INPUT_MODE):
             ph = list(args.get("azimuth_angle"))
             npha = len(ph)
-            print(str(npha) + ": " + str(ph))
+            logging.info(str(npha) + ": " + str(ph))
         else:
             npha = int(input())
             for i in range(npha):
@@ -834,8 +834,8 @@ class Parameters:
         for i in range(1,npha):
             for j in range(1, ntha):
                 if (th[j] < 91):
-                    print("Zenith angle should be greater than 91")
-                    print(str(th[j]) + " is ignored !")
+                    logging.warning("Zenith angle should be greater than 91")
+                    logging.warning(str(th[j]) + " is ignored !")
                 else:
                     k = k + 1
                     comm.UX_RTAB[k] = sin(radians(th[j])) * cos(radians(ph[i]))
@@ -870,19 +870,20 @@ class Parameters:
             self.nwl = 1
 
         else:
-            print("\nimode: Integration mode 1:Monochro 2:PAR 3:Snow")
+            logging.info("imode: Integration mode 1:Monochro 2:PAR 3:Snow")
             if (config.INPUT_MODE):
                 self.imode = args.get("integration_mode")
-                print(self.imode)
+                logging.info(self.imode)
             else:
                 self.imode = int(input())
 
             if ((self.imode < 0) or (self.imode > 4)):
-                print("Mode ERR: number should less than 4 and larger than 0.")
+                logging.ERROR("Mode ERR: number should less than 4 and larger than 0.")
                 return ERRCODE.INPUT_ERROR
 
             elif (self.imode == 1):
-                self.wl0 = float(input("wl0:wavelength (micron ex 0.55)\n"))
+                logging.info("wl0:wavelength (micron ex 0.55)")
+                self.wl0 = float(input())
                 self.wls = 0.2
                 self.nwl = int(round((4.0 - 0.3) / self.span[1]))
                 self.npl[1] = self.nPhotonProcess
@@ -989,7 +990,7 @@ class Parameters:
 
             self.nPhotonProcess = int(sum)
             self.nPhoton = self.nPhotonProcess * self.Nprocess
-            print("Actural number of photon is: " + str(self.nPhoton))
+            logging.info("Actural number of photon is: " + str(self.nPhoton))
 
             # with/without atmospheric
             if (self.AtmMode == 2):
@@ -1019,17 +1020,17 @@ class Parameters:
                 for i in range(1, comm.N_Z + 1):
                     comm.Z_GRD_M[i] = 0.5 * (comm.Z_GRD_BACK[i] + comm.Z_GRD_BACK[i - 1])
 
-                print("\natmType: Atmospheric profile")
-                print(" 1: Tropical")
-                print(" 2: Mid latitude summer")
-                print(" 3: Mid latitude winter")
-                print(" 4: High latitude summer")
-                print(" 5: High latitude winter")
-                print(" 6: US standard atm.")
+                logging.info("atmType: Atmospheric profile")
+                logging.info(" 1: Tropical")
+                logging.info(" 2: Mid latitude summer")
+                logging.info(" 3: Mid latitude winter")
+                logging.info(" 4: High latitude summer")
+                logging.info(" 5: High latitude winter")
+                logging.info(" 6: US standard atm.")
 
                 if (config.INPUT_MODE):
                     self.atmType = args.get("atmosphere_type")
-                    print(self.atmType)
+                    logging.info(self.atmType)
                 else:
                     self.atmType = int(input())
 
@@ -1046,35 +1047,35 @@ class Parameters:
                 elif (self.atmType == 6):
                     self.rfname = "../data/gas_US_" + ch[self.imode]
                 else:
-                    print("Input error!")
+                    logging.ERROR("Input error!")
                     return ERRCODE.INPUT_ERROR
 
                 # read the aerosol data
-                print("\naerosolType: aerosol type")
-                print(" 1:  Continental clean")
-                print(" 2:  Continental average")
-                print(" 3:  Continental polluted")
-                print(" 4:  Urban")
-                print(" 5:  Desert")
-                print(" 6:  Maritime clean")
-                print(" 7:  Maritime polluted")
-                print(" 8:  Maritime Tropical")
-                print(" 9:  Arctic")
-                print("10:  Antactic")
-                print("11:  Smoke")
+                logging.info("aerosolType: aerosol type")
+                logging.info(" 1:  Continental clean")
+                logging.info(" 2:  Continental average")
+                logging.info(" 3:  Continental polluted")
+                logging.info(" 4:  Urban")
+                logging.info(" 5:  Desert")
+                logging.info(" 6:  Maritime clean")
+                logging.info(" 7:  Maritime polluted")
+                logging.info(" 8:  Maritime Tropical")
+                logging.info(" 9:  Arctic")
+                logging.info("10:  Antactic")
+                logging.info("11:  Smoke")
 
                 if (config.INPUT_MODE):
                     self.aerosolType = args.get("aerosol_type")
-                    print(self.aerosolType)
+                    logging.info(self.aerosolType)
                 else:
                     self.aerosolType = int(input())
 
                 #AOT
-                print("\ntauref: AOT at 0.550 micron")
-                print(" - this version uses a extinction with RH=70% -")
+                logging.info("tauref: AOT at 0.550 micron")
+                logging.info(" - this version uses a extinction with RH=70% -")
                 if (config.INPUT_MODE):
                     self.taur = args.get("AOT")
-                    print(self.taur)
+                    logging.info(self.taur)
                 else:
                     self.taur = float(input())
 
@@ -1112,42 +1113,45 @@ class Parameters:
                     self.fname.append("../data/opt_type10_rh0.70_" + ch[self.imode])
                     self.d = 99000.0  # scale height (m)
                 elif (self.aerosolType == 11):
-                    print("smoke aerosol under construction !!")
+                    logging.ERROR("smoke aerosol under construction !!")
                     self.d = 8000.0  # scale height (m)
                     return ERRCODE.INPUT_ERROR
                 else:
-                    print("Input error !!")
+                    logging.ERROR("Input error !!")
                     return ERRCODE.INPUT_ERROR
 
                 # read cloud data
-                print("\nctype: cloud type")
-                print(" 0:  Cloud-free")
-                print(" 1:  Stratus continental")
-                print(" 2:  Stratus maritime")
-                print(" 3:  Cumulus continental clean")
-                print(" 4:  Culumus continental pulluted")
-                print(" 5:  Culumus maritime")
-                print(" 6:  Fog")
-                print(" 7:  Cirrus 1 (-25degC)")
-                print(" 8:  Cirrus 2 (-50 degC)")
-                print(" 9:  Cirrus 3 (-50 degC + small particles)")
+                logging.info("ctype: cloud type")
+                logging.info(" 0:  Cloud-free")
+                logging.info(" 1:  Stratus continental")
+                logging.info(" 2:  Stratus maritime")
+                logging.info(" 3:  Cumulus continental clean")
+                logging.info(" 4:  Culumus continental pulluted")
+                logging.info(" 5:  Culumus maritime")
+                logging.info(" 6:  Fog")
+                logging.info(" 7:  Cirrus 1 (-25degC)")
+                logging.info(" 8:  Cirrus 2 (-50 degC)")
+                logging.info(" 9:  Cirrus 3 (-50 degC + small particles)")
 
                 if (config.INPUT_MODE):
                     self.cloudType = args.get("cloud_type")
-                    print(self.cloudType)
+                    logging.info(self.cloudType)
                 else:
                     self.cloudType = int(input())
                 comm.CloudType = self.cloudType
 
                 if (self.cloudType != 0):
-                    self.ctaur = float(input("ctauref:COT at 0.55 micron\n" ))
-                    ctop = float(input("cloud top height (m)\n"))
-                    cbot = float(input("cloud bottom height (m)\n"))
+                    logging.info("ctauref:COT at 0.55 micron")
+                    self.ctaur = float(input())
+                    logging.info("cloud top height (m)")
+                    ctop = float(input())
+                    logging.info("cloud bottom height (m)")
+                    cbot = float(input())
 
                     self.cflg = 1
 
                     if (ctop < cbot):
-                        print("cloud top should be greater than cloud bottom")
+                        logging.info("cloud top should be greater than cloud bottom")
                         return ERRCODE.INPUT_ERROR
 
                     if (self.cloudType == 1):
@@ -1169,7 +1173,7 @@ class Parameters:
                     elif (self.cloudType == 9):
                         self.fname.append("../data/opt_type109_" + ch[self.imode])
                     else:
-                        print("Input error !!")
+                        logging.ERROR("Input error !!")
                         return ERRCODE.INPUT_ERROR
 
                     for i in range(comm.N_Z + 1):
@@ -1179,27 +1183,27 @@ class Parameters:
                             self.ctnz = i
                             break
 
-                    print(comm.Z_GRD[self.cbnz], comm.Z_GRD[self.ctnz])
-                    print("clouds are located between " + str(self.ctnz) + " and " + str(self.cbnz))
+                    logging.info(comm.Z_GRD[self.cbnz], comm.Z_GRD[self.ctnz])
+                    logging.info("clouds are located between " + str(self.ctnz) + " and " + str(self.cbnz))
         return ERRCODE.SUCCESS
 
     def readParameters(self, **args):
 
-        print("\nnp: Input number of photon")
+        logging.info("np: Input number of photon")
         if (config.INPUT_MODE):
             self.nPhoton = args.get("number_photon")
-            print(self.nPhoton)
+            logging.info(self.nPhoton)
         else:
             self.nPhoton = int(input())
 
         # fish eye simulation mode
         if (self.nPhoton == -4):
             if (self.Nprocess > 1):
-                print("fish eye mode cannot work with multi-processors")
-                print("please execute under single processor")
+                logging.ERROR("fish eye mode cannot work with multi-processors")
+                logging.ERROR("please execute under single processor")
                 return ERRCODE.INPUT_ERROR
 
-            print("fish eye mode - selected")
+            logging.info("fish eye mode - selected")
             self.readVegParameters(**args)
             self.surfaceType = 2
             return ERRCODE.SUCCESS
@@ -1207,11 +1211,11 @@ class Parameters:
         # LAI calculation mode
         if (self.nPhoton == -5):
             if (self.Nprocess > 1):
-                print("LAI mode cannot work with multi-processors")
-                print("please execute under single processor")
+                logging.ERROR("LAI mode cannot work with multi-processors")
+                logging.ERROR("please execute under single processor")
                 return ERRCODE.INPUT_ERROR
 
-            print("LAI calculation mode - selected")
+            logging.info("LAI calculation mode - selected")
             self.readVegParameters()
             self.surfaceType = 2
             return ERRCODE.SUCCESS
@@ -1219,17 +1223,18 @@ class Parameters:
         self.nPhotonProcess = int(self.nPhoton / self.Nprocess)
 
         # Atmospheric mode
-        print("\nAtmMode: 1:atmospheric mode, 2: without atmospheric")
+        logging.info("AtmMode: 1:atmospheric mode, 2: without atmospheric")
         if (config.INPUT_MODE):
             self.AtmMode = args.get("atm_type")
-            print(self.AtmMode)
+            logging.info(self.AtmMode)
         else:
             self.AtmMode = int(input())
 
         if (self.AtmMode == 2):
-            self.diffuse = int(input("diffuse: Input frac. of diffuse radiation (0-1)\n"))
+            logging.info("diffuse: Input frac. of diffuse radiation (0-1)")
+            self.diffuse = int(input())
             if ((self.diffuse < 0.0) or (self.diffuse > 1.0)):
-                print("fraction of diffuse should be 0.0-1.0... exit ")
+                logging.ERROR("fraction of diffuse should be 0.0-1.0... exit ")
                 return ERRCODE.INPUT_ERROR
 
         # Get geometrical parameters
@@ -1239,17 +1244,17 @@ class Parameters:
         self.readAtmParameters(**args)
 
         # vegetation parameters read / initialize
-        print("\nstye: Surface mode 1: Lambertian, 2: 3-D Vegetation\n")
+        logging.info("stye: Surface mode 1: Lambertian, 2: 3-D Vegetation")
         if (config.INPUT_MODE):
             self.surfaceType = args.get("surface_type")
-            print(self.surfaceType)
+            logging.info(self.surfaceType)
         else:
             self.surfaceType = int(input())
 
         if (self.surfaceType == 1):
             for iwl in range(1, self.nwl):
                 if (self.imode == 1):
-                    print("Input albedo")
+                    logging.info("Input albedo")
                 else:
                     if (iwl <= 20):
                         ab1 = self.wls + self.span[iwl] * float(iwl -1)
@@ -1257,14 +1262,14 @@ class Parameters:
                     else:
                         ab1 = 0.7 + self.span[iwl] * float(iwl - 21)
                         ab2 = 0.7 + self.span[iwl] * float(iwl - 20)
-                    print("Input albedo: " + str(ab1) + " and " + str(ab2))
+                    logging.info("Input albedo: " + str(ab1) + " and " + str(ab2))
                 self.alb[iwl] = float(input())
 
         elif (self.surfaceType == 2):
             self.readVegParameters(**args)
 
         else:
-            print("Bad surface type selection exit")
+            logging.ERROR("Bad surface type selection exit")
             return ERRCODE.INPUT_ERROR
 
         return ERRCODE.SUCCESS
@@ -1508,7 +1513,7 @@ class Parameters:
         return ERRCODE.SUCCESS
 
     def printFishEye():
-        print("Haven't finish finish eye function.")
+        logging.warning("Haven't finish finish eye function.")
         return ERRCODE.SUCCESS
 
     def writeData(self):
@@ -1518,7 +1523,7 @@ class Parameters:
         # summary of the radiative flux
 
         # summary calculation of fulx
-        pixelNP = float(self.nPhoton) / float(comm.SIZE ** 2)
+        pixelNP = float(self.nPhoton) / float((comm.SIZE - 1) ** 2)
         tm = self.tflx / float(self.nPhoton)
 
         for i in range(1, self.nwl + 1):
@@ -1567,7 +1572,7 @@ class Parameters:
                     comm.AP_B[i, j, k] *= min(comm.AP_B, 1.0)
                     app[k] += comm.AP[i, j, k]
 
-            app[k] /= (self.tflx * float(comm.SIZE ** 2))
+            app[k] /= (self.tflx * float((comm.SIZE - 1)** 2))
             comm.AP_NP *= self.RQ * abs(self.cos_q0) / float(self.nPhoton) / self.tflx
 
         # summary of forest floor far etc

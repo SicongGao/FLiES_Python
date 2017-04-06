@@ -1,7 +1,9 @@
 import common as comm
 import math
 import ERRCODE
-import config
+import config.config as config
+import logging
+
 
 def idivspace():
     intv = 50.0 / comm.RES
@@ -20,7 +22,7 @@ def idivspace():
 
     idiv = comm.IX_MAX * comm.IY_MAX * comm.IZ_MAX
 
-    print("idiv = ", idiv)
+    logging.info("idiv = " + str(idiv))
 
     # start the idiv loop
     for i in range(idiv):

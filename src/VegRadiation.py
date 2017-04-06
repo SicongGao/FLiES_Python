@@ -5,6 +5,7 @@ from math import *
 from VegTrace import VegTrace
 from MonteCarlo_1D import MonteCarlo_1D
 import numpy as np
+import logging
 
 
 class VegRadiation:
@@ -110,7 +111,7 @@ class VegRadiation:
         vegTrace = VegTrace()
         mc1D = MonteCarlo_1D()
 
-        print("Vegetation simulation start...")
+        logging.debug("Vegetation simulation start...")
 
         for i in range(comm.N_ANG_C): # nangc = nph * nth
             #  preparation of Haple-type hotspot function
@@ -205,5 +206,5 @@ class VegRadiation:
             comm.I_REFL[2, ix, iy] += 1
 
         self.save(a)
-        print("Vegetation simulation finish.")
+        logging.debug("Vegetation simulation finish.")
         return ERRCODE.SUCCESS

@@ -1,18 +1,20 @@
-import common as comm
-from iparam import Parameters
+import datetime
+import logging
+from math import *
 import numpy as np
 import ERRCODE
-from G_Function import G_Function
-from ipf import ipf
-from idivspace import idivspace
-from Clai import CLAI
-import datetime
-from Random import Random
-from math import *
-from Position import Position
+import common as comm
+import config.config as config
 from CanopyPhotonTrace import CanopyPhotonTrace
+from Clai import CLAI
+from G_Function import G_Function
 from MonteCarlo_1D import MonteCarlo_1D
-import input_parameters
+from Position import Position
+from Random import Random
+from config import input_parameters
+from idivspace import idivspace
+from iparam import Parameters
+from ipf import ipf
 
 # only in main
 knmix = 10
@@ -65,19 +67,20 @@ def simulateATM(para):
     #print("simulate without atmosphere")
 
     for iwl in range(1, para.nwl):
-        print("This is the ", iwl, " of ", para.nwl, " wavelength.")
+        string = "This is the " + str(iwl) + " of " + str(para.nwl) + " wavelength."
+        logging.info(string)
         para.preparAtm(iwl)
         mc1D.optics(para.ext, para.omg, para.phs, para.ang, para.nmix + para.cflg)
         wq = para.wq
 
         if (para.npl[iwl] == 0):
-            print("NPL ERROR")
+            logging.ERROR("NPL ERROR")
             return ERRCODE.FAILURE
 
         # loop for single wavelength
         for ip in range(1, para.npl[iwl] + 1):
             if (fmod(ip, para.nPhoton) == 0):
-                print(str(ip) + " of " + str(para.npl[iwl]))
+                logging.warning(str(ip) + " of " + str(para.npl[iwl]))
 
             w = 1.0
             PhotonCoord.setPosition(comm.X_MAX * float(rand.getRandom()),
@@ -189,7 +192,7 @@ def simulateNoATM(para):
 
     for iPhoton in range(para.nPhotonProcess):
 
-        print("Current photon: ", iPhoton + 1)
+        logging.info("Current photon: ", iPhoton + 1)
 
         w = 1.0     # initial weight of photon
         ikd = 0     # initialization of CDK (correlated k-dist)
@@ -226,7 +229,7 @@ def simulateNoATM(para):
         PhotonCoord.setPosition(comm.X_MAX * rand.getRandom(),
                                 comm.Y_MAX * rand.getRandom(),
                                 0)
-        print("Initial potion x = ", PhotonCoord.x, ", y = ", PhotonCoord.y)
+        logging.info("Initial potion x = ", PhotonCoord.x, ", y = ", PhotonCoord.y)
 
         para.tflx += w
         para.tpfd += w * para.wq
@@ -275,18 +278,18 @@ def simulateNoATM(para):
 
 def main(**args):
     if (Nid == 0):
-        print("*********************************************")
-        print("3D canopy-atmosphere radiative transfer model")
-        print("Forest Light Environmental Simulator (FLiES) ")
-        print("                         by Hideki Kobayashi ")
-        print("        Special thanks to Hironobu Iwabuchi  ")
-        print("                      Since Ver2.00 2008/5/1 ")
-        print("*********************************************")
+        logging.info("*********************************************")
+        logging.info("3D canopy-atmosphere radiative transfer model")
+        logging.info("Forest Light Environmental Simulator (FLiES) ")
+        logging.info("                         by Hideki Kobayashi ")
+        logging.info("        Special thanks to Hironobu Iwabuchi  ")
+        logging.info("                      Since Ver2.00 2008/5/1 ")
+        logging.info("*********************************************")
 
     # ---- Preparation of the initial condition -------
     # set by iparam
-    print("iparam")
-    print("Parameters initialization...")
+    logging.debug("iparam")
+    logging.info("Parameters initialization...")
     para = Parameters()
     errCode = para.readParameters(**args)
 
@@ -294,7 +297,7 @@ def main(**args):
         return errCode
 
     # Initialize math function
-    print("imath")
+    logging.debug("imath")
 
     # number the initial file read divide (5 for standard input)
     num = 5
@@ -303,23 +306,24 @@ def main(**args):
 
     # igtbl
     if (para.surfaceType == 2):
-        print("G-function")     # G-function LUT
+        logging.info("G-function")     # G-function LUT
         gFunction = G_Function()
         errCode = gFunction.igtbl()
 
         if errCode:
             return errCode
 
-        print("idivspace")      # Initialize space division
+        logging.info("idivspace")      # Initialize space division
         errCode = idivspace()
 
-        print("ipf")            # LUT for phase function
+        logging.info("ipf")            # LUT for phase function
         ipf()
 
     # fish eye image at the forest floor
     # call local estimation for fish eye image
     if (para.nPhoton == -4):
-        tgx = int(input("Input the x, y position of view\n"))
+        logging.info("Input the x, y position of view")
+        tgx = int(input())
         tgy = int(input())
 
         # to be continue, not important
@@ -334,21 +338,21 @@ def main(**args):
         cLAI = CLAI()
         cLAI.calLAI(spn)
 
-        print("LAI = ", cLAI.LAI)
-        print("Crown cover = ", cLAI.crownCover)
-        print("pLAI is")
-        print(cLAI.pLAI)
-        print("Finish print LAI.")
+        logging.info("LAI = ", cLAI.LAI)
+        logging.info("Crown cover = ", cLAI.crownCover)
+        logging.info("pLAI is")
+        logging.info(cLAI.pLAI)
+        logging.info("Finish print LAI.")
 
     # ---- start simulation --------
 
-    print("start simulation...")
+    logging.info("start simulation...")
 
     # #################################
     # Without atmosphere
     # #################################
     if (para.AtmMode == 2):
-        print("without atmosphere simulation.")
+        logging.info("without atmosphere simulation.")
         errCode = simulateNoATM(para)
         if (errCode != ERRCODE.SUCCESS):
             return errCode
@@ -357,17 +361,17 @@ def main(**args):
     # With atmosphere
     # #################################
     else:
-        print("with atmosphere simulation.")
+        logging.info("with atmosphere simulation.")
         errCode = simulateATM(para)
         if (errCode != ERRCODE.SUCCESS):
             return errCode
 
-    print("end simulation.")
+    logging.info("end simulation.")
 
     # ---- end simulation --------
     # Output
+    logging.info("Start to write results...")
     errCode = para.writeData()
-    print("Start to write results...")
     return errCode
 
 
@@ -393,13 +397,15 @@ def main(**args):
 # #################################################################
 # TEST
 # #################################################################
+config.log_init()
+
 START_TIME = datetime.datetime.now()
 
 err = main(**input_parameters.Atmosphere_Mode_Args)
 ERRCODE.printMessage(err)
 
 END_TIME = datetime.datetime.now()
-print("TIME USED (HOURS, MINUTES, SECONDS): ", (END_TIME - START_TIME))
+logging.info("Start to write results...")("TIME USED (HOURS, MINUTES, SECONDS): ", (END_TIME - START_TIME))
 
 
 

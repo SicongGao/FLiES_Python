@@ -1,6 +1,7 @@
 import ERRCODE
 from math import *
 from Position import Position
+import logging
 
 # ***********************************************************
 # This routine calculates the distance between the (x,y,x)
@@ -115,5 +116,5 @@ class Planes:
         self.y = phoCoord.y + 0.1 * copysign(1.0, (objCoord.y + intv[2]) - phoCoord.y)
         self.z = phoCoord.z + 0.1 * copysign(1.0, (objCoord.z + intv[3]) - phoCoord.z)
 
-        print("can't find cube intersection")
+        logging.debug("can't find cube intersection")
         return ERRCODE.CANNOT_FIND
