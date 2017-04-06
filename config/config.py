@@ -10,7 +10,3 @@ def log_init():
     logging.config.fileConfig(LOG_PATH)
     logging.info("Finished log initialize.")
 
-
-
-
-
