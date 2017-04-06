@@ -124,6 +124,7 @@ class VegTrace:
                 # if stem collision, return
                 if (comm.OBJ_Shape[iNobj] == 4) and (distanceObj < 1.0e5):
                     self.sFlag = 0
+                    print("Vegetation trace finish (stem collision).")
                     return ERRCODE.FAILURE
 
             # increment of the optical path
@@ -204,6 +205,7 @@ class VegTrace:
 
             # check upper or bottom boundary condition
             if (copysign(1.0, vectCoord.z) * (phoCoord.z - zlim[flag]) >= 0.0):
+                print("Vegetation trace finish (upper or bottom boundary).")
                 return ERRCODE.SUCCESS
 
             phoCoord.x -= (trunc(phoCoord.x / comm.X_MAX) - 0.5 + copysign(0.5, phoCoord.x)) * comm.X_MAX

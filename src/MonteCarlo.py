@@ -202,7 +202,7 @@ class MonteCarlo:
         w = RussianRoulette.roulette(w)
 
         # call vegrad()
-        vegRadiation.simulate(phoCoord, vectCoord, CB, 1.0, 0.0, a, w, fd, ichi, ikd)
+        vegRadiation.simulate(phoCoord, vectCoord, w, 1.0, 0.0, CB, a, fd, ichi, ikd)
         a = vegRadiation.save_a
 
         print("Monte Carlo stem simulation finish.")
@@ -395,8 +395,8 @@ class MonteCarlo:
                             iy = int(phoCoord.y * comm.RES) + 1
                             iz = int(phoCoord.z) + 1
 
-                            ix = min(ix, comm.SIZE)
-                            iy = min(iy, comm.SIZE)
+                            ix = min(ix, comm.SIZE - 1)
+                            iy = min(iy, comm.SIZE - 1)
 
                             par = w * wq * (1.0 - ssa)
                             comm.AP[ix, iy, iz] += par * (1.0 - bp)
@@ -489,8 +489,8 @@ class MonteCarlo:
                             iy = int(phoCoord.y * comm.RES) + 1
                             iz = int(phoCoord.z) + 1
 
-                            ix = min(ix, comm.SIZE)
-                            iy = min(iy, comm.SIZE)
+                            ix = min(ix, comm.SIZE - 1)
+                            iy = min(iy, comm.SIZE - 1)
 
                             par = w * wq * (1.0 - ssa)
                             comm.AP[ix, iy, iz] += par * (1.0 - bp)
@@ -600,8 +600,8 @@ class MonteCarlo:
                     ix = int(phoCoord.x * comm.RES) + 1
                     iy = int(phoCoord.y * comm.RES) + 1
 
-                    ix = min(ix, comm.SIZE)
-                    iy = min(iy, comm.SIZE)
+                    ix = min(ix, comm.SIZE - 1)
+                    iy = min(iy, comm.SIZE - 1)
 
                     comm.AP_F[ix, iy] += w * wq * (1.0 - ult - ulr)
                     comm.AP_FD[ix, iy] += w * wq * (1.0 - ult - ulr) * min(float(nscat), 1.0)
@@ -639,8 +639,8 @@ class MonteCarlo:
 
                     ix = int(phoCoord.x * comm.RES) + 1
                     iy = int(phoCoord.y * comm.RES) + 1
-                    ix = min(ix, comm.SIZE)
-                    iy = min(iy, comm.SIZE)
+                    ix = min(ix, comm.SIZE - 1)
+                    iy = min(iy, comm.SIZE - 1)
 
                     comm.AP_S += w * wq * (1.0 - ulr - ulr)
 

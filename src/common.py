@@ -8,7 +8,7 @@ ANGLE_SHIFT = 65000
 ACOOS_SHIFT = 10000
 
 # space definition
-SIZE = 300
+SIZE = 301
 N_DIVS = [0] * 722
 DIVS = np.zeros(720 * 300, dtype=int).reshape(720, 300)
 M_DIV = 0

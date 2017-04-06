@@ -181,8 +181,8 @@ class CanopyPhotonTrace:
                 if(phoCoord.z <= 0.0):
                     ix = int(phoCoord.x * comm.RES) + 1
                     iy = int(phoCoord.y * comm.RES) + 1
-                    ix = min(ix, comm.SIZE)
-                    iy = min(iy, comm.SIZE)
+                    ix = min(ix, comm.SIZE - 1)
+                    iy = min(iy, comm.SIZE - 1)
 
                     comm.FF_DIR[ix, iy] += w * wq * (1.0 - min(nscat, 1))
                     comm.FF_DIF[ix, iy] += w * wq * min(nscat, 1)

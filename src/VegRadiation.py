@@ -189,8 +189,8 @@ class VegRadiation:
             ix = int(objCoord.x * comm.RES) + 1
             iy = int(objCoord.y * comm.RES) + 1
 
-            ix = min(ix, comm.SIZE)
-            iY = min(iy, comm.SIZE)
+            ix = min(ix, comm.SIZE - 1)
+            iY = min(iy, comm.SIZE - 1)
 
             comm.REFL[1, ix, iy] += Id
             comm.I_REFL[1, ix, iy] += 1

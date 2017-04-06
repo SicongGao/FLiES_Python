@@ -1558,8 +1558,8 @@ class Parameters:
         ith = int(degrees(th))
 
         for k in range(int(comm.Z_MAX) + 1, 0, -1):
-            for i in range(1, comm.SIZE + 1):
-                for j in range(1, comm.SIZE + 1):
+            for i in range(1, comm.SIZE):
+                for j in range(1, comm.SIZE):
                     comm.AP[i, j, k] *= self.RQ * abs(self.cos_q0) / pixelNP
                     comm.AP_D[i, j, k] *= self.RQ * abs(self.cos_q0) / pixelNP
                     comm.AP_B[i, j, k] *= abs(self.cos_q0) / pixelNP
@@ -1571,8 +1571,8 @@ class Parameters:
             comm.AP_NP *= self.RQ * abs(self.cos_q0) / float(self.nPhoton) / self.tflx
 
         # summary of forest floor far etc
-        for i in range(1, comm.SIZE + 1):
-            for j in range(1, comm.SIZE + 1):
+        for i in range(1, comm.SIZE):
+            for j in range(1, comm.SIZE):
                 comm.AP_F *= self.RQ * abs(self.cos_q0) / pixelNP
                 comm.AP_FD *= self.RQ * abs(self.cos_q0) / pixelNP
 
@@ -1580,8 +1580,8 @@ class Parameters:
         ffSum = 0.0
         sfSum = 0.0
 
-        for i in range(1, comm.SIZE + 1):
-            for j in range(1, comm.SIZE + 1):
+        for i in range(1, comm.SIZE):
+            for j in range(1, comm.SIZE):
                 comm.SF_DIR[i, j] *= self.RQ * abs(self.cos_q0) / pixelNP
                 comm.SF_DIF[i, j] *= self.RQ * abs(self.cos_q0) / pixelNP
                 comm.FF_DIR[i, j] *= self.RQ * abs(self.cos_q0) / pixelNP
@@ -1770,65 +1770,65 @@ class Parameters:
         if (self.cmode != 1):
             f = open(OUTPUT_PATH + "TOC_IMG.txt")
 
-            for j in range(comm.SIZE, 0, -1):
+            for j in range(comm.SIZE - 1, 0, -1):
                 string = ""
                 if (self.atmType == 1):
-                    for i in range(1, comm.SIZE + 1):
+                    for i in range(1, comm.SIZE):
                         string += format(pi * comm.REFL[1, i, j] / (pixelNP * tm), '10.5f')
                 else:
-                    for i in range(1, comm.SIZE + 1):
+                    for i in range(1, comm.SIZE):
                         string += format(pi * comm.REFL[1, i, j] / pixelNP, '10.5f')
                 f.write(s)
 
             f.close()
 
             f = open(OUTPUT_PATH + "nTOC_IMG.txt", 'w')
-            for j in range(comm.SIZE, 0, -1):
+            for j in range(comm.SIZE - 1, 0, -1):
                 string = ""
-                for i in range(1, comm.SIZE + 1):
+                for i in range(1, comm.SIZE):
                     string += format(pi * comm.I_REFL[1, i, j] / pixelNP, '10.5f')
             f.close()
 
         if (self.cmode == 3):
             f = open(OUTPUT_PATH + "apar.txt", 'w')
             for k in range(comm.Z_MAX + 1, 0, -1):
-                for j in range(comm.SIZE, 0, -1):
+                for j in range(comm.SIZE - 1, 0, -1):
                     string = ""
-                    for i in range(1, comm.SIZE + 1):
+                    for i in range(1, comm.SIZE):
                         string += format(comm.AP[i, j, k], '12.5f')
                     f.write(string)
             f.close()
 
             f = open(OUTPUT_PATH + "aparb.txt", 'w')
             for k in range(comm.Z_MAX + 1, 0, -1):
-                for j in range(comm.SIZE, 0, -1):
+                for j in range(comm.SIZE - 1, 0, -1):
                     string = ""
-                    for i in range(1, comm.SIZE + 1):
+                    for i in range(1, comm.SIZE):
                         string += format(comm.AP_B[i, j, k], '12.5f')
                     f.write(string)
             f.close()
 
             f = open(OUTPUT_PATH + "apard.txt", 'w')
             for k in range(comm.Z_MAX + 1, 0, -1):
-                for j in range(comm.SIZE, 0, -1):
+                for j in range(comm.SIZE - 1, 0, -1):
                     string = ""
-                    for i in range(1, comm.SIZE + 1):
+                    for i in range(1, comm.SIZE):
                         string += format(comm.AP_D[i, j, k], '12.5f')
                     f.write(string)
             f.close()
 
             f = open(OUTPUT_PATH + "aparf.txt", 'w')
-            for j in range(comm.SIZE, 0, -1):
+            for j in range(comm.SIZE - 1, 0, -1):
                 string = ""
-                for i in range(1, comm.SIZE + 1):
+                for i in range(1, comm.SIZE):
                     string += format(comm.AP_F[i, j, k], '12.5f')
                 f.write(string)
             f.close()
 
             f = open(OUTPUT_PATH + "aparfd.txt", 'w')
-            for j in range(comm.SIZE, 0, -1):
+            for j in range(comm.SIZE - 1, 0, -1):
                 string = ""
-                for i in range(1, comm.SIZE + 1):
+                for i in range(1, comm.SIZE):
                     string += format(comm.AP_FD[i, j, k], '12.5f')
                 f.write(string)
             f.close()
