@@ -93,11 +93,6 @@ class VegTrace:
             # check the photon intersection with big-voxel walls
             errCode = planes.calPlanes(phoCoord, vectCoord, objCoord, intv)
             distancePho = planes.distance
-            if (errCode == ERRCODE.CANNOT_FIND):
-                # update the x0, y0, z0
-                phoCoord.x = planes.x
-                phoCoord.y = planes.y
-                phoCoord.z = planes.z
 
             # check the photon intersection with objects
             if (comm.N_DIVS[iVOX] != 0):
@@ -212,5 +207,5 @@ class VegTrace:
             phoCoord.x -= (trunc(phoCoord.x / comm.X_MAX) - 0.5 + copysign(0.5, phoCoord.x)) * comm.X_MAX
             phoCoord.y -= (trunc(phoCoord.y / comm.Y_MAX) - 0.5 + copysign(0.5, phoCoord.y)) * comm.Y_MAX
 
-            logging.debug("Vegetation trace finish.")
+        logging.debug("Vegetation trace finish.")
         return ERRCODE.SUCCESS

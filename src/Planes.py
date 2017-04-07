@@ -19,8 +19,8 @@ class Planes:
 
     def deal_X_Y_Plane(self, phoCoord, vecCoord, objCoord, intv):
 
-        distanceBottom = (objCoord.z - phoCoord.z) / vecCoord.x
-        distanceUpper = (objCoord.z - phoCoord.z + intv[3]) / vecCoord.z
+        distanceBottom = (objCoord.z - phoCoord.z) / vecCoord.z
+        distanceUpper = (objCoord.z + intv[3] - phoCoord.z) / vecCoord.z
 
         if (distanceBottom > distanceUpper):
             self.distance = distanceBottom
@@ -41,7 +41,7 @@ class Planes:
     def deal_Y_Z_Plane(self, phoCoord, vecCoord, objCoord, intv):
 
         distanceBottom = (objCoord.x - phoCoord.x) / vecCoord.x
-        distanceUpper = (objCoord.x - phoCoord.x + intv[1]) / vecCoord.x
+        distanceUpper = (objCoord.x + intv[1] - phoCoord.x) / vecCoord.x
 
         if (distanceBottom > distanceUpper):
             self.distance = distanceBottom
@@ -50,9 +50,9 @@ class Planes:
             self.distance = distanceUpper
             self.face = 2
 
-        self.y =  phoCoord.y + self.distance * vecCoord.y
+        self.y = phoCoord.y + self.distance * vecCoord.y
         if((self.y >= objCoord.y) and (self.y <= objCoord.y + intv[2])):
-            self.z =phoCoord.z + self.distance * vecCoord.z
+            self.z = phoCoord.z + self.distance * vecCoord.z
             if ((self.z >= objCoord.z) and (self.z <= objCoord.z + intv[3])):
                 #print("In y - z plane")
                 return ERRCODE.SUCCESS
@@ -62,7 +62,7 @@ class Planes:
     def deal_X_Z_Plane(self, phoCoord, vecCoord, objCoord, intv):
 
         distanceBottom = (objCoord.y - phoCoord.y) / vecCoord.y
-        distanceUpper = (objCoord.y - phoCoord.y + intv[2]) / vecCoord.y
+        distanceUpper = (objCoord.y + intv[2] - phoCoord.y) / vecCoord.y
 
         if (distanceBottom > distanceUpper):
             self.distance = distanceBottom
@@ -97,12 +97,12 @@ class Planes:
         # check manual P.51-52
         if (abs(vecCoord.x) >= MIN_VALUE):
             errCode = self.deal_Y_Z_Plane(phoCoord, vecCoord, objCoord, intv)
-            if (errCode == 0):
+            if (errCode == ERRCODE.SUCCESS):
                 return ERRCODE.SUCCESS
 
         if (abs(vecCoord.y) >= MIN_VALUE):
             errCode = self.deal_X_Z_Plane(phoCoord, vecCoord, objCoord, intv)
-            if (errCode == 0):
+            if (errCode == ERRCODE.SUCCESS):
                 return ERRCODE.SUCCESS
 
         errCode = self.deal_X_Y_Plane(phoCoord, vecCoord, objCoord, intv)
@@ -112,9 +112,9 @@ class Planes:
         # if cannot find the intersection due to the limitation of numerical calculation
         # move the photon position slightly then back to the top of this code
 
-        self.x = phoCoord.x + 0.1 * copysign(1.0, (objCoord.x + intv[1]) - phoCoord.x)
-        self.y = phoCoord.y + 0.1 * copysign(1.0, (objCoord.y + intv[2]) - phoCoord.y)
-        self.z = phoCoord.z + 0.1 * copysign(1.0, (objCoord.z + intv[3]) - phoCoord.z)
+        phoCoord.x += 0.1 * copysign(1.0, (objCoord.x + intv[1] * 0.5) - phoCoord.x)
+        phoCoord.y += 0.1 * copysign(1.0, (objCoord.y + intv[2] * 0.5) - phoCoord.y)
+        phoCoord.z += 0.1 * copysign(1.0, (objCoord.z + intv[3] * 0.5) - phoCoord.z)
 
         logging.debug("can't find cube intersection")
         return ERRCODE.CANNOT_FIND

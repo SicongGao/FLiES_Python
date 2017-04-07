@@ -7,16 +7,20 @@ from MonteCarlo_1D import MonteCarlo_1D
 import numpy as np
 import logging
 
-
+count = 0
 class VegRadiation:
 
     save_a = 0
+
 
     def __init__(self):
         self.save_a = 0
 
     def save(self, a):
+        global count
         self.save_a = a
+        count += 1
+        logging.debug("count = " + str(count))
         return ERRCODE.SUCCESS
     # calculate the phase function from LUT
     # cb:cb = 1 (overstory),cb = 2 (branch)
@@ -94,6 +98,9 @@ class VegRadiation:
 
     def simulate(self, phoCoord, vectCoord, w, lr, lt, cb, a, fd, ichi, ikd):
 
+        if (phoCoord.z <= 1e-5):
+            logging.debug("***count = " + str(count))
+
         MAX_VALUE = 0.999999
         ua = sum(comm.U) / comm.N_TS
 
@@ -111,7 +118,7 @@ class VegRadiation:
         vegTrace = VegTrace()
         mc1D = MonteCarlo_1D()
 
-        logging.debug("Vegetation simulation start...")
+        logging.debug("Vegetation Radiation start...")
 
         for i in range(comm.N_ANG_C): # nangc = nph * nth
             #  preparation of Haple-type hotspot function
@@ -206,5 +213,6 @@ class VegRadiation:
             comm.I_REFL[2, ix, iy] += 1
 
         self.save(a)
-        logging.debug("Vegetation simulation finish.")
+        global count
+        logging.debug("Vegetation Radiation finish.")
         return ERRCODE.SUCCESS

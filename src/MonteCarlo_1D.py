@@ -771,6 +771,7 @@ class MonteCarlo_1D:
 
                     if (w <= 0.0):
                         self.save(w, nscat, iz)
+                        logging.debug("Monte Carlo 1-D simulation finish.")
                         return ERRCODE.LOW_WEIGHT
 
                     # properties

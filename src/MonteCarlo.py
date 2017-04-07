@@ -31,7 +31,8 @@ class MonteCarlo:
     def save(self, nscat, w):
         self.cNscat = nscat
         self.weight = w
-        logging.debug("Monte Carlo canopy simulation finish.")
+        string = "weight = " + str(self.weight) + ", nscat = " + str(self.cNscat)
+        logging.debug(string)
         return ERRCODE.SUCCESS
 
     # recollision loop for shoot clumping effect
@@ -267,6 +268,7 @@ class MonteCarlo:
 
             if (io1 == 1):
                 self.save(nscat, w)
+                logging.debug("Monte Carlo canopy simulation finish.")
                 return ERRCODE.OUTSIDE
 
             # if photon inside branch dominant region
@@ -322,6 +324,7 @@ class MonteCarlo:
 
                             if (w < MIN_VALUE):
                                 self.save(nscat, w)
+                                logging.debug("Monte Carlo canopy simulation finish.")
                                 return ERRCODE.LOW_WEIGHT
 
                             psh = (1.0 - 4.0 * cf)
@@ -417,6 +420,7 @@ class MonteCarlo:
 
                         if (w < MIN_VALUE):
                             self.save(nscat, w)
+                            logging.debug("Monte Carlo canopy simulation finish.")
                             return ERRCODE.LOW_WEIGHT
 
                         cb = int((1.0 - bp) + 2.0 * bp)
@@ -470,6 +474,9 @@ class MonteCarlo:
                         phoCoord.y += (distance1 + mgn) * vectCoord.y
                         phoCoord.z += (distance1 + mgn) * vectCoord.z
                         self.save(nscat, w)
+
+                        logging.debug("Monte Carlo canopy simulation finish.")
+
                         return ERRCODE.OUTSIDE
                     else:
                         phoCoord.movePosition(distance, vectCoord, comm.X_MAX, comm.Y_MAX)
@@ -512,6 +519,9 @@ class MonteCarlo:
 
                         if (w < MIN_VALUE):
                             self.save(nscat, w)
+
+                            logging.debug("Monte Carlo canopy simulation finish.")
+
                             return ERRCODE.LOW_WEIGHT
 
                         cb = int((1.0 - bp) + 2.0 * bp)
@@ -532,10 +542,17 @@ class MonteCarlo:
                             io12 = treeBounday.io
                         if (io1 == 1):
                             self.save(nscat, w)
+
+                            logging.debug("Monte Carlo canopy simulation finish.")
+
                             return ERRCODE.OUTSIDE
 
         self.save(nscat, w)
         #print("Monte Carlo canopy simulation finish.")
+
+        logging.debug("Monte Carlo canopy simulation finish.")
+        string = "weight = " + str(self.weight) + ", nscat = " + str(self.cNscat)
+        logging.debug(string)
 
         return ERRCODE.SUCCESS
 
@@ -614,6 +631,9 @@ class MonteCarlo:
                     w = RussianRoulette.roulette(w)
                     if (w < MIN_VALUE):
                         self.save(nscat, w)
+
+                        logging.debug("Monte Carlo floor simulation finish.")
+
                         return ERRCODE.LOW_WEIGHT
 
                     psh = 1.0 - 4.0 * cf
@@ -628,7 +648,7 @@ class MonteCarlo:
                     vectCoord.z = copysign(MIN_Z, vectCoord.z)
 
             else:
-                phoCoord.x += (distancePlane + mgn) * vectCoord.z
+                phoCoord.x += (distancePlane + mgn) * vectCoord.x
                 phoCoord.y += (distancePlane + mgn) * vectCoord.y
                 phoCoord.z += distancePlane * vectCoord.z
                 phoCoord.x -= (trunc(phoCoord.x / comm.X_MAX) - 0.5 + copysign(0.5, phoCoord.x)) * comm.X_MAX
@@ -653,6 +673,7 @@ class MonteCarlo:
 
                     if (w < MIN_VALUE):
                         self.save(nscat, w)
+                        logging.debug("Monte Carlo floor simulation finish.")
                         return ERRCODE.LOW_WEIGHT
 
                     vegRadiant.simulate(phoCoord, vectCoord, w, ulr, ult, 5, 1.0, fd, ichi, ikd)
@@ -665,9 +686,11 @@ class MonteCarlo:
                     phoCoord.z = zBottom + mgn
                 elif (phoCoord.z >= zUpper):
                     self.save(nscat, w)
+                    logging.debug("Monte Carlo floor simulation finish.")
                     return ERRCODE.OUT_OF_RANGE
 
         self.save(nscat, w)
+
         logging.debug("Monte Carlo floor simulation finish.")
 
         return ERRCODE.SUCCESS

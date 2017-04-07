@@ -977,7 +977,7 @@ class Parameters:
                 else:
                     sum += spcf[i] * 5.0
 
-            for i in range(self.nwl):
+            for i in range(self.nwl + 1):
                 if (i < 20):
                     self.npl[i] = int(round(float(self.nPhotonProcess) * spcf[i] / sum))
                 else:

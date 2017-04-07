@@ -31,6 +31,7 @@ class CanopyPhotonTrace:
     def save(self, w, nscat):
         self.weight = w
         self.cNscat = nscat
+        logging.debug("CanopyPhotonTrace finish")
         # self.cIchi = ichi
         # self.cIkd = ikd
 
@@ -91,11 +92,6 @@ class CanopyPhotonTrace:
             # check the photon intersection with big-voxel walls
             errCode = planes.calPlanes(phoCoord, vectCoord, objCoord, intv)
             distancePho = planes.distance
-            if (errCode == ERRCODE.CANNOT_FIND):
-                # update the x, y, z
-                phoCoord.x = planes.x
-                phoCoord.y = planes.y
-                phoCoord.z = planes.z
 
             if (iVOX > 720 or iVOX < 0):
                 logging.critical("comm.N_DIVS is out of range!!!")
@@ -212,7 +208,6 @@ class CanopyPhotonTrace:
                     phoCoord.y -= (trunc(phoCoord.y / comm.Y_MAX) - 0.5 + copysign(0.5, phoCoord.y)) * comm.Y_MAX
 
         self.save(w, nscat)
-        logging.debug("CanopyPhotonTrace finish")
 
         return ERRCODE.SUCCESS
 

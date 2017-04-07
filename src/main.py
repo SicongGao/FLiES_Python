@@ -61,12 +61,15 @@ def simulateATM(para):
     global ichi
     global rand
 
+    SHOW = 10
+
     mc1D = MonteCarlo_1D()
     canopyTrace = CanopyPhotonTrace()
 
     #print("simulate without atmosphere")
 
     for iwl in range(1, para.nwl):
+    #for iwl in range(1, 2):
         string = "This is the " + str(iwl) + " of " + str(para.nwl) + " wavelength."
         logging.info(string)
         para.preparAtm(iwl)
@@ -79,8 +82,8 @@ def simulateATM(para):
 
         # loop for single wavelength
         for ip in range(1, para.npl[iwl] + 1):
-            if (fmod(ip, para.nPhoton) == 0):
-                logging.warning(str(ip) + " of " + str(para.npl[iwl]))
+            if (fmod(ip, SHOW) == 0):
+                logging.warning("Single wavelength loop[" + str(iwl) + "]: " + str(ip) + " of " + str(para.npl[iwl]))
 
             w = 1.0
             PhotonCoord.setPosition(comm.X_MAX * float(rand.getRandom()),
@@ -153,11 +156,15 @@ def simulateATM(para):
                         tSTR[i] = para.truncRef[i, 1]
 
                     # call the canopy radiation transfer module
-                    canopyTrace.trace(PhotonCoord, VectorCoord, w, para.wq, nscat, ichi, ikd, tSTR[1], para.soilRef[1],
+                    errCode = canopyTrace.trace(PhotonCoord, VectorCoord, w, para.wq, nscat, ichi, ikd, tSTR[1], para.soilRef[1],
                                       tLR, tLT, para.ulr[1], para.ult[1])
 
                     w = canopyTrace.weight
                     nscat = canopyTrace.cNscat
+
+                    string = "Finish canopy trace. w = " + str(w) + ", nscat = " + str(nscat) + \
+                             ", ERRORCODE = " + ERRCODE.ERR_MESSAGE[errCode]
+                    logging.debug(string)
 
                     if (w < MIN_VALUE):
                         break
