@@ -86,8 +86,8 @@ class MonteCarlo_1D:
             sin_f0 = vectCoord.y * temp
 
             vectCoord.x = cos_q * vectCoord.x + sin_q * (cos_f * vectCoord.z * cos_f0 - sin_f * sin_f0)
-            vectCoord.x = cos_q * vectCoord.y + sin_q * (cos_f * vectCoord.z * sin_f0 + sin_f * cos_f0)
-            vectCoord.x = cos_q * vectCoord.z - sin_q * cos_f * sin_q0
+            vectCoord.y = cos_q * vectCoord.y + sin_q * (cos_f * vectCoord.z * sin_f0 + sin_f * cos_f0)
+            vectCoord.z = cos_q * vectCoord.z - sin_q * cos_f * sin_q0
 
         elif (vectCoord.z > 0.0):
             vectCoord.x = sin_q * cos_f
@@ -177,14 +177,14 @@ class MonteCarlo_1D:
         c0 = c1 = 0.0
 
         # integration over the delta part
-        for iAng in range(self.iangtf):
+        for iAng in range(1, self.iangtf + 1):
             w = pdf[iAng]
             c0 = cosa[iAng]
             c1 = cosa[iAng + 1]
             sum0 += w
             sum1 += w * 0.5 * (c0 + c1)
             sum2 += w * 0.5 * (c0 ** 2 + c1 ** 2)
-            if (iAng >= self.iangtf -1):
+            if (iAng >= self.iangtf - 1):
                 g1tlo = g1thi
                 g1thi = (self.g1 - sum1) / (1.0 - sum0)
 
@@ -226,7 +226,7 @@ class MonteCarlo_1D:
                 c0 = cosa[self.iangtf]
                 c1 = cosa[self.iangtf + 1]
                 sum0a = sum0 - w
-                sum1a = sum1 -0.5 * (c0 + c1)
+                sum1a = sum1 - w * 0.5 * (c0 + c1)
                 g1tlo = (self.g1 - sum1a) / (1.0 - sum0a)
             else:
                 iexit = 0
@@ -276,7 +276,7 @@ class MonteCarlo_1D:
             c1 = cosa[self.iangtf + 1]
 
             sum0a = sum0 - w
-            sum2a = sum2 - 0.5 * (c0 ** 2 + c1 ** 2)
+            sum2a = sum2 - w * 0.5 * (c0 ** 2 + c1 ** 2)
             g2tlo = (self.g2 - sum2a) / (1.0 - sum0a)
 
         return ERRCODE.SUCCESS
@@ -306,7 +306,7 @@ class MonteCarlo_1D:
         sin_a0 = sin(a0)
         cos_a0 = cos(a0)
 
-        for iAng in range(iAngs):
+        for iAng in range(1, iAngs):
             a1 = radians(ang[iAng + 1])
             sin_a1 = sin(a1)
             cos_a1 = cos(a1)
@@ -347,7 +347,7 @@ class MonteCarlo_1D:
             sum0 += w
             sum1 += w * 0.5 * (cos_a0 + cos_a1)
             sum2 += w * 0.5 * (cos_a0 ** 2 + cos_a1 ** 2)
-            a0 = a1
+            a1 = a0
             sin_a1 = sin_a0
             cos_a1 = cos_a0
 
@@ -394,7 +394,7 @@ class MonteCarlo_1D:
         result = -1
 
         # Increasing vector
-        if ((xGrd[ixMin]) < (xGrd[ixMax] + 1)):
+        if ((xGrd[ixMin]) < (xGrd[ixMax + 1])):
             if (x < xGrd[ix]):
                 for i in range(ix - 1, ixMin - 1, -1):
                     if (x >= xGrd[i]):
@@ -467,11 +467,12 @@ class MonteCarlo_1D:
         # scattering angle
         pdlt = 1.0 / float(nlut)
         iwrk = 1
-        for iLut in range(nlut):
+        for iLut in range(1, nlut):
             p = pdlt * float(nlut - iLut)
             iwrk = self.i_rvctrssrch(wrkcum, p, iwrk, iwrk, nwrk - 1)
             if (wrkpdf[iwrk] > 1.0e-6):
                 rat = (p - wrkcum[iwrk + 1]) / wrkpdf[iwrk]
+                wrksca[iLut] = rat * wrkang[iwrk] + (1.0 - rat) * wrkang[iwrk + 1]
             else:
                 wrksca[iLut] = wrkang[iwrk]
 
@@ -492,7 +493,7 @@ class MonteCarlo_1D:
 
         wrkc1[1] = (rawphs[2] - rawphs[1]) / (rawang[2] - rawang[1])
         wrkc1[2] = (rawphs[3] - rawphs[2]) / (rawang[3] - rawang[2])
-        wrkc2[2] = 2.0 * (rawang[3] - rawang[2])
+        wrkc2[2] = 2.0 * (rawang[3] - rawang[1])
         wrkc3[2] = wrkc1[2] - wrkc1[1]
 
         for i in range(3, nraw):
@@ -511,7 +512,7 @@ class MonteCarlo_1D:
         wrkc3[nraw - 1] = -sig0 / h
         sig1 = sig0
 
-        for i in range(nraw -2, 2, -1):
+        for i in range(nraw - 2, 1, -1):
             h = rawang[i + 1] - rawang[i]
             sig0 = (wrkc3[i] - h * sig1) / wrkc2[i]
             wrkc1[i] -= h * (sig1 + 2.0 * sig0)
@@ -526,7 +527,7 @@ class MonteCarlo_1D:
 
         # Interpolation
         iraw = 1
-        for iwrk in range(nwrk + 1):
+        for iwrk in range(1, nwrk + 1):
             x = wrkang[iwrk]
             iraw = self.i_rvctrssrch(rawang, x, iraw, iraw, nraw - 1)
             dx = x - rawang[iraw]
@@ -540,7 +541,7 @@ class MonteCarlo_1D:
 
         sumNum = 0.0
 
-        for i in range(nAng - 1, 1, -1):
+        for i in range(nAng - 1, 0, -1):
             a0 = radians(ang[i])
             a1 = radians(ang[i + 1])
             sumNum += (a0 - a1) * 0.5 * (pf[i + 1] * sin(a1) + pf[i] * sin(a0))
@@ -549,7 +550,7 @@ class MonteCarlo_1D:
 
         f = 2.0 * sumNorm / sumNum
 
-        for i in range(1, nAng):
+        for i in range(1, nAng + 1):
             pf[i] *= f
 
         return ERRCODE.SUCCESS
@@ -559,20 +560,13 @@ class MonteCarlo_1D:
 
         x += path * ux
 
-        if ((x < 0.0) or (x > xmax)):
+        if ((x < 0.0) or (x >= xmax)):
             x = x % xmax
             if (x < 0.0):
-                x = x + xmax
+                x += xmax
 
         return x
 
-    # calculate escape
-    def processEscape(self, vectR, vectCoord):
-        p = 0.0
-
-
-
-        return p
 
     # Make LUTs for phase function & scattering angle.
     def optics(self, ext, omg, phs, angle, nmix):
@@ -594,13 +588,13 @@ class MonteCarlo_1D:
         wrkSca = [0.0] * nLut1
 
         # Initializations
-        fsAng = float(nLut) / pi
+        comm.FS_ANG = float(nLut - 1) / pi
         nChi = 6
         chiHi = 0.9
         chiLo = 0.4
         fMax = 0.8
         chiBin = (chiHi - chiLo) / float(nChi - 2)
-        for iChi in range(nChi):
+        for iChi in range(1, nChi):
             comm.CHI_GRD[iChi] = chiHi - chiBin * float(iChi - 1)
         comm.CHI_GRD[nChi] = -1.0
 
@@ -608,7 +602,7 @@ class MonteCarlo_1D:
         delt = 180.0 / float(nLut)
         nwrk = nLut
         # print()
-        for iWrk in range(nwrk + 1):
+        for iWrk in range(1, nwrk + 1):
             temp = delt * (iWrk - 1)
             wrkAngle[iWrk] = temp
             wrkCos[iWrk] = cos(radians(temp))
@@ -633,7 +627,7 @@ class MonteCarlo_1D:
 
             rawPhs = [0.0] * (comm.N_ANG + 1)
 
-            for iMix in range(nmix + 1):
+            for iMix in range(1, nmix + 1):
                 ee = ext[iMix, iz]
                 o = omg[iMix]
                 s = ee * o
@@ -641,15 +635,15 @@ class MonteCarlo_1D:
                 sumE += ee
                 sumS += s
 
-                for iAng in range(comm.N_ANG + 1):
+                for iAng in range(1, comm.N_ANG + 1):
                     rawPhs[iAng] += s * phs[iMix, iAng]
 
             comm.EXT_T1D[iz, 1] = sumE
-            comm.ABS_T1D[iz] = sumE
+            comm.ABS_T1D[iz] = sumA
 
             f = 1.0 / max(1.0e-35, sumS)
 
-            for iAng in range(comm.N_ANG + 1):
+            for iAng in range(1, comm.N_ANG + 1):
                 rawAngle[iAng] = angle[iAng]
                 rawPhs[iAng] *= f
 
@@ -657,9 +651,9 @@ class MonteCarlo_1D:
 
             # make LUT
             self.artphsfintp(rawAngle, rawPhs, wrkC1, wrkC2, wrkC3, wrkAngle, wrkPhs, nRaw, nwrk)
-            self.artsanglut(wrkAngle, wrkPhs, wrkCum, wrkPdf, wrkSca, nwrk, nLut)
+            self.artsanglut(wrkAngle, wrkPhs, wrkCum, wrkPdf, wrkSca, nwrk, nLut - 1)
 
-            for iLut in range(nLut + 1):
+            for iLut in range(nLut):
                 #print(iLut)
                 comm.PF_LUT[iLut, iz] = wrkPhs[iLut + 1]
                 comm.SA_LUT[iLut, iz] = radians(wrkSca[iLut])
@@ -670,7 +664,7 @@ class MonteCarlo_1D:
             # truncation
             self.phsfbiasym2(wrkAngle, wrkPhs, nwrk, 90.0)
 
-            cftMAX = fMax * self.g0fwd * self.g1fwd ** 4 / float(nChi - 4)
+            cftMAX = fMax * self.g0fwd * self.g1fwd ** 4 / float(nChi - 1)
 
             ee = comm.EXT_T1D[iz, 1]
             s = ee - comm.ABS_T1D[iz]
@@ -705,10 +699,11 @@ class MonteCarlo_1D:
     def escape(self, phoCoord, vectCoord, iz, ichi, ikd, resultCoord):
 
         resultCoord.setPosition(phoCoord.x, phoCoord.y, phoCoord.z)
-
+        # logging.debug("MC1D escape start...")
         # TAU integration
         tau = 0.0
         if (ikd == 0):
+            logging.debug("MC1D escape finish (ikd = 0).")
             return ERRCODE.SUCCESS
 
         if (vectCoord.z >= 0.0):
@@ -728,7 +723,7 @@ class MonteCarlo_1D:
         fpath = (resultCoord.z - phoCoord.z) / abs(vectCoord.z)
         resultCoord.x = self.arthshift(resultCoord.x, vectCoord.x, fpath, comm.X_MAX)
         resultCoord.y = self.arthshift(resultCoord.y, vectCoord.y, fpath, comm.Y_MAX)
-
+        # logging.debug("MC1D escape finish.")
         return tau
 
     # Traces a trajectory in plane-parallel vertically-inhomogeneous atmosphere
@@ -737,8 +732,13 @@ class MonteCarlo_1D:
         rand = Random()
 
         logging.debug("Monte Carlo 1-D simulation start...")
+        string = "x = " + str(phoCoord.x) + ", y =" + str(phoCoord.y) + ", z =" + str(phoCoord.z)
+        logging.debug(string)
         # loop for layers
         while ((iz >= 1) and (iz <= comm.N_Z)):
+            string = "x = " + str(phoCoord.x) + ", y =" + str(phoCoord.y) + ", z =" + str(phoCoord.z)
+            logging.debug("mc1dtrace: start while")
+            logging.debug(string)
             absg = comm.ABS_G1D[iz, ikd]
             extm = absg + comm.EXT_T1D[iz, ichi]
             absm = absg + comm.ABS_T1D[iz]
@@ -747,7 +747,8 @@ class MonteCarlo_1D:
                 path = (comm.Z_GRD[iz - 1] - phoCoord.z) / vectCoord.z
             else:
                 path = (comm.Z_GRD[iz] - phoCoord.z) / vectCoord.z
-
+            logging.debug("vectCoord.z = " + str(vectCoord.z))
+            logging.debug("path = " + str(path))
             # scattering events
             if (extm > 1.0e-20):
                 fpath = ftau / extm
@@ -758,7 +759,9 @@ class MonteCarlo_1D:
 
                     phoCoord.x = self.arthshift(phoCoord.x, vectCoord.x, fpath, comm.X_MAX)
                     phoCoord.y = self.arthshift(phoCoord.y, vectCoord.y, fpath, comm.Y_MAX)
-
+                    string = "x = " + str(phoCoord.x) + ", y =" + str(phoCoord.y) + ", z =" + str(phoCoord.z)
+                    logging.debug("mc1dtrace: after inner while")
+                    logging.debug(string)
                     # weight scaling
                     w *= (1.0 - absm / extm)
 
@@ -771,7 +774,7 @@ class MonteCarlo_1D:
 
                     if (w <= 0.0):
                         self.save(w, nscat, iz)
-                        logging.debug("Monte Carlo 1-D simulation finish.")
+                        logging.debug("Monte Carlo 1-D simulation finish.(w <= 0)")
                         return ERRCODE.LOW_WEIGHT
 
                     # properties
@@ -787,7 +790,7 @@ class MonteCarlo_1D:
                         ichi += 1
 
                     # local estimates
-                    for irdc in range(1, comm.N_RDC):
+                    for irdc in range(1, comm.N_RDC + 1):
                         vectR = Position()
                         vectR.setPosition(comm.UX_RTAB[irdc],
                                           comm.UY_RTAB[irdc],
@@ -798,7 +801,7 @@ class MonteCarlo_1D:
                         cos_q = vectR.cosA
 
                         if ((q < utf) or (q > utb)):
-                            break
+                            continue
 
                         rilut = comm.FS_ANG * q
                         ilut = int(rilut)
@@ -807,11 +810,11 @@ class MonteCarlo_1D:
                         adf = pf / (4.0 * pi * abs(vectR.z) * ftt)
 
                         resultCoord = Position()
-                        tau = self.escape(phoCoord, vectCoord, iz, ichi, ikd, resultCoord)
+                        tau = self.escape(phoCoord, vectR, iz, ichi, ikd, resultCoord)
 
                         # give here the # of pixels
-                        ixr = resultCoord.x / comm.X_MAX * comm.K_NXR + 1
-                        iyr = resultCoord.y / comm.Y_MAX * comm.K_NYR + 1
+                        ixr = int(resultCoord.x / comm.X_MAX * comm.K_NXR + 1)
+                        iyr = int(resultCoord.y / comm.Y_MAX * comm.K_NYR + 1)
 
                         p = w * adf * exp(-tau)
 
@@ -832,7 +835,7 @@ class MonteCarlo_1D:
                         cos_q = vectR.cosA
 
                         if ((q < utf) or (q > utb)):
-                            break
+                            continue
 
                         rilut = comm.FS_ANG * q
                         ilut = int(rilut)
@@ -841,7 +844,7 @@ class MonteCarlo_1D:
                         adf = pf / (4.0 * pi * abs(vectR.z) * ftt)
 
                         resultCoord = Position()
-                        tau = self.escape(phoCoord, vectCoord, iz, ichi, ikd, resultCoord)
+                        tau = self.escape(phoCoord, vectR, iz, ichi, ikd, resultCoord)
 
                         ixr = resultCoord.x / comm.X_MAX * comm.K_NXR + 1
                         iyr = resultCoord.y / comm.Y_MAX * comm.K_NYR + 1
@@ -854,7 +857,7 @@ class MonteCarlo_1D:
                     # scattering
                     self.getRandomCircle(1.0e-12)
 
-                    rlut = comm.N_LUT * (ftf + ftt * self.random_r2)
+                    rlut = (comm.N_LUT - 1) * (ftf + ftt * self.random_r2)
                     ilut = int(rlut)
                     rat = rlut - float(ilut)
 
@@ -864,7 +867,8 @@ class MonteCarlo_1D:
 
                     self.artscat(vectCoord, sin_q, cos_q, self.random_sinf, self.random_cosf)
 
-                    vectCoord.z = max(abs(vectCoord.z), 1.0e-17)
+                    if (abs(vectCoord.z) < 1.0e-17):
+                        vectCoord.z = 1.0e-17
 
                     # new path
                     ftau = - log(max(1.0e-35, float(rand.getRandom())))
@@ -889,8 +893,11 @@ class MonteCarlo_1D:
                 phoCoord.z = comm.Z_GRD[iz]
                 iz += 1
 
-                phoCoord.x = self.arthshift(phoCoord.x, vectCoord.x, path, comm.X_MAX)
-                phoCoord.y = self.arthshift(phoCoord.y, vectCoord.y, path, comm.Y_MAX)
+            phoCoord.x = self.arthshift(phoCoord.x, vectCoord.x, path, comm.X_MAX)
+            phoCoord.y = self.arthshift(phoCoord.y, vectCoord.y, path, comm.Y_MAX)
+            string = "x = " + str(phoCoord.x) + ", y =" + str(phoCoord.y) + ", z =" + str(phoCoord.z)
+            logging.debug("mc1dtrace: after while")
+            logging.debug(string)
 
         self.save(w, nscat, iz)
         logging.debug("Monte Carlo 1-D simulation finish.")

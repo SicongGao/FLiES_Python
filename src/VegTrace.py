@@ -70,13 +70,17 @@ class VegTrace:
         gFunction.igtbl()
 
         logging.debug("Vegetation trace start...")
+        string = "x = " + str(coord.x) + ", y =" + str(coord.y) + ", z =" + str(coord.z)
+        logging.debug(string)
 
         # do while photon reaches the terminal point
         while(1):
             # x1 = trunc(x0 / intv[1])
             # y1 = trunc(y0 / intv[2])
             # z1 = trunc(z0 / intv[3])
-            objCoord.setPosition(trunc(phoCoord.x / intv[1]), trunc(phoCoord.y / intv[2]), trunc(phoCoord.z / intv[3]))
+            objCoord.setPosition(trunc(phoCoord.x / intv[1]),
+                                 trunc(phoCoord.y / intv[2]),
+                                 trunc(phoCoord.z / intv[3]))
 
             iVOX = comm.IX_MAX * comm.IY_MAX * int(objCoord.z)
             iVOX += int(objCoord.y) * comm.IY_MAX

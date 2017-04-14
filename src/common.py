@@ -40,8 +40,8 @@ SA_LUT = np.zeros(N_LUT1 * K_NZ, dtype=float).reshape(N_LUT1, K_NZ)
 UX_RTAB = [0.0] * K_NRDC
 UY_RTAB = [0.0] * K_NRDC
 UZ_RTAB = [0.0] * K_NRDC
-PROC_F = np.zeros(K_NXR * K_NYR * K_NRDC, dtype=float).reshape(K_NXR, K_NYR, K_NRDC)
-PROC_Q = np.zeros(K_NXR * K_NYR * K_NRDC, dtype=float).reshape(K_NXR, K_NYR, K_NRDC)
+PROC_F = np.zeros((K_NXR + 1) * (K_NXR + 1) * K_NRDC, dtype=float).reshape((K_NXR + 1), (K_NXR + 1), K_NRDC)
+PROC_Q = np.zeros((K_NXR + 1) * (K_NXR + 1) * K_NRDC, dtype=float).reshape((K_NXR + 1), (K_NXR + 1), K_NRDC)
 K_LAYER = [0.0] * K_NZ
 WRR = FS_ANG = 0.0
 N_Z = N_CHI = N_RDC = 0
@@ -65,23 +65,23 @@ BRF_S = np.zeros(3 * 700, dtype=float).reshape(3, 700)
 BRF_F = np.zeros(3 * 700, dtype=float).reshape(3, 700)
 F_EYE = np.zeros(90 * 360, dtype=float).reshape(90, 360)
 RF_EYE = np.zeros(90 * 360, dtype=float).reshape(90, 360)
-AP = np.zeros(SIZE * SIZE * 100, dtype=float).reshape(SIZE, SIZE, 100)
-AP_D = np.zeros(SIZE * SIZE * 100, dtype=float).reshape(SIZE, SIZE, 100)
-AP_B = np.zeros(SIZE * SIZE * 100, dtype=float).reshape(SIZE, SIZE, 100)
-AP_F = np.zeros(SIZE * SIZE, dtype=float).reshape(SIZE, SIZE)
-AP_S = np.zeros(SIZE * SIZE, dtype=float).reshape(SIZE, SIZE)
-AP_FD = np.zeros(SIZE * SIZE, dtype=float).reshape(SIZE, SIZE)
+AP = np.zeros((SIZE + 1) * (SIZE + 1) * 101, dtype=float).reshape(SIZE + 1, SIZE + 1, 101)
+AP_D = np.zeros((SIZE + 1) * (SIZE + 1) * 101, dtype=float).reshape(SIZE + 1, SIZE + 1, 101)
+AP_B = np.zeros((SIZE + 1) * (SIZE + 1) * 101, dtype=float).reshape(SIZE + 1, SIZE + 1, 101)
+AP_F = np.zeros((SIZE + 1) * (SIZE + 1), dtype=float).reshape(SIZE + 1, SIZE + 1)
+AP_S = np.zeros((SIZE + 1) * (SIZE + 1), dtype=float).reshape(SIZE + 1, SIZE + 1)
+AP_FD = np.zeros((SIZE + 1) * (SIZE + 1), dtype=float).reshape(SIZE + 1, SIZE + 1)
 AP_NP = [0.0] * 100
 T_FPR = C_FPR = B_FPR = F_FPR = S_FPR = 0.0
-FF_DIR = np.zeros(SIZE * SIZE, dtype=float).reshape(SIZE, SIZE)
-FF_DIF = np.zeros(SIZE * SIZE, dtype=float).reshape(SIZE, SIZE)
-SF_DIR = np.zeros(SIZE * SIZE, dtype=float).reshape(SIZE, SIZE)
-SF_DIF = np.zeros(SIZE * SIZE, dtype=float).reshape(SIZE, SIZE)
+FF_DIR = np.zeros((SIZE + 1) * (SIZE + 1), dtype=float).reshape(SIZE + 1, SIZE + 1)
+FF_DIF = np.zeros((SIZE + 1) * (SIZE + 1), dtype=float).reshape(SIZE + 1, SIZE + 1)
+SF_DIR = np.zeros((SIZE + 1) * (SIZE + 1), dtype=float).reshape(SIZE + 1, SIZE + 1)
+SF_DIF = np.zeros((SIZE + 1) * (SIZE + 1), dtype=float).reshape(SIZE + 1, SIZE + 1)
 G_LAI = 0.0
 U = [0.0] * 6
 BAD = [0.0] * 5
 IR = FE = BP1 = BP2 = 0.0
-URC_coord = [Position()] * K_NRDC
+URC_coord = []
 UX_RC = [0.0] * K_NRDC
 UY_RC = [0.0] * K_NRDC
 UZ_RC = [0.0] * K_NRDC
@@ -105,9 +105,9 @@ T_ACOS = [0.0] * ACOOS_SHIFT * 2
 T_EXP = [0.0] * ACOOS_SHIFT
 DLT = np.zeros((6 + 1) * (6 + 1), dtype=float).reshape((6 + 1), (6 + 1))
 
-GT_BLC = [0.0] * 180
-GT_BLB = [0.0] * 180
-GT_BLF = [0.0] * 180
+GT_BLC = [0.0] * 181
+GT_BLB = [0.0] * 181
+GT_BLF = [0.0] * 181
 
 scmpf = np.zeros(4 * 101, dtype=float).reshape(4, 101)
 scmpp = np.zeros(4 * 101, dtype=float).reshape(4, 101)

@@ -76,20 +76,23 @@ class MonteCarlo:
         phl = thl = 0
         # step 1: determination of the leaf normal vector
         cRandom = Random()
-        rnd = 1
-        cosa = rnd + 1
-        ref = rnd - 1
+        rand = 1
+        cosa = rand - 1
+        ref = - 1
         vectLCoord = Position()
         vectObjCoord = Position()
 
-        while (rnd < abs(cosa)):
+        while (rand > abs(cosa)):
 
-            while(rnd > ref):
-                phl = 2.0 * pi * cRandom.getRandom()
-                thl = 0.5 * pi * cRandom.getRandom()
-                # TODO check fgl
+            rand = cRandom.getRandom()
+            phl = 2.0 * pi * rand
+            # make sure it could go to the inner loop
+            ref = rand - 1
+            while(rand > ref):
+                rand = cRandom.getRandom()
+                thl = 0.5 * pi * rand
                 ref = G_Function.fgl(thl, m) / fglm[m]
-                rnd = cRandom.getRandom()
+                rand = cRandom.getRandom()
 
             vectLCoord.setPosition(sin(thl) * cos(phl),
                                    sin(thl) * sin(phl),
@@ -97,7 +100,7 @@ class MonteCarlo:
 
             # step 2: Adjustment to follow the |omega*omegaL|=cosa
             cosa = vectCoord.x * vectLCoord.x + vectCoord.y * vectLCoord.y + vectCoord.z * vectLCoord.z
-            rnd = cRandom.getRandom()
+            rand = cRandom.getRandom()
 
         # step 3: Determination of the scattering direction on the leaf
         # Reflection or transmission
@@ -109,15 +112,15 @@ class MonteCarlo:
         if (cRandom.getRandom() <= (lr / (lr + lt))):
             if (cosa >= 0.0):
                 b += pi
-                if (cosa > 0.0):
+                if (b > (2.0 * pi)):
                     b -= 2.0 * pi
-                    a = pi - a
+                a = pi - a
         # transmission
         elif (cosa < 0.0):
             b += pi
-            if (cosa > 0.0):
+            if (b > (2.0 * pi)):
                 b -= 2.0 * pi
-                a = pi - a
+            a = pi - a
 
         # For tho and pho, coordinate transformation
         TransformCoordinate.transformCoordinate(vectLCoord, a, b, vectCoord)
@@ -137,6 +140,8 @@ class MonteCarlo:
         vegRadiation = VegRadiation()
 
         logging.debug("Monte Carlo stem simulation start...")
+        string = "x = " + str(phoCoord.x) + ", y =" + str(phoCoord.y) + ", z =" + str(phoCoord.z)
+        logging.debug(string)
         # reflectance at the side of stem
         if (face == 1):
             # stem normal vector
@@ -247,7 +252,8 @@ class MonteCarlo:
         vegRadiant = VegRadiation()
 
         logging.debug("Monte Carlo canopy simulation start...")
-
+        string = "x = " + str(phoCoord.x) + ", y =" + str(phoCoord.y) + ", z =" + str(phoCoord.z)
+        logging.debug(string)
         # check status:leaf dominant region, branch dominant or irregulary outside
         while (1):
             io1 = 0
@@ -268,7 +274,7 @@ class MonteCarlo:
 
             if (io1 == 1):
                 self.save(nscat, w)
-                logging.debug("Monte Carlo canopy simulation finish.")
+                logging.debug("Monte Carlo canopy simulation finish. (io1 == 1)")
                 return ERRCODE.OUTSIDE
 
             # if photon inside branch dominant region
@@ -293,7 +299,7 @@ class MonteCarlo:
                     distance = min(distance, 0.9e5)
 
                     if (distance < distance12):
-                        phoCoord.movePosition(distance, vectCoord, comm.X_MAX, comm.Y_MAX)
+                        phoCoord.movePositionDistance(distance, vectCoord, comm.X_MAX, comm.Y_MAX)
                         # re-collision loop for shoot clumping effect
                         while (1):
                             # collision forcing parameters
@@ -324,7 +330,7 @@ class MonteCarlo:
 
                             if (w < MIN_VALUE):
                                 self.save(nscat, w)
-                                logging.debug("Monte Carlo canopy simulation finish.")
+                                logging.debug("Monte Carlo canopy simulation finish. (low w)")
                                 return ERRCODE.LOW_WEIGHT
 
                             psh = (1.0 - 4.0 * cf)
@@ -351,7 +357,7 @@ class MonteCarlo:
                         if (io2 == 1):
                             break
                     else:
-                        phoCoord.movePosition(distance, vectCoord, comm.X_MAX, comm.Y_MAX)
+                        phoCoord.movePositionDistance(distance, vectCoord, comm.X_MAX, comm.Y_MAX)
                         break
 
             # if photon inside the canopy dominant region
@@ -365,7 +371,7 @@ class MonteCarlo:
 
                     sgm = comm.GT_BLB[ith] * branchAreaDensity * bp
                     sgm += 4.0 * cf * comm.GT_BLC[ith] * la * (1.0 - bp)
-                    sgm= sgm * bp + (sgm / comm.FE) * (1.0 - bp)
+                    sgm = sgm * bp + (sgm / comm.FE) * (1.0 - bp)
                     sgm = max(1.0e-5, sgm)
 
                     ref = truncRef * bp + lr * (1.0 - bp)
@@ -376,13 +382,13 @@ class MonteCarlo:
                     distance = min(distance, 0.9e5)
 
                     if (distance > distance2):
-                        phoCoord.movePosition(distance2, vectCoord, comm.X_MAX, comm.Y_MAX)
+                        phoCoord.movePositionDistance(distance2, vectCoord, comm.X_MAX, comm.Y_MAX)
                         break
                     elif (distance > distance12):
-                        phoCoord.movePosition(distance12, vectCoord, comm.X_MAX, comm.Y_MAX)
+                        phoCoord.movePositionDistance(distance12, vectCoord, comm.X_MAX, comm.Y_MAX)
                         break
                     else:
-                        phoCoord.movePosition(distance, vectCoord, comm.X_MAX, comm.Y_MAX)
+                        phoCoord.movePositionDistance(distance, vectCoord, comm.X_MAX, comm.Y_MAX)
 
                         while (1):
                             #  collision forcing parameters
@@ -420,7 +426,7 @@ class MonteCarlo:
 
                         if (w < MIN_VALUE):
                             self.save(nscat, w)
-                            logging.debug("Monte Carlo canopy simulation finish.")
+                            logging.debug("Monte Carlo canopy simulation finish. (low w)")
                             return ERRCODE.LOW_WEIGHT
 
                         cb = int((1.0 - bp) + 2.0 * bp)
@@ -466,20 +472,19 @@ class MonteCarlo:
                     distance = min(distance, 0.9e5)
 
                     if (distance > distance12):
-                        phoCoord.movePosition(distance12, vectCoord, comm.X_MAX, comm.Y_MAX)
+                        phoCoord.movePositionDistance(distance12, vectCoord, comm.X_MAX, comm.Y_MAX)
                         break
                     elif (distance > distance1):
-                        mgn = 1.0e-2
                         phoCoord.x += (distance1 + mgn) * vectCoord.x
                         phoCoord.y += (distance1 + mgn) * vectCoord.y
                         phoCoord.z += (distance1 + mgn) * vectCoord.z
                         self.save(nscat, w)
 
-                        logging.debug("Monte Carlo canopy simulation finish.")
+                        logging.debug("Monte Carlo canopy simulation finish. distance > distance1")
 
                         return ERRCODE.OUTSIDE
                     else:
-                        phoCoord.movePosition(distance, vectCoord, comm.X_MAX, comm.Y_MAX)
+                        phoCoord.movePositionDistance(distance, vectCoord, comm.X_MAX, comm.Y_MAX)
 
                         while (1):
 
@@ -520,7 +525,7 @@ class MonteCarlo:
                         if (w < MIN_VALUE):
                             self.save(nscat, w)
 
-                            logging.debug("Monte Carlo canopy simulation finish.")
+                            logging.debug("Monte Carlo canopy simulation finish. (low w)")
 
                             return ERRCODE.LOW_WEIGHT
 
@@ -543,7 +548,7 @@ class MonteCarlo:
                         if (io1 == 1):
                             self.save(nscat, w)
 
-                            logging.debug("Monte Carlo canopy simulation finish.")
+                            logging.debug("Monte Carlo canopy simulation finish. (io1 == 1)")
 
                             return ERRCODE.OUTSIDE
 
@@ -590,7 +595,8 @@ class MonteCarlo:
         vegRadiant = VegRadiation()
 
         logging.debug("Monte Carlo floor simulation start...")
-
+        string = "x = " + str(phoCoord.x) + ", y =" + str(phoCoord.y) + ", z =" + str(phoCoord.z)
+        logging.debug(string)
         # Monte Carlo loop
         while (1):
 
@@ -684,9 +690,10 @@ class MonteCarlo:
                     w = self.weight
 
                     phoCoord.z = zBottom + mgn
+
                 elif (phoCoord.z >= zUpper):
                     self.save(nscat, w)
-                    logging.debug("Monte Carlo floor simulation finish.")
+                    logging.debug("Monte Carlo floor simulation finish.(higher)")
                     return ERRCODE.OUT_OF_RANGE
 
         self.save(nscat, w)

@@ -20,7 +20,7 @@ class VegRadiation:
         global count
         self.save_a = a
         count += 1
-        logging.debug("count = " + str(count))
+        logging.debug("*** count = " + str(count))
         return ERRCODE.SUCCESS
     # calculate the phase function from LUT
     # cb:cb = 1 (overstory),cb = 2 (branch)
@@ -29,12 +29,12 @@ class VegRadiation:
 
     def fpf(self, thi, tho, phr, lr, lt, cb):
 
-        gmrx = np.zeros(2 * 2 * 2, dtype=float).reshape(2, 2, 2)
-        gmtx = np.zeros(2 * 2 * 2, dtype=float).reshape(2, 2, 2)
-        tr = [0.0] * 2
-        tt = [0.0] * 2
-        ttt = [0.0] * 2
-        trr = [0.0] * 2
+        gmrx = np.zeros(3 * 3 * 3, dtype=float).reshape(3, 3, 3)
+        gmtx = np.zeros(3 * 3 * 3, dtype=float).reshape(3, 3, 3)
+        tr = [0.0] * 3
+        tt = [0.0] * 3
+        ttt = [0.0] * 3
+        trr = [0.0] * 3
 
         # TODO check the math.degree or math.radians function.
         # change angles rad to degree
@@ -54,29 +54,29 @@ class VegRadiation:
         for l in range(2):
             for m in range(2):
                 for n in range(2):
-                    gmrx[l, m, n] = comm.DLT[cb, 1] * comm.G_MRC[i + l + 1, j + m + 1, k + n + 1] + \
-                                    comm.DLT[cb, 2] * comm.G_MRB[i + l + 1, j + m + 1, k + n + 1] + \
-                                    comm.DLT[cb, 4] * comm.G_MRF[i + l + 1, j + m + 1, k + n + 1]
+                    gmrx[l + 1, m + 1, n + 1] = comm.DLT[cb, 1] * comm.G_MRC[i + l, j + m, k + n] + \
+                                    comm.DLT[cb, 2] * comm.G_MRB[i + l, j + m, k + n] + \
+                                    comm.DLT[cb, 4] * comm.G_MRF[i + l, j + m, k + n]
 
-                    gmtx[l, m, n] = comm.DLT[cb, 1] * comm.G_MRC[i + l + 1, j + m + 1, k + n + 1] + \
-                                    comm.DLT[cb, 2] * comm.G_MRB[i + l + 1, j + m + 1, k + n + 1] + \
-                                    comm.DLT[cb, 4] * comm.G_MRF[i + l + 1, j + m + 1, k + n + 1]
+                    gmtx[l + 1, m + 1, n + 1] = comm.DLT[cb, 1] * comm.G_MTC[i + l, j + m, k + n] + \
+                                    comm.DLT[cb, 2] * comm.G_MTB[i + l, j + m, k + n] + \
+                                    comm.DLT[cb, 4] * comm.G_MTF[i + l, j + m, k + n]
 
         # bi-linear over th1 dimension
-        for n in range(2):
-            for l in range(2):
-                tr[l] = gmrx[0, l, n] * (float(i) - th1) + \
-                        gmrx[1, l, n] * (th1 - float(i - 1))
-                tt[l] = gmrx[0, l, n] * (float(i) - th1) + \
-                        gmrx[1, l, n] * (th1 - float(i - 1))
+        for n in range(1, 3):
+            for l in range(1, 3):
+                tr[l] = gmrx[1, l, n] * (float(i) - th1) + \
+                        gmrx[2, l, n] * (th1 - float(i - 1))
+                tt[l] = gmrx[1, l, n] * (float(i) - th1) + \
+                        gmrx[2, l, n] * (th1 - float(i - 1))
 
             # bi-linear over th1, th2 dimension
-            trr[n] = tr[0] * (float(j) - th2) + tr[1] * (th2 - float(j-1))
-            ttt[n] = tt[0] * (float(j) - th2) + tt[1] * (th2 - float(j - 1))
+            trr[n] = tr[1] * (float(j) - th2) + tr[2] * (th2 - float(j - 1))
+            ttt[n] = tt[1] * (float(j) - th2) + tt[2] * (th2 - float(j - 1))
 
         # bi-linear over (th1+th2) - ph plan
-        gmr = trr[0] * (float(k) - ph) + trr[1] * (ph - float(k - 1))
-        gmt = ttt[0] * (float(k) - ph) + trr[1] * (ph - float(k - 1))
+        gmr = trr[1] * (float(k) - ph) + trr[2] * (ph - float(k - 1))
+        gmt = ttt[1] * (float(k) - ph) + trr[2] * (ph - float(k - 1))
 
         gm = lr * gmr + lt * gmt
         gfunc = comm.DLT[cb, 1] * comm.GT_BLC[int(th1 * 10.0)] +\
@@ -97,10 +97,10 @@ class VegRadiation:
     # a changed
 
     def simulate(self, phoCoord, vectCoord, w, lr, lt, cb, a, fd, ichi, ikd):
-
+        global count
         if (phoCoord.z <= 1e-5):
-            logging.debug("***count = " + str(count))
-
+            logging.debug("*** count = " + str(count + 1))
+        count = 0
         MAX_VALUE = 0.999999
         ua = sum(comm.U) / comm.N_TS
 
@@ -119,8 +119,10 @@ class VegRadiation:
         mc1D = MonteCarlo_1D()
 
         logging.debug("Vegetation Radiation start...")
+        string = "x = " + str(phoCoord.x) + ", y =" + str(phoCoord.y) + ", z =" + str(phoCoord.z)
+        logging.debug(string)
 
-        for i in range(comm.N_ANG_C): # nangc = nph * nth
+        for i in range(1, comm.N_ANG_C + 1): # nangc = nph * nth
             #  preparation of Haple-type hotspot function
             cosa = vectCoord.x * comm.URC_coord[i].x + \
                    vectCoord.y * comm.URC_coord[i].y + \
@@ -161,12 +163,16 @@ class VegRadiation:
             # TODO tempCoord doesn't used
             taua = mc1D.escape(objCoord, comm.URC_coord[i], 1, ichi, ikd, tempCoord)
 
+            objCoord.z = zt
             thi = acos(vectCoord.z)
             tho = acos(comm.URC_coord[i].z)
             nf = sin(thi) * sin(tho)
             nf = max(nf, 1.0e-8)
             phr = vectCoord.x * comm.URC_coord[i].x + vectCoord.y * comm.URC_coord[i].y
             phr /= nf
+            phr = max(-1, phr)
+            phr = min(1, phr)
+            #print("phr = ", phr)
             phr = acos(phr)
 
             pf = self.fpf(thi, tho, phr, lr, lt, cb)
@@ -213,6 +219,5 @@ class VegRadiation:
             comm.I_REFL[2, ix, iy] += 1
 
         self.save(a)
-        global count
         logging.debug("Vegetation Radiation finish.")
         return ERRCODE.SUCCESS

@@ -18,8 +18,8 @@ ERR_MESSAGE = ["Run Success!",
                "Input Error!",
                "Calculate Error!",
                "Cannot Find",
-               "Low weight, return.",
-               "Outside"]
+               "Low weight.",
+               "Outside."]
 
 
 def printMessage(itr):

@@ -22,19 +22,19 @@ knang = 2000
 knzext = 200
 fpv = [0.0] * 101
 fpc = fpf = 0.0
-ip = iz = num = 0
+num = 0
 
-plai = [0.0] * 100
-wkd = [0.0] * comm.K_NKD
-ang = [0.0] * knang
-re = [0.0] * knmix
-Qext_ref = [0.0] * knmix
-Qext = [0.0] * knmix
-G = [0.0] * knmix
-Qabs = [0.0] * knmix
-omg = [0.0] * knmix
-phs = np.zeros(knmix * knang, dtype=float).reshape(knmix, knang)
-ext = np.zeros(knmix * knzext, dtype=float).reshape(knmix, knzext)
+# plai = [0.0] * 100
+# wkd = [0.0] * comm.K_NKD
+# ang = [0.0] * knang
+# re = [0.0] * knmix
+# Qext_ref = [0.0] * knmix
+# Qext = [0.0] * knmix
+# G = [0.0] * knmix
+# Qabs = [0.0] * knmix
+# omg = [0.0] * knmix
+# phs = np.zeros(knmix * knang, dtype=float).reshape(knmix, knang)
+# ext = np.zeros(knmix * knzext, dtype=float).reshape(knmix, knzext)
 
 MIN_VALUE = 1.0e-8
 MIN_UZ = 0.0174524
@@ -49,11 +49,9 @@ VectorCoord = Position()
 # real fsin, fcos, facos, r_acos,frnd
 
 Nid = 0
-Nprod = 1  # comm.T_SIN[-1] = 5
-# print(comm.T_SIN)
+Nprod = 1
 
 rand = Random()
-
 
 def simulateATM(para):
     global PhotonCoord, VectorCoord
@@ -66,10 +64,8 @@ def simulateATM(para):
     mc1D = MonteCarlo_1D()
     canopyTrace = CanopyPhotonTrace()
 
-    #print("simulate without atmosphere")
-
-    for iwl in range(1, para.nwl):
-    #for iwl in range(1, 2):
+    #for iwl in range(1, para.nwl):
+    for iwl in range(1, 2):
         string = "This is the " + str(iwl) + " of " + str(para.nwl) + " wavelength."
         logging.info(string)
         para.preparAtm(iwl)
@@ -82,9 +78,10 @@ def simulateATM(para):
 
         # loop for single wavelength
         for ip in range(1, para.npl[iwl] + 1):
+        #for ip in range(1, 2):
             if (fmod(ip, SHOW) == 0):
                 logging.warning("Single wavelength loop[" + str(iwl) + "]: " + str(ip) + " of " + str(para.npl[iwl]))
-
+            logging.warning("*** IP:" + str(ip))
             w = 1.0
             PhotonCoord.setPosition(comm.X_MAX * float(rand.getRandom()),
                                     comm.Y_MAX * float(rand.getRandom()),
@@ -92,7 +89,10 @@ def simulateATM(para):
             VectorCoord.setPosition(para.sin_q0 * para.cos_f0,
                                     para.sin_q0 * para.sin_f0,
                                     para.cos_q0)
-
+            string = "*** x = " + str(PhotonCoord.x) + ", y = " + str(PhotonCoord.y) + ", z = " + str(PhotonCoord.z)
+            logging.debug(string)
+            string = "*** ux = " + str(VectorCoord.x) + ", uy = " + str(VectorCoord.y) + ", uz = " + str(VectorCoord.z)
+            logging.debug(string)
             ftau = -log(max(1.0e-35, float(rand.getRandom())))
             chi = 1.0
             ichi = 1
@@ -162,6 +162,7 @@ def simulateATM(para):
                     w = canopyTrace.weight
                     nscat = canopyTrace.cNscat
 
+                    logging.debug("*** CanopyPhotonTrace Count:" + str(canopyTrace.COUNT))
                     string = "Finish canopy trace. w = " + str(w) + ", nscat = " + str(nscat) + \
                              ", ERRORCODE = " + ERRCODE.ERR_MESSAGE[errCode]
                     logging.debug(string)

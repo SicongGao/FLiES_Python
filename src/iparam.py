@@ -4,6 +4,7 @@ import numpy as np
 import ERRCODE
 import config.config as config
 import logging
+from Position import Position
 
 # Parameters Initialization
 class Parameters:
@@ -435,7 +436,7 @@ class Parameters:
                 logging.info(comm.S_BAR)
                 comm.S_BAR.insert(0, -1)
             else:
-                for i in range(self.nts):
+                for i in range(1, self.nts + 1):
                     comm.S_BAR[i] = float(input())
 
         umax = comm.U[1]
@@ -717,9 +718,10 @@ class Parameters:
             comm.ANG_T = list(args.get("BRF_zenith_angles"))
             comm.N_TH = len(comm.ANG_T)
             logging.info(str(comm.N_TH) + ": " + str(comm.ANG_T))
+            comm.ANG_T.insert(0, -1)
         else:
             self.N_TH = int(input())
-            for i in range(comm.N_TH):
+            for i in range(1, comm.N_TH + 1):
                 comm.ANG_T[i] = float(input())
 
         logging.info("nph, angp:# of angle and azimuth angle(max 36)for BRF")
@@ -728,9 +730,10 @@ class Parameters:
             comm.ANG_P = list(args.get("BRF_azimuth_angles"))
             comm.N_PH = len(comm.ANG_P)
             logging.info(str(comm.N_PH) + ": " + str(comm.ANG_P))
+            comm.ANG_P.insert(0, -1)
         else:
             self.N_PH = int(input())
-            for i in range(comm.N_PH):
+            for i in range(1, comm.N_PH + 1):
                 comm.ANG_P[i] = float(input())
 
         if (comm.N_TH * comm.N_PH > 700):
@@ -747,17 +750,21 @@ class Parameters:
 
         k = 0
 
-        for i in range(comm.N_PH):
-            for j in range(comm.N_TH):
+        temp = Position()
+        temp.setPosition(0, 0, 0)
+        comm.URC_coord.append(temp)
+        for i in range(1, comm.N_PH + 1):
+            for j in range(1, comm.N_TH + 1):
                 if (comm.ANG_T[j] > 80.0):
                     logging.warning("Zenith angle should be less than 80")
                     logging.warning(str(comm.ANG_T[j]) + " is ignored !")
                 else:
-                    comm.URC_coord[k].x = sin(radians(comm.ANG_T[j])) * cos(radians(comm.ANG_P[i]))
-                    comm.URC_coord[k].y = sin(radians(comm.ANG_T[j])) * sin(radians(comm.ANG_P[i]))
-                    comm.URC_coord[k].z = cos(radians(comm.ANG_T[j]))
-
                     k += 1
+                    temp = Position()
+                    temp.setPosition(sin(radians(comm.ANG_T[j])) * cos(radians(comm.ANG_P[i])),
+                                     sin(radians(comm.ANG_T[j])) * sin(radians(comm.ANG_P[i])),
+                                     cos(radians(comm.ANG_T[j])))
+                    comm.URC_coord.append(temp)
 
         comm.N_ANG_C = k
 
@@ -802,6 +809,7 @@ class Parameters:
         self.cos_q0 = cos(q0)
         self.sin_f0 = sin(f0)
         self.cos_f0 = cos(f0)
+        #self.sin_f0 =
 
         if (self.AtmMode == 2):
             return
@@ -814,9 +822,10 @@ class Parameters:
             th = list(args.get("zenith_angle"))
             ntha = len(th)
             logging.info(str(ntha) + ": " + str(th))
+            th.insert(0, -1)
         else:
             ntha = int(input())
-            for i in range(ntha):
+            for i in range(1, ntha + 1):
                 th[i] = int(input())
 
         logging.info("npha, ph: # of angle and azimuth angle(degree,max 36)")
@@ -825,14 +834,15 @@ class Parameters:
             ph = list(args.get("azimuth_angle"))
             npha = len(ph)
             logging.info(str(npha) + ": " + str(ph))
+            ph.insert(0, -1)
         else:
             npha = int(input())
-            for i in range(npha):
+            for i in range(1, npha + 1):
                 ph[i] = int(input())
 
         k = 0
-        for i in range(1,npha):
-            for j in range(1, ntha):
+        for i in range(1, npha + 1):
+            for j in range(1, ntha + 1):
                 if (th[j] < 91):
                     logging.warning("Zenith angle should be greater than 91")
                     logging.warning(str(th[j]) + " is ignored !")
@@ -840,7 +850,7 @@ class Parameters:
                     k = k + 1
                     comm.UX_RTAB[k] = sin(radians(th[j])) * cos(radians(ph[i]))
                     comm.UY_RTAB[k] = sin(radians(th[j])) * sin(radians(ph[i]))
-                    comm.UX_RTAB[k] = cos(radians(th[j]))
+                    comm.UZ_RTAB[k] = cos(radians(th[j]))
 
         comm.N_RDC = k
         return ERRCODE.SUCCESS
@@ -853,11 +863,9 @@ class Parameters:
         swF = 1351.81531
         swQ = 10213.1367
 
-        spcf = [0.0] * 400
-        spcq = [0.0] * 400
-        wl0d = []
-        spcdf = []
-        spcdq = []
+        wl0d = [0.0]
+        spcdf = [0.0]
+        spcdq = [0.0]
 
         ch = ["", "hi", "lo", "lo"]
 
@@ -914,26 +922,26 @@ class Parameters:
             wlsd = self.wls + 0.0005
 
             if (self.imode == 1):
-                for i in range(nspc):
+                for i in range(1, nspc + 1):
                     if ((wlsd > self.wl0 - 0.0025) and (wlsd < self.wl0 + 0.0025)):
                         self.RF = (wl0d[i + 1] * spcdf[i] + wl0d[i] * spcdf[i + 1]) / (wl0d[i] + wl0d[i + 1])
                         self.RQ = (wl0d[i + 1] * spcdq[i] + wl0d[i] * spcdq[i + 1]) / (wl0d[i] + wl0d[i + 1])
-                        spcf[j] = self.RF
-                        spcq[j] = self.RQ
+                        self.spcf[j] = self.RF
+                        self.spcq[j] = self.RQ
                         self.wq = 1.0
                         self.nwl = 1
                         break
                     wlsd += 0.001
 
             elif (self.imode == 2):
-                for i in range(nspc):
+                for i in range(1, nspc + 1):
                     if (abs(wl0d[i] - wlsd) < 1.0E-4):
                         for k in range(20):
-                            spcf[j] += spcdf[i + k]
-                            spcq[j] += spcdq[i + k]
+                            self.spcf[j] += spcdf[i + k]
+                            self.spcq[j] += spcdq[i + k]
 
-                        spcf[j] /= self.span[1] * 1000.0
-                        spcq[j] /= self.span[1] * 1000.0
+                        self.spcf[j] /= self.span[1] * 1000.0
+                        self.spcq[j] /= self.span[1] * 1000.0
                         j += 1
 
                         if (j> self.nwl):
@@ -941,23 +949,23 @@ class Parameters:
                         wlsd += self.span[1]
 
             elif (self.imode == 3):
-                for i in range(nspc):
+                for i in range(1, nspc + 1):
                     if (abs(wl0d[i] - wlsd) < 1.0E-4):
                         if (wlsd < 0.7):
                             for k in range(20):
-                                spcf[j] += spcdf[i + k]
-                                spcq[j] += spcdq[i + k]
+                                self.spcf[j] += spcdf[i + k]
+                                self.spcq[j] += spcdq[i + k]
 
-                            spcf[j] /= self.span[1] * 1000
-                            spcq[j] /= self.span[1] * 1000
+                            self.spcf[j] /= self.span[1] * 1000
+                            self.spcq[j] /= self.span[1] * 1000
 
                         else:
                             for k in range(100):
-                                spcf[j] += spcdf[i + k]
-                                spcq[j] += spcdq[i + k]
+                                self.spcf[j] += spcdf[i + k]
+                                self.spcq[j] += spcdq[i + k]
 
-                            spcf[j] /= self.span[1] * 5000
-                            spcq[j] /= self.span[1] * 5000
+                            self.spcf[j] /= self.span[1] * 5000
+                            self.spcq[j] /= self.span[1] * 5000
 
                         j += 1
                         if (j > self.nwl):
@@ -973,19 +981,19 @@ class Parameters:
 
             for i in range(self.nwl + 1):
                 if (i < 20):
-                    sum += spcf[i]
+                    sum += self.spcf[i]
                 else:
-                    sum += spcf[i] * 5.0
+                    sum += self.spcf[i] * 5.0
 
             for i in range(self.nwl + 1):
                 if (i < 20):
-                    self.npl[i] = int(round(float(self.nPhotonProcess) * spcf[i] / sum))
+                    self.npl[i] = int(round(float(self.nPhotonProcess) * self.spcf[i] / sum))
                 else:
-                    self.npl[i] = int(round(float(self.nPhotonProcess) * 5.0 * spcf[i] / sum))
+                    self.npl[i] = int(round(float(self.nPhotonProcess) * 5.0 * self.spcf[i] / sum))
 
             sum = 0.0
 
-            for i in range(self.nwl):
+            for i in range(self.nwl + 1):
                 sum += self.npl[i]
 
             self.nPhotonProcess = int(sum)
@@ -1279,7 +1287,7 @@ class Parameters:
         if (self.imode != 1):
             # weight of photon for PPFD
             self.wq = self.span[iWL] * self.spcq[iWL] / self.RQ
-            self.wq *= float(self.Nprocess) / float(self.npl[iWL])
+            self.wq *= float(self.nPhotonProcess) / float(self.npl[iWL])
 
             if(iWL <= 20):
                 self.wl0 = self.wls + float(iWL - 1) * self.span[iWL] + self.span[iWL] / 2.0
@@ -1402,10 +1410,10 @@ class Parameters:
                                 file.readline()
 
                             result = file.readline().split()
-                            self.self.Qext_ref[i - 1] = float(result[0])
-                            dself.Qext = float(result[1])
-                            dself.Qabs = float(result[2])
-                            dself.omg = float(result[3])
+                            self.Qext_ref[i - 1] = float(result[0])
+                            self.Qext = float(result[1])
+                            self.Qabs = float(result[2])
+                            self.omg = float(result[3])
                             dG = float(result[4])
 
                             file.readline()
@@ -1420,11 +1428,11 @@ class Parameters:
                                 self.ang.append(float(result[0]))
                                 dphs.append(float(result[1]))
 
-                            self.Qext[i - 1] = ((self.wl0 - wl1) * dself.Qext + (wl2 - self.wl0) * self.Qext[i + 1]) \
+                            self.Qext[i - 1] = ((self.wl0 - wl1) * self.Qext + (wl2 - self.wl0) * self.Qext[i + 1]) \
                                           * (1.0 / 0.005)
-                            self.Qabs[i - 1] = ((self.wl0 - wl1) * dself.Qabs + (wl2 - self.wl0) * self.Qabs[i + 1]) \
+                            self.Qabs[i - 1] = ((self.wl0 - wl1) * self.Qabs + (wl2 - self.wl0) * self.Qabs[i + 1]) \
                                           * (1.0 / 0.005)
-                            self.omg[i] = ((self.wl0 - wl1) * dself.omg + (wl2 - self.wl0) * self.omg[i + 1]) \
+                            self.omg[i] = ((self.wl0 - wl1) * self.omg + (wl2 - self.wl0) * self.omg[i + 1]) \
                                           * (1.0 / 0.005)
                             G[i - 1] = ((self.wl0 - wl1) * dG + (wl2 - self.wl0) * G[i + 1]) \
                                           * (1.0 / 0.005)
@@ -1452,7 +1460,7 @@ class Parameters:
                         self.Qext_ref[i - 1] = float(result[0])
                         self.Qext[i - 1] = float(result[1])
                         self.Qabs[i - 1] = float(result[2])
-                        self.omg[i - 1] = float(result[3])
+                        self.omg[i] = float(result[3])
                         G[i - 1] = float(result[4])
 
                         file.readline()
@@ -1482,33 +1490,37 @@ class Parameters:
             self.phs[1, i + 1] = fac * (1.0 + cos(radians(self.ang[i + 1])) ** 2)
 
         # get the ratio of extinction corf. of each aerosol
-        rat = (1.0, 2.0)
+        rat = (0, 1.0, 2.0)
         zmd = [0]
+
         # Calcualte the extinction coef. from total tau
-        for i in range(comm.N_Z):
-            temp = (0.5 * (exp(comm.Z_GRD[i + 1] / self.d) + exp(comm.Z_GRD[i] / self.d)))
+        for i in range(1, comm.N_Z + 1):
+            temp = (0.5 * (exp(- comm.Z_GRD[i] / self.d) + exp(- comm.Z_GRD[i - 1] / self.d)))
             temp = -self.d * log(temp)
             zmd.append(temp)
 
         # Calculate the scale factor (sfc)
         sfc = [0.0] * 10
         zsum = 0.0
-        for i in range(comm.N_Z):
-            zsum += exp(zmd[i] / self.d)
+        for i in range(1, comm.N_Z + 1):
+            zsum += exp(- zmd[i] / self.d)
+
+        for imix in range(2, self.nmix + 1):
+            sfc[imix - 1] = rat[imix - 1] * self.taur / zsum
 
         for imix in range(2, self.nmix + 1):
             for i in range(1, comm.N_Z + 1):
-                self.ext [imix, i + 1] = sfc[imix - 1] * exp(zmd[i] / self.d) /\
+                self.ext [imix, i] = sfc[imix - 1] * exp(- zmd[i] / self.d) /\
                                          (comm.Z_GRD[i] - comm.Z_GRD[i - 1])
                 # Convert to ext from ext_ref
-                self.ext[imix, i + 1] *= self.Qext[imix - 1] / self.Qext_ref[imix - 1]
+                self.ext[imix, i] *= self.Qext[imix - 1] / self.Qext_ref[imix - 1]
 
         if (self.cflg == 1):
-            for i in range(self.cbnz, self.ctnz + 1):
-                self.ext[self.nmix + self.cflg, i + 1] = self.ctaur /\
+            for i in range(self.cbnz + 1, self.ctnz + 1):
+                self.ext[self.nmix + self.cflg, i] = self.ctaur /\
                                             (comm.Z_GRD[self.ctnz] - comm.Z_GRD[self.cbnz])
-                self.ext[self.nmix + self.cflg, i + 1] *= self.Qext(self.nmix) / \
-                                             self.self.Qext_ref[self.nmix]
+                self.ext[self.nmix + self.cflg, i] *= self.Qext(self.nmix) / \
+                                             self.Qext_ref[self.nmix]
 
         return ERRCODE.SUCCESS
 
@@ -1518,7 +1530,7 @@ class Parameters:
 
     def writeData(self):
 
-        app = [0.0] * 100
+        app = [0.0] * int(comm.Z_MAX + 2)
 
         # summary of the radiative flux
 
@@ -1529,7 +1541,7 @@ class Parameters:
         for i in range(1, self.nwl + 1):
             comm.scmpf[1, i] *= 100.0 / self.tflx
             comm.scmpp[1, i] *= 100.0 / self.tpfd
-            comm.scmpf[2, i] *= 100.0 / self.bplx
+            comm.scmpf[2, i] *= 100.0 / self.bflx
             comm.scmpp[2, i] *= 100.0 / self.bpfd
             comm.scmpf[3, i] *= 100.0 / self.dflx
             comm.scmpp[3, i] *= 100.0 / self.dpfd
@@ -1563,30 +1575,30 @@ class Parameters:
         ith = int(degrees(th))
 
         for k in range(int(comm.Z_MAX) + 1, 0, -1):
-            for i in range(1, comm.SIZE):
-                for j in range(1, comm.SIZE):
+            for i in range(1, comm.SIZE + 1):
+                for j in range(1, comm.SIZE + 1):
                     comm.AP[i, j, k] *= self.RQ * abs(self.cos_q0) / pixelNP
                     comm.AP_D[i, j, k] *= self.RQ * abs(self.cos_q0) / pixelNP
                     comm.AP_B[i, j, k] *= abs(self.cos_q0) / pixelNP
                     comm.AP_B[i, j, k] *= (1.0 / comm.GT_BLC[ith])
-                    comm.AP_B[i, j, k] *= min(comm.AP_B, 1.0)
+                    comm.AP_B[i, j, k] *= min(comm.AP_B[i, j, k], 1.0)
                     app[k] += comm.AP[i, j, k]
 
             app[k] /= (self.tflx * float((comm.SIZE - 1)** 2))
-            comm.AP_NP *= self.RQ * abs(self.cos_q0) / float(self.nPhoton) / self.tflx
+            comm.AP_NP[k] *= self.RQ * abs(self.cos_q0) / float(self.nPhoton) / self.tflx
 
         # summary of forest floor far etc
-        for i in range(1, comm.SIZE):
-            for j in range(1, comm.SIZE):
-                comm.AP_F *= self.RQ * abs(self.cos_q0) / pixelNP
-                comm.AP_FD *= self.RQ * abs(self.cos_q0) / pixelNP
+        for i in range(1, comm.SIZE + 1):
+            for j in range(1, comm.SIZE + 1):
+                comm.AP_F[i, j] *= self.RQ * abs(self.cos_q0) / pixelNP
+                comm.AP_FD[i, j] *= self.RQ * abs(self.cos_q0) / pixelNP
 
         # summary of forest floor and surface downward flux
         ffSum = 0.0
         sfSum = 0.0
 
-        for i in range(1, comm.SIZE):
-            for j in range(1, comm.SIZE):
+        for i in range(1, comm.SIZE + 1):
+            for j in range(1, comm.SIZE + 1):
                 comm.SF_DIR[i, j] *= self.RQ * abs(self.cos_q0) / pixelNP
                 comm.SF_DIF[i, j] *= self.RQ * abs(self.cos_q0) / pixelNP
                 comm.FF_DIR[i, j] *= self.RQ * abs(self.cos_q0) / pixelNP
@@ -1596,7 +1608,7 @@ class Parameters:
                 sfSum += comm.SF_DIR[i, j] + comm.SF_DIF[i, j]
 
         # writting
-        f = open(OUTPUT_PATH + "flxsum.txt", "w")
+        f = open(config.OUTPUT_PATH + "flxsum.txt", "w")
         f.write("-- summary of radiative quantity --")
         f.write("")
         f.write("-- simulation mode --")
@@ -1621,7 +1633,7 @@ class Parameters:
 
         f.write("\n-- Solar zenith angle, Elv(m), atm. transmittance --")
         f.write(format(radians(pi - cos(self.cos_q0)), '12.2f') + " " +
-                format(comm.Z_MAX + '12.5f') + "  " +
+                format(comm.Z_MAX, '12.5f') + "  " +
                 format(tm, '12.5f'))
 
         f.write("\n-- Downward Irradiance at TOC --")
@@ -1658,9 +1670,9 @@ class Parameters:
             f.write("\nVertical profile of far")
             f.write(format("H(m)", '10') + format("total", '10') + format("leaf", '10') + format("non-leaf", '10'))
             string = ""
-            for k in range(comm.Z_MAX + 1, 0, -1):
-                string += format(k, '6') + format(app[k] + comm.AP_NP[k], '10') + format(app[k], '10') + format(
-                    comm.AP_NP[k], '10')
+            for k in range(int(comm.Z_MAX) + 1, 0, -1):
+                string += format(k, '6') + format(app[k] + comm.AP_NP[k], '10') + format(app[k], '10') + \
+                          format(comm.AP_NP[k], '10')
             f.write(string)
 
         f.write("\n-- spctrl fraction. energy & photon flux(%) --")
@@ -1692,8 +1704,8 @@ class Parameters:
             sumQ = sum2Q = 0.0
             pQ_Max = 0.0
 
-            for i in range(comm.K_NXR + 1):
-                for j in range(comm.K_NYR + 1):
+            for i in range(1, comm.K_NXR + 1):
+                for j in range(1, comm.K_NYR + 1):
                     pF = comm.PROC_F[i, j, k] / pixelNP_A
                     pQ = comm.PROC_Q[i, j, k] / pixelNP_A
 
@@ -1705,10 +1717,10 @@ class Parameters:
                     sum2Q += pQ ** 2
                     pQ_Max = max(pQ_Max, pQ)
 
-            aveF = sumF / float(comm.K_NXR * comm.KYXR)
-            sdvF = sqrt(sum2F / float(comm.K_NXR * comm.KYXR) - aveF ** 2)
-            aveQ = sumQ / float(comm.K_NXR * comm.KYXR)
-            sdvF = sqrt(sum2Q / float(comm.K_NXR * comm.KYXR) - aveQ ** 2)
+            aveF = sumF / float(comm.K_NXR * comm.K_NYR)
+            sdvF = sqrt(sum2F / float(comm.K_NXR * comm.K_NYR) - aveF ** 2)
+            aveQ = sumQ / float(comm.K_NXR * comm.K_NYR)
+            sdvF = sqrt(sum2Q / float(comm.K_NXR * comm.K_NYR) - aveQ ** 2)
 
             uxc = copysign(max(1.0e-5, abs(comm.UX_RTAB[k])), comm.UX_RTAB[k])
             phi = sqrt(comm.UX_RTAB[k] ** 2 + comm.UY_RTAB[k])
@@ -1724,7 +1736,7 @@ class Parameters:
             return ERRCODE.SUCCESS
 
         if (self.cmode == 1):
-            # BRFD result output
+            # BRDF result output
             for i in range(1, comm.N_ANG_C + 1):
                 comm.BRF_C[1, i] /= comm.BRF[1, i]
                 comm.BRF_S[1, i] /= comm.BRF[1, i]
@@ -1778,10 +1790,10 @@ class Parameters:
             for j in range(comm.SIZE - 1, 0, -1):
                 string = ""
                 if (self.atmType == 1):
-                    for i in range(1, comm.SIZE):
+                    for i in range(1, comm.SIZE + 1):
                         string += format(pi * comm.REFL[1, i, j] / (pixelNP * tm), '10.5f')
                 else:
-                    for i in range(1, comm.SIZE):
+                    for i in range(1, comm.SIZE + 1):
                         string += format(pi * comm.REFL[1, i, j] / pixelNP, '10.5f')
                 f.write(s)
 
@@ -1790,34 +1802,34 @@ class Parameters:
             f = open(OUTPUT_PATH + "nTOC_IMG.txt", 'w')
             for j in range(comm.SIZE - 1, 0, -1):
                 string = ""
-                for i in range(1, comm.SIZE):
+                for i in range(1, comm.SIZE + 1):
                     string += format(pi * comm.I_REFL[1, i, j] / pixelNP, '10.5f')
             f.close()
 
         if (self.cmode == 3):
             f = open(OUTPUT_PATH + "apar.txt", 'w')
-            for k in range(comm.Z_MAX + 1, 0, -1):
+            for k in range(int(comm.Z_MAX) + 1, 0, -1):
                 for j in range(comm.SIZE - 1, 0, -1):
                     string = ""
-                    for i in range(1, comm.SIZE):
+                    for i in range(1, comm.SIZE + 1):
                         string += format(comm.AP[i, j, k], '12.5f')
                     f.write(string)
             f.close()
 
             f = open(OUTPUT_PATH + "aparb.txt", 'w')
-            for k in range(comm.Z_MAX + 1, 0, -1):
+            for k in range(int(comm.Z_MAX) + 1, 0, -1):
                 for j in range(comm.SIZE - 1, 0, -1):
                     string = ""
-                    for i in range(1, comm.SIZE):
+                    for i in range(1, comm.SIZE + 1):
                         string += format(comm.AP_B[i, j, k], '12.5f')
                     f.write(string)
             f.close()
 
             f = open(OUTPUT_PATH + "apard.txt", 'w')
-            for k in range(comm.Z_MAX + 1, 0, -1):
+            for k in range(int(comm.Z_MAX) + 1, 0, -1):
                 for j in range(comm.SIZE - 1, 0, -1):
                     string = ""
-                    for i in range(1, comm.SIZE):
+                    for i in range(1, comm.SIZE + 1):
                         string += format(comm.AP_D[i, j, k], '12.5f')
                     f.write(string)
             f.close()
@@ -1825,7 +1837,7 @@ class Parameters:
             f = open(OUTPUT_PATH + "aparf.txt", 'w')
             for j in range(comm.SIZE - 1, 0, -1):
                 string = ""
-                for i in range(1, comm.SIZE):
+                for i in range(1, comm.SIZE + 1):
                     string += format(comm.AP_F[i, j, k], '12.5f')
                 f.write(string)
             f.close()
@@ -1833,7 +1845,7 @@ class Parameters:
             f = open(OUTPUT_PATH + "aparfd.txt", 'w')
             for j in range(comm.SIZE - 1, 0, -1):
                 string = ""
-                for i in range(1, comm.SIZE):
+                for i in range(1, comm.SIZE + 1):
                     string += format(comm.AP_FD[i, j, k], '12.5f')
                 f.write(string)
             f.close()

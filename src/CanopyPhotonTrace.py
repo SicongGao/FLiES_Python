@@ -18,6 +18,7 @@ import logging
 # ##################################################
 
 
+
 class CanopyPhotonTrace:
 
     def __init__(self):
@@ -27,11 +28,13 @@ class CanopyPhotonTrace:
         self.cNscat = 0
         self.cIchi = 0
         self.cIkd = 0
+        self.COUNT = 0
 
     def save(self, w, nscat):
         self.weight = w
         self.cNscat = nscat
-        logging.debug("CanopyPhotonTrace finish")
+
+
         # self.cIchi = ichi
         # self.cIkd = ikd
 
@@ -61,9 +64,12 @@ class CanopyPhotonTrace:
         mcSimulation = MonteCarlo()
 
         logging.debug("CanopyPhotonTrace start...")
-
+        string = "x = " + str(phoCoord.x) + ", y =" + str(phoCoord.y) + ", z =" + str(phoCoord.z)
+        logging.debug(string)
+        self.COUNT = 0
         # do wile photon exit from canopy space
         while (1):
+            self.COUNT += 1
             # determinatin of first input voxel
             phoCoord.x = min(phoCoord.x, comm.X_MAX)
             phoCoord.x = max(phoCoord.x, 0.0)
@@ -95,8 +101,8 @@ class CanopyPhotonTrace:
 
             if (iVOX > 720 or iVOX < 0):
                 logging.critical("comm.N_DIVS is out of range!!!")
-                logging.warning("objCoord = ", objCoord.x, objCoord.y, objCoord.z)
-                logging.warning("phoCoord = ", phoCoord.x, phoCoord.y, phoCoord.z)
+                logging.critical("objCoord = " + str(objCoord.x) + ", " + str(objCoord.y) + ", " + str(objCoord.z))
+                logging.critical("phoCoord = " + str(phoCoord.x) + ", " + str(phoCoord.y) + ", " + str(phoCoord.z))
             # print(iVOX)
             # check the photon intersection with objects
             if (comm.N_DIVS[iVOX] != 0):
@@ -111,17 +117,16 @@ class CanopyPhotonTrace:
                     treeBoundary.dealTreeType(comm.OBJ_Shape[index], phoCoord, vectCoord, tObj)
 
                     tempDistance = treeBoundary.distance
-                    tempIO = treeBoundary.io
-                    face = treeBoundary.face
 
                     if (tempDistance < distanceObj):
                         distanceObj = tempDistance
                         iNobj = index
-                        io = tempIO
+                        io = treeBoundary.io
+                        face = treeBoundary.face
 
                     if (io == 0):
                         break
-
+            logging.debug("iVox = " + str(iVOX) + ", iNobj = " + str(iNobj))
             # canopy interaction
             if ((distanceObj <= distancePho) or (io == 0)):
 
@@ -162,16 +167,19 @@ class CanopyPhotonTrace:
                     w = mcSimulation.weight
                     if (w < MIN_VALUE):
                         self.save(w, nscat)
+                        logging.debug("CanopyPhotonTrace finish. (low w)")
                         return ERRCODE.LOW_WEIGHT
 
-                    phoCoord.movePosition(distancePho, vectCoord, comm.X_MAX, comm.Y_MAX)
+                    phoCoord.movePosition(vectCoord, comm.X_MAX, comm.Y_MAX)
+
                 else:
-                    logging.critical("No. ", iNobj, " OBJ Shape number is wrong!")
+                    logging.critical("CanopyPhotonTrace finish. " + "No. " + str(iNobj) +
+                                     " OBJ Shape number is wrong!")
                     return ERRCODE.CANNOT_FIND
 
             # big-voxel wall interaction
             else:
-                phoCoord.movePosition(distancePho, vectCoord, comm.X_MAX, comm.Y_MAX)
+                phoCoord.movePositionDistance(distancePho, vectCoord, comm.X_MAX, comm.Y_MAX)
 
                 # Monte Carlo in forest floor
                 # forest floor downward flux
@@ -191,6 +199,7 @@ class CanopyPhotonTrace:
                     w = mcSimulation.weight
                     if (w < MIN_VALUE):
                         self.save(w, nscat)
+                        logging.debug("CanopyPhotonTrace finish. (low w)")
                         return ERRCODE.LOW_WEIGHT
 
                     phoCoord.x += MGN * vectCoord.x
@@ -200,6 +209,7 @@ class CanopyPhotonTrace:
                 # sky (exit from canopy space)
                 elif(phoCoord.z >= comm.Z_MAX):
                     self.save(w, nscat)
+                    logging.debug("CanopyPhotonTrace finish. (sky)")
                     return ERRCODE.OUTSIDE
 
                 # refresh the x, y position using the boundary condition
@@ -208,6 +218,6 @@ class CanopyPhotonTrace:
                     phoCoord.y -= (trunc(phoCoord.y / comm.Y_MAX) - 0.5 + copysign(0.5, phoCoord.y)) * comm.Y_MAX
 
         self.save(w, nscat)
-
+        logging.debug("CanopyPhotonTrace finish.")
         return ERRCODE.SUCCESS
 
