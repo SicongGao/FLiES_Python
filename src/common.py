@@ -82,9 +82,9 @@ U = [0.0] * 6
 BAD = [0.0] * 5
 IR = FE = BP1 = BP2 = 0.0
 URC_coord = []
-UX_RC = [0.0] * K_NRDC
-UY_RC = [0.0] * K_NRDC
-UZ_RC = [0.0] * K_NRDC
+# UX_RC = [0.0] * K_NRDC
+# UY_RC = [0.0] * K_NRDC
+# UZ_RC = [0.0] * K_NRDC
 RB = 0.5
 
 # scattering angle parameters

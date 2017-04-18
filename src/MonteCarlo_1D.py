@@ -826,9 +826,9 @@ class MonteCarlo_1D:
 
                     for i in range(1, comm.N_ANG_C + 1):
                         vectR = Position()
-                        vectR.setPosition(comm.UX_RC[i],
-                                          comm.UY_RC[i],
-                                          comm.UZ_RC[i])
+                        vectR.setPosition(comm.URC_coord[i].x,
+                                          comm.URC_coord[i].y,
+                                          comm.URC_coord[i].z)
 
                         vectR.angle_twoVectors(vectCoord)
                         q = vectR.angle

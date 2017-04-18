@@ -80,8 +80,8 @@ def simulateATM(para):
         for ip in range(1, para.npl[iwl] + 1):
         #for ip in range(1, 2):
             if (fmod(ip, SHOW) == 0):
-                logging.warning("Single wavelength loop[" + str(iwl) + "]: " + str(ip) + " of " + str(para.npl[iwl]))
-            logging.warning("*** IP:" + str(ip))
+                logging.info("Single wavelength loop[" + str(iwl) + "]: " + str(ip) + " of " + str(para.npl[iwl]))
+            logging.info("*** IP:" + str(ip))
             w = 1.0
             PhotonCoord.setPosition(comm.X_MAX * float(rand.getRandom()),
                                     comm.Y_MAX * float(rand.getRandom()),
@@ -97,6 +97,7 @@ def simulateATM(para):
             chi = 1.0
             ichi = 1
             iz = comm.N_Z
+            nscat = 0
 
             # determination of the k-term
             randNum = rand.getRandom()
@@ -111,6 +112,8 @@ def simulateATM(para):
                 w = mc1D.weight
                 nscat = mc1D.nscat
                 iz = mc1D.iz
+
+                logging.debug("After mc1d - nscat:" + str(nscat))
 
                 nscata = nscat
                 if ((w <= 0.0) or (iz > comm.N_Z)):
@@ -413,7 +416,8 @@ err = main(**input_parameters.Atmosphere_Mode_Args)
 ERRCODE.printMessage(err)
 
 END_TIME = datetime.datetime.now()
-logging.info("Start to write results...")("TIME USED (HOURS, MINUTES, SECONDS): ", (END_TIME - START_TIME))
+logging.info("Simulation finish.")
+logging.info("TIME USED (HOURS, MINUTES, SECONDS): " + str(END_TIME - START_TIME))
 
 
 

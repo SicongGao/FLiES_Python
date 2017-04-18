@@ -563,18 +563,18 @@ class Parameters:
             # determination of the epsi(epsiron) that is used to perform the
             # Russian Roulette
             # epsi is setted to be c * (leaf_r + leaf_t)
-            if (self.nPhoton == -4):
+            if (self.nPhoton != -4):
                 avelr = 0.0
                 avelt = 0.0
 
-                for i in range(self.nwl):
-                    for j in range(self.nts):
+                for i in range(1, self.nwl + 1):
+                    for j in range(1, self.nts + 1):
                         avelr += self.lr[j, i]
                         avelt += self.lt[j, i]
 
                 avelr /= float(self.nwl * self.nts)
                 avelt /= float(self.nwl * self.nts)
-                comm.EPSI = 0.5 * 0.1 * (avelr - avelt)
+                comm.EPSI = 0.5 * 0.1 * (avelr + avelt)
 
         return ERRCODE.SUCCESS
 
@@ -637,7 +637,7 @@ class Parameters:
                     ispc = i
 
                 else:
-                    for j in range(self.nts):
+                    for j in range(1, self.nts + 1):
                         self.lr[j, i] = self.lr[j, ispc]
                         self.lt[j, i] = self.lt[j, ispc]
                         self.truncRef[j, i] = self.truncRef[j, ispc]
@@ -1710,7 +1710,7 @@ class Parameters:
                     pQ = comm.PROC_Q[i, j, k] / pixelNP_A
 
                     sumF += pF
-                    sumF += pF ** 2
+                    sum2F += pF ** 2
                     pF_Max = max(pF_Max, pF)
 
                     sumQ += pQ
@@ -1718,17 +1718,18 @@ class Parameters:
                     pQ_Max = max(pQ_Max, pQ)
 
             aveF = sumF / float(comm.K_NXR * comm.K_NYR)
+            # print("sum2F / float(comm.K_NXR * comm.K_NYR) - aveF ** 2 = ", sum2F / float(comm.K_NXR * comm.K_NYR) - aveF ** 2)
             sdvF = sqrt(sum2F / float(comm.K_NXR * comm.K_NYR) - aveF ** 2)
             aveQ = sumQ / float(comm.K_NXR * comm.K_NYR)
-            sdvF = sqrt(sum2Q / float(comm.K_NXR * comm.K_NYR) - aveQ ** 2)
+            sdvQ = sqrt(sum2Q / float(comm.K_NXR * comm.K_NYR) - aveQ ** 2)
 
             uxc = copysign(max(1.0e-5, abs(comm.UX_RTAB[k])), comm.UX_RTAB[k])
             phi = sqrt(comm.UX_RTAB[k] ** 2 + comm.UY_RTAB[k])
             phi = max(1.0e-5, phi)
             phi = radians(acos(uxc / phi))
 
-            f.write(format(k, "6") + format(radians(acos(comm.UZ_RTAB)), '8.3f') + format(phi, '8.3f') +
-                    format(avef, '12.5f') + format(sdvf, '12.5f') + format(aveQ, '12.5f') + format(sdvQ, '12.5f'))
+            f.write(format(k, "6") + format(radians(acos(comm.UZ_RTAB[k])), '8.3f') + format(phi, '8.3f') +
+                    format(aveF, '12.5f') + format(sdvF, '12.5f') + format(aveQ, '12.5f') + format(sdvQ, '12.5f'))
 
         f.close()
 
@@ -1752,7 +1753,7 @@ class Parameters:
                 comm.BRF_F[2, i] /= comm.BRF[2, i]
                 comm.BRF[2, i] *= pi / float(self.nPhoton)
 
-                f = open(OUTPUT_PATH + "brfsum.txt", 'w')
+                f = open(config.OUTPUT_PATH + "brfsum.txt", 'w')
 
                 if (self.atmType == 1):
                     f.write(format("Theta", '8') + format("Phi", '8') + format("BRF(TOC)", '10') + format("BRF(TOA)",
@@ -1767,14 +1768,13 @@ class Parameters:
 
                 for j in range(1, comm.N_PH + 1):
                     for i in range(1, comm.N_TH + 1):
-
                         if (self.atmType == 1):
-                            f.write(format(comm.ANG_T[i], '8.2f') + format(comm.ANG_P[i], '8.2f') +
+                            f.write(format(comm.ANG_T[i], '8.2f') + format(comm.ANG_P[j], '8.2f') +
                                     format(comm.BRF[1, k], '10.6f') + format(comm.BRF[2, k], '10.6f') +
                                     format(comm.BRF_C[1, k], '10.6f') + format(comm.BRF_S[2, k], '10.6f') + format(
                                 comm.BRF_F[1, k], '10.6f'))
                         else:
-                            f.write(format(comm.ANG_T[i], '8.2f') + format(comm.ANG_P[i], '8.2f') +
+                            f.write(format(comm.ANG_T[i], '8.2f') + format(comm.ANG_P[j], '8.2f') +
                                     format(comm.BRF[1, k], '10.6f') + format(comm.BRF[2, k], '10.6f') +
                                     format(comm.BRF_C[1, k], '10.6f') + format(comm.BRF_S[2, k], '10.6f') + format(
                                 comm.BRF_F[1, k], '10.6f'))
@@ -1785,7 +1785,7 @@ class Parameters:
 
         # Nadir view image
         if (self.cmode != 1):
-            f = open(OUTPUT_PATH + "TOC_IMG.txt")
+            f = open(config.OUTPUT_PATH + "TOC_IMG.txt")
 
             for j in range(comm.SIZE - 1, 0, -1):
                 string = ""
@@ -1799,7 +1799,7 @@ class Parameters:
 
             f.close()
 
-            f = open(OUTPUT_PATH + "nTOC_IMG.txt", 'w')
+            f = open(config.OUTPUT_PATH + "nTOC_IMG.txt", 'w')
             for j in range(comm.SIZE - 1, 0, -1):
                 string = ""
                 for i in range(1, comm.SIZE + 1):
@@ -1807,7 +1807,7 @@ class Parameters:
             f.close()
 
         if (self.cmode == 3):
-            f = open(OUTPUT_PATH + "apar.txt", 'w')
+            f = open(config.OUTPUT_PATH + "apar.txt", 'w')
             for k in range(int(comm.Z_MAX) + 1, 0, -1):
                 for j in range(comm.SIZE - 1, 0, -1):
                     string = ""
@@ -1816,7 +1816,7 @@ class Parameters:
                     f.write(string)
             f.close()
 
-            f = open(OUTPUT_PATH + "aparb.txt", 'w')
+            f = open(config.OUTPUT_PATH + "aparb.txt", 'w')
             for k in range(int(comm.Z_MAX) + 1, 0, -1):
                 for j in range(comm.SIZE - 1, 0, -1):
                     string = ""
@@ -1825,7 +1825,7 @@ class Parameters:
                     f.write(string)
             f.close()
 
-            f = open(OUTPUT_PATH + "apard.txt", 'w')
+            f = open(config.OUTPUT_PATH + "apard.txt", 'w')
             for k in range(int(comm.Z_MAX) + 1, 0, -1):
                 for j in range(comm.SIZE - 1, 0, -1):
                     string = ""
@@ -1834,7 +1834,7 @@ class Parameters:
                     f.write(string)
             f.close()
 
-            f = open(OUTPUT_PATH + "aparf.txt", 'w')
+            f = open(config.OUTPUT_PATH + "aparf.txt", 'w')
             for j in range(comm.SIZE - 1, 0, -1):
                 string = ""
                 for i in range(1, comm.SIZE + 1):
@@ -1842,7 +1842,7 @@ class Parameters:
                 f.write(string)
             f.close()
 
-            f = open(OUTPUT_PATH + "aparfd.txt", 'w')
+            f = open(config.OUTPUT_PATH + "aparfd.txt", 'w')
             for j in range(comm.SIZE - 1, 0, -1):
                 string = ""
                 for i in range(1, comm.SIZE + 1):

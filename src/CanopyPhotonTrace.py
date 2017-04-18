@@ -77,6 +77,9 @@ class CanopyPhotonTrace:
             phoCoord.y = max(phoCoord.y, 0.0)
             phoCoord.z = min(phoCoord.z, comm.Z_MAX)
 
+            if (phoCoord.z < 0):
+                logging.warning("CanopyPhotonTrace: phoCoord.z <0, value:" + str(phoCoord.z))
+
             objCoord.setPosition(trunc(phoCoord.x / intv[1]),
                                  trunc(phoCoord.y / intv[2]),
                                  trunc(phoCoord.z / intv[3]))
@@ -101,6 +104,8 @@ class CanopyPhotonTrace:
 
             if (iVOX > 720 or iVOX < 0):
                 logging.critical("comm.N_DIVS is out of range!!!")
+                logging.critical("iVOX = " + str(iVOX))
+                logging.critical("distancePho = " + str(distancePho))
                 logging.critical("objCoord = " + str(objCoord.x) + ", " + str(objCoord.y) + ", " + str(objCoord.z))
                 logging.critical("phoCoord = " + str(phoCoord.x) + ", " + str(phoCoord.y) + ", " + str(phoCoord.z))
             # print(iVOX)

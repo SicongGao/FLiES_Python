@@ -279,6 +279,7 @@ class MonteCarlo:
 
             # if photon inside branch dominant region
             if (io2 == 0):
+                logging.debug("MC Canopy: io2 == 0")
                 while (1):
                     rand = randMethod.getRandom()
 
@@ -330,10 +331,10 @@ class MonteCarlo:
 
                             if (w < MIN_VALUE):
                                 self.save(nscat, w)
-                                logging.debug("Monte Carlo canopy simulation finish. (low w)")
+                                logging.debug("Monte Carlo canopy simulation finish. (low w)[1]")
                                 return ERRCODE.LOW_WEIGHT
 
-                            psh = (1.0 - 4.0 * cf)
+                            psh = (1.0 - 4.0 * cf) * (1.0 - bp)
                             if (randMethod.getRandom() > psh):
                                 break
 
@@ -348,10 +349,9 @@ class MonteCarlo:
                                 vectCoord.z = copysign(UZ_MIN, vectCoord.z)
 
                         # check status
-                        if (tsobj == 1):
-                            treeBounday.dealTreeType(tsobj, phoCoord, vectCoord, tObjb)
-                            io2 = treeBounday.io
-                            distance2 = treeBounday.distance
+                        treeBounday.dealTreeType(tsobj, phoCoord, vectCoord, tObjb)
+                        io2 = treeBounday.io
+                        distance2 = treeBounday.distance
 
                         # for unexpected case(photon is outside of canopy)
                         if (io2 == 1):
@@ -362,6 +362,7 @@ class MonteCarlo:
 
             # if photon inside the canopy dominant region
             elif (io12 == 0):
+                logging.debug("MC Canopy: io12 == 0")
                 while (1):
                     rand = randMethod.getRandom()
                     # branch scattering or leaf scattering
@@ -426,24 +427,25 @@ class MonteCarlo:
 
                         if (w < MIN_VALUE):
                             self.save(nscat, w)
-                            logging.debug("Monte Carlo canopy simulation finish. (low w)")
+                            logging.debug("Monte Carlo canopy simulation finish. (low w)[2]")
                             return ERRCODE.LOW_WEIGHT
 
                         cb = int((1.0 - bp) + 2.0 * bp)
+
                         vegRadiant.simulate(phoCoord, vectCoord, w, lr, lt, cb, 1.0, fd, ichi, ikd)
 
-                        if (randMethod.getRandom() >= fd):
+                        rand = randMethod.getRandom()
+                        if (rand >= fd):
                             self.scatterDirection(ref, tr, vectCoord, comm.M_C)
-                            if (abs(vectCoord.z < UZ_MIN)):
+                            if (abs(vectCoord.z) < UZ_MIN):
                                 vectCoord.z = copysign(UZ_MIN, vectCoord.z)
 
-                        if (tsobj == 1):
-                            treeBounday.dealTreeType(tsobj, phoCoord, vectCoord, tObj12)
-                            io12 = treeBounday.io
-                            distance12 = treeBounday.distance
-                            treeBounday.dealTreeType(tsobj, phoCoord, vectCoord, tObjb)
-                            io2 = treeBounday.io
-                            distance2 = treeBounday.distance
+                        treeBounday.dealTreeType(tsobj, phoCoord, vectCoord, tObj12)
+                        io12 = treeBounday.io
+                        distance12 = treeBounday.distance
+                        treeBounday.dealTreeType(tsobj, phoCoord, vectCoord, tObjb)
+                        io2 = treeBounday.io
+                        distance2 = treeBounday.distance
 
                         # for unexpected case (photon is outside of canopy)
                         if (io12 == 1):
@@ -451,6 +453,7 @@ class MonteCarlo:
 
             # if photon inside the canopy dominant region
             elif (io1 == 0):
+                logging.debug("MC Canopy: io1 == 0")
                 while (1):
                     rand = randMethod.getRandom()
                     # branch scattering or leaf scattering
@@ -525,7 +528,7 @@ class MonteCarlo:
                         if (w < MIN_VALUE):
                             self.save(nscat, w)
 
-                            logging.debug("Monte Carlo canopy simulation finish. (low w)")
+                            logging.debug("Monte Carlo canopy simulation finish. (low w)[3]")
 
                             return ERRCODE.LOW_WEIGHT
 
@@ -538,13 +541,13 @@ class MonteCarlo:
                                 vectCoord.z = copysign(UZ_MIN, vectCoord.z)
 
                         # check status
-                        if (tsobj == 1):
-                            treeBounday.dealTreeType(tsobj, phoCoord, vectCoord, tObj)
-                            distance1 = treeBounday.distance
-                            io1 = treeBounday.io
-                            treeBounday.dealTreeType(tsobj, phoCoord, vectCoord, tObj12)
-                            distance12 = treeBounday.distance
-                            io12 = treeBounday.io
+                        treeBounday.dealTreeType(tsobj, phoCoord, vectCoord, tObj)
+                        distance1 = treeBounday.distance
+                        io1 = treeBounday.io
+                        treeBounday.dealTreeType(tsobj, phoCoord, vectCoord, tObj12)
+                        distance12 = treeBounday.distance
+                        io12 = treeBounday.io
+
                         if (io1 == 1):
                             self.save(nscat, w)
 

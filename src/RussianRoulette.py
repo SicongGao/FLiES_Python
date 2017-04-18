@@ -16,7 +16,7 @@ def roulette(w):
         if ((rnd <= q) and (w != 0)):
             w /= q
         else:
-            logging.warning("w may equal to 0.")
+            # logging.warning("w may equal to 0.")
             w = 1.0e-9
 
     return w
