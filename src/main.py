@@ -65,7 +65,7 @@ def simulateATM(para):
     canopyTrace = CanopyPhotonTrace()
 
     #for iwl in range(1, para.nwl):
-    for iwl in range(1, 2):
+    for iwl in range(1, para.nwl):
         string = "This is the " + str(iwl) + " of " + str(para.nwl) + " wavelength."
         logging.info(string)
         para.preparAtm(iwl)
@@ -112,6 +112,8 @@ def simulateATM(para):
                 w = mc1D.weight
                 nscat = mc1D.nscat
                 iz = mc1D.iz
+                chi = mc1D.chi
+                ichi = mc1D.ichi
 
                 logging.debug("After mc1d - nscat:" + str(nscat))
 

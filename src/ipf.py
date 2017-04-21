@@ -10,8 +10,8 @@ def ipf():
     th1 = th2 = ph = 0.0
     gmr = gmt = 0.0
 
-    rfile = ["../data/gmr_uni.txt", "../data/gmr_plano.txt", "../data/gmr_erect.txt"]
-    tfile = ["../data/gmt_uni.txt", "../data/gmt_plano.txt", "../data/gmt_erect.txt"]
+    rfile = ["", "../data/gmr_uni.txt", "../data/gmr_plano.txt", "../data/gmr_erect.txt"]
+    tfile = ["", "../data/gmt_uni.txt", "../data/gmt_plano.txt", "../data/gmt_erect.txt"]
 
     # leaf angle distribution
     # mc = 1
@@ -79,23 +79,23 @@ def ipf():
     # read from files
     else:
         # for reflection
-        contentFile = np.loadtxt(rfile[0])
+        contentFile = np.loadtxt(rfile[comm.M_C])
         comm.G_MRC = transferToMatrix(contentFile)
 
-        contentFile = np.loadtxt(rfile[1])
+        contentFile = np.loadtxt(rfile[comm.M_B])
         comm.G_MRB = transferToMatrix(contentFile)
 
-        contentFile = np.loadtxt(rfile[2])
+        contentFile = np.loadtxt(rfile[comm.M_F])
         comm.G_MRF = transferToMatrix(contentFile)
 
         # for transmission
-        contentFile = np.loadtxt(tfile[0])
+        contentFile = np.loadtxt(tfile[comm.M_C])
         comm.G_MTC = transferToMatrix(contentFile)
 
-        contentFile = np.loadtxt(tfile[1])
+        contentFile = np.loadtxt(tfile[comm.M_B])
         comm.G_MTB = transferToMatrix(contentFile)
 
-        contentFile = np.loadtxt(tfile[2])
+        contentFile = np.loadtxt(tfile[comm.M_F])
         comm.G_MTF = transferToMatrix(contentFile)
 
     return ERRCODE.SUCCESS

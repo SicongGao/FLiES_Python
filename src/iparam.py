@@ -381,7 +381,7 @@ class Parameters:
 
         if (self.cmode >= 2):
             comm.N_ANG_C = 1
-            comm.URC_coord[0].setPosition(0.0, 0.0, 1.0)
+            comm.URC_coord[1].setPosition(0.0, 0.0, 1.0)
 
         self.process201(**args)
 
@@ -979,21 +979,21 @@ class Parameters:
             # make input photon weight for each wavelength
             sum = 0.0
 
-            for i in range(self.nwl + 1):
-                if (i < 20):
+            for i in range(1, self.nwl + 1):
+                if (i <= 20):
                     sum += self.spcf[i]
                 else:
                     sum += self.spcf[i] * 5.0
 
-            for i in range(self.nwl + 1):
-                if (i < 20):
+            for i in range(1, self.nwl + 1):
+                if (i <= 20):
                     self.npl[i] = int(round(float(self.nPhotonProcess) * self.spcf[i] / sum))
                 else:
                     self.npl[i] = int(round(float(self.nPhotonProcess) * 5.0 * self.spcf[i] / sum))
 
             sum = 0.0
 
-            for i in range(self.nwl + 1):
+            for i in range(1, self.nwl + 1):
                 sum += self.npl[i]
 
             self.nPhotonProcess = int(sum)
@@ -1531,11 +1531,12 @@ class Parameters:
     def writeData(self):
 
         app = [0.0] * int(comm.Z_MAX + 2)
-
+        # back to 300
+        comm.SIZE -= 1
         # summary of the radiative flux
 
         # summary calculation of fulx
-        pixelNP = float(self.nPhoton) / float((comm.SIZE - 1) ** 2)
+        pixelNP = float(self.nPhoton) / float(comm.SIZE ** 2)
         tm = self.tflx / float(self.nPhoton)
 
         for i in range(1, self.nwl + 1):
@@ -1581,10 +1582,10 @@ class Parameters:
                     comm.AP_D[i, j, k] *= self.RQ * abs(self.cos_q0) / pixelNP
                     comm.AP_B[i, j, k] *= abs(self.cos_q0) / pixelNP
                     comm.AP_B[i, j, k] *= (1.0 / comm.GT_BLC[ith])
-                    comm.AP_B[i, j, k] *= min(comm.AP_B[i, j, k], 1.0)
+                    comm.AP_B[i, j, k] = min(comm.AP_B[i, j, k], 1.0)
                     app[k] += comm.AP[i, j, k]
 
-            app[k] /= (self.tflx * float((comm.SIZE - 1)** 2))
+            app[k] /= (self.tflx * float(comm.SIZE ** 2))
             comm.AP_NP[k] *= self.RQ * abs(self.cos_q0) / float(self.nPhoton) / self.tflx
 
         # summary of forest floor far etc
@@ -1607,94 +1608,98 @@ class Parameters:
                 ffSum += comm.FF_DIR[i, j] + comm.FF_DIF[i, j]
                 sfSum += comm.SF_DIR[i, j] + comm.SF_DIF[i, j]
 
+        ffSum /= float(comm.SIZE ** 2)
+        sfSum /= float(comm.SIZE ** 2)
         # writting
         f = open(config.OUTPUT_PATH + "flxsum.txt", "w")
-        f.write("-- summary of radiative quantity --")
+        f.write("-- summary of radiative quantity --" + "\n")
         f.write("")
-        f.write("-- simulation mode --")
+        f.write("-- simulation mode --" + "\n")
 
-        if (self.atmType == 1):
-            f.write(" Atmospheric module: Yes")
+        if (self.AtmMode == 1):
+            f.write(" Atmospheric module:      Yes" + "\n")
         else:
-            f.write(" Atmospheric module: No")
+            f.write(" Atmospheric module:      No" + "\n")
 
-        if (self.atmType == 1):
+        if (self.AtmMode == 1):
             if (self.imode == 1):
-                f.write("Spectral domain: single wavelength, " + str(self.wl0))
-            if (self.imode == 2):
-                f.write("Spectral domain: PAR")
-            if (self.imode == 3):
-                f.write("Spectral domain: Shortwave total")
+                f.write("Spectral domain: single wavelength, " + str(self.wl0) + "\n")
+            elif (self.imode == 2):
+                f.write("Spectral domain:       PAR" + "\n")
+            elif (self.imode == 3):
+                f.write("Spectral domain:       Shortwave total" + "\n")
 
         if (self.surfaceType == 1):
-            f.write("Surface type: lambertian")
+            f.write("Surface type:          lambertian" + "\n")
         else:
-            f.write("Surface type: 3-D canopy")
+            f.write("Surface type:          3-D canopy" + "\n")
 
-        f.write("\n-- Solar zenith angle, Elv(m), atm. transmittance --")
-        f.write(format(radians(pi - cos(self.cos_q0)), '12.2f') + " " +
-                format(comm.Z_MAX, '12.5f') + "  " +
-                format(tm, '12.5f'))
+
+        f.write("\n" + format("Solar zenith angle", '22') + format("Elv(m)", '12') + format("atm. transmittance", '20')+ "\n")
+        f.write(format(degrees(pi - acos(self.cos_q0)), '12.2f') + " " +
+                format(comm.Z_MIN, '17.5f') + "  " +
+                format(tm, '12.5f') + "\n")
 
         f.write("\n-- Downward Irradiance at TOC --")
 
-        if (self.atmType == 2):
-            f.write("warning ! irradiance & PPFD are normalized by 1000.*cos(th) !!")
+        if (self.AtmMode == 2):
+            f.write("\nwarning ! irradiance & PPFD are normalized by 1000.*cos(th) !!"+ "\n")
 
-        f.write("\nEnergy unit (W/m2)")
-        f.write(format("Total", '12') + format("Beam", '12') + format("Diffuse", '12') + format("Diff.Ratio", '12'))
-        f.write(format(self.tflx, '12.5f') + format(self.bflx, '12.5f') + format(self.dflx, '12.5f') + format(
-            self.dflx / self.tflx, '12.5f'))
+        f.write("\nEnergy unit (W/m2)"+ "\n")
+        f.write(format("Total", '12') + format("Beam", '12') + format("Diffuse", '12') + format("Diff.Ratio", '12') + "\n")
+        f.write(format(self.tflx, '8.5f') + format(self.bflx, '12.5f') + format(self.dflx, '12.5f') + format(
+            self.dflx / self.tflx, '12.5f') + "\n")
 
-        f.write("\nPhoton unit (W/m2)")
-        f.write(format("Total", '12') + format("Beam", '12') + format("Diffuse", '12') + format("Diff.Ratio", '12'))
-        f.write(format(self.tpfd, '12.5f') + format(self.bpfd, '12.5f') + format(self.dpfd, '12.5f') + format(
-            self.dpfd / self.tpfd, '12.5f'))
+        f.write("\nPhoton unit (W/m2)"+ "\n")
+        f.write(format("Total", '12') + format("Beam", '12') + format("Diffuse", '12') + format("Diff.Ratio", '12') + "\n")
+        f.write(format(self.tpfd, '8.5f') + format(self.bpfd, '12.5f') + format(self.dpfd, '12.5f') + format(
+            self.dpfd / self.tpfd, '12.5f') + "\n")
 
-        f.write("\nAlbedo (A)")
-        f.write(format("Actual", '12') + format("black", '12') + format("white", '12'))
-        f.write(format("", '12') + format("black", '12') + format("white", '12'))
-        f.write(format(self.rflx / self.tflx, '12.5f') + format(self.rbflx / self.bflx, '12.5f') + format(
-            self.rdflx / self.dflx, '12.5f'))
+        f.write("\nAlbedo (A)"+ "\n")
+        f.write(format("Actual", '12') + format("black", '12') + format("white", '12') + "\n")
+        f.write(format("", '12') + format("(beam)", '12') + format("(diffuse)", '12') + "\n")
+        f.write(format(self.rflx / self.tflx, '8.5f') + format(self.rbflx / self.bflx, '11.5f') + format(
+            self.rdflx / self.dflx, '11.5f') + "\n")
 
         if (self.surfaceType == 2):
-            f.write("\n-- fraction of downward flux (T) -- ")
-            f.write(format("Forest Floor", '12') + format("Surface Floor", '12'))
-            f.write(format(ffSum / self.tpfd, '12.5f') + format(sfSum / self.tpfd, '12.5f'))
+            f.write("\n-- fraction of downward flux (T) -- "+ "\n")
+            f.write(format("Forest Floor", '15') + format("Surface Floor", '15') + "\n")
+            f.write(format(ffSum / self.tpfd, '12.5f') + format(sfSum / self.tpfd, '16.5f') + "\n")
 
-            f.write("\n-- fraction of absorbed radiation (far) --")
-            f.write(format("total", '10') + format("leaf", '10') + format("non-leaf", '10') + format("floor", '10'))
-            f.write(format(comm.T_FPR, '10.7f') + format(comm.C_FPR, '10.7f') + format(comm.B_FPR, '10.7f') + format(
-                comm.F_FPR, '10.7f'))
+            f.write("\n-- fraction of absorbed radiation (far) --"+ "\n")
+            f.write(format("total", '13') + format("leaf", '13') + format("non-leaf", '15') + format("floor", '13') + "\n")
+            f.write(format(comm.T_FPR, '10.7f') + format(comm.C_FPR, '12.7f') + format(comm.B_FPR, '14.7f') + format(
+                comm.F_FPR, '13.7f') + "\n")
 
-            f.write("\nVertical profile of far")
-            f.write(format("H(m)", '10') + format("total", '10') + format("leaf", '10') + format("non-leaf", '10'))
+            f.write("\nVertical profile of far" + "\n")
+            f.write(format("H(m)", '12') + format("total", '12') + format("leaf", '12') + format("non-leaf", '8') + "\n")
             string = ""
             for k in range(int(comm.Z_MAX) + 1, 0, -1):
-                string += format(k, '6') + format(app[k] + comm.AP_NP[k], '10') + format(app[k], '10') + \
-                          format(comm.AP_NP[k], '10')
-            f.write(string)
+                string += format(k, '5') + format(app[k] + comm.AP_NP[k], '12.6f') + format(app[k], '14.6f') + \
+                          format(comm.AP_NP[k], '13.6f') + "\n"
+            f.write(string + "\n")
 
-        f.write("\n-- spctrl fraction. energy & photon flux(%) --")
-        f.write(format("wl(um)", '10') + format("Etot", '10') + format("Ebeam", '10') + format("Ediffuse", '10')
-                + format("Ptot", '10') + format("Pbeam", '10') + format("Pdiffuse", '10'))
+        f.write("\n-- spctrl fraction. energy & photon flux(%) --" + "\n")
+        f.write(format("wl(um)", '10') + format("Etot", '10') + format("Ebeam", '10') + format("Ediffuse", '14')
+                + format("Ptot", '12') + format("Pbeam", '10') + format("Pdiffuse", '10') + "\n")
         for i in range(1, self.nwl + 1):
             if (i <= 20):
                 temp = self.wls + self.span[i] * float(i) - self.span[i] / 2.0
             else:
                 temp = 0.7 + self.wls + self.span[i] * float(i - 20) - self.span[i] / 2.0
 
-            f.write(format(temp, '10.3f'))
+            f.write(format(temp, '5.3f'))
             string = ""
             for j in range(3):
-                string += format(comm.scmpf[j + 1, i], '10.5f')
+                string += format(comm.scmpf[j + 1, i], '12.5f')
             for j in range(3):
-                string += format(comm.scmpp[j + 1, i], '10.5f')
+                string += format(comm.scmpp[j + 1, i], '12.5f')
 
-            f.write(string)
+            f.write(string + "\n")
 
-        f.write("\n-- Downward radiance at the top of canopy --")
-        f.write("# idrc theta phi radiance_F stdev_F radiance_Q stdev_Q")
+        f.write("\n-- Downward radiance at the top of canopy --\n")
+        f.write(format("idrc", '10') + format("theta", '10') + format("phi", '9') + format("radiance_F", '13')
+                + format("stdev_F", '10') + format("radiance_Q", '13') + format("radiance_Q", '13') + "\n")
 
         pixelNP_A = float(self.nPhoton) / float(comm.K_NXR * comm.K_NYR)
 
@@ -1704,8 +1709,8 @@ class Parameters:
             sumQ = sum2Q = 0.0
             pQ_Max = 0.0
 
-            for i in range(1, comm.K_NXR + 1):
-                for j in range(1, comm.K_NYR + 1):
+            for j in range(1, comm.K_NYR + 1):
+                for i in range(1, comm.K_NXR + 1):
                     pF = comm.PROC_F[i, j, k] / pixelNP_A
                     pQ = comm.PROC_Q[i, j, k] / pixelNP_A
 
@@ -1726,10 +1731,10 @@ class Parameters:
             uxc = copysign(max(1.0e-5, abs(comm.UX_RTAB[k])), comm.UX_RTAB[k])
             phi = sqrt(comm.UX_RTAB[k] ** 2 + comm.UY_RTAB[k])
             phi = max(1.0e-5, phi)
-            phi = radians(acos(uxc / phi))
+            phi = degrees(acos(uxc / phi))
 
-            f.write(format(k, "6") + format(radians(acos(comm.UZ_RTAB[k])), '8.3f') + format(phi, '8.3f') +
-                    format(aveF, '12.5f') + format(sdvF, '12.5f') + format(aveQ, '12.5f') + format(sdvQ, '12.5f'))
+            f.write(format(k, "4") + format(degrees(acos(comm.UZ_RTAB[k])), '11.3f') + format(phi, '9.3f') +
+                    format(aveF, '12.5f') + format(sdvF, '12.5f') + format(aveQ, '12.5f') + format(sdvQ, '12.5f') + "\n")
 
         f.close()
 
@@ -1743,7 +1748,7 @@ class Parameters:
                 comm.BRF_S[1, i] /= comm.BRF[1, i]
                 comm.BRF_F[1, i] /= comm.BRF[1, i]
 
-                if (self.atmType == 1):
+                if (self.AtmMode == 1):
                     comm.BRF[1, i] *= pi / (float(self.nPhoton) * tm)
                 else:
                     comm.BRF[1, i] *= pi / float(self.nPhoton)
@@ -1753,41 +1758,39 @@ class Parameters:
                 comm.BRF_F[2, i] /= comm.BRF[2, i]
                 comm.BRF[2, i] *= pi / float(self.nPhoton)
 
-                f = open(config.OUTPUT_PATH + "brfsum.txt", 'w')
+            f = open(config.OUTPUT_PATH + "brfsum.txt", 'w')
 
-                if (self.atmType == 1):
-                    f.write(format("Theta", '8') + format("Phi", '8') + format("BRF(TOC)", '10') + format("BRF(TOA)",
-                                                                                                          '10') +
-                            format("rover", '10') + format("rbark", '10') + format("rfloor", '10'))
-                else:
-                    f.write(
-                        format("Theta", '8') + format("Phi", '8') + format("BRF(TOC)", '10') +
-                        format("rover", '10') + format("rbark", '10') + format("rfloor", '10'))
+            if (self.AtmMode == 1):
+                f.write(format("Theta", '12') + format("Phi", '6') + format("BRF(TOC)", '15') + format("BRF(TOA)",'15') +
+                        format("rover", '13') + format("rbark", '13') + format("rfloor", '12') + "\n")
+            else:
+                f.write(format("Theta", '12') + format("Phi", '6') + format("BRF(TOC)", '15') +
+                        format("rover", '13') + format("rbark", '13') + format("rfloor", '12') + "\n")
 
-                k = 1
+            k = 1
 
-                for j in range(1, comm.N_PH + 1):
-                    for i in range(1, comm.N_TH + 1):
-                        if (self.atmType == 1):
-                            f.write(format(comm.ANG_T[i], '8.2f') + format(comm.ANG_P[j], '8.2f') +
-                                    format(comm.BRF[1, k], '10.6f') + format(comm.BRF[2, k], '10.6f') +
-                                    format(comm.BRF_C[1, k], '10.6f') + format(comm.BRF_S[2, k], '10.6f') + format(
-                                comm.BRF_F[1, k], '10.6f'))
-                        else:
-                            f.write(format(comm.ANG_T[i], '8.2f') + format(comm.ANG_P[j], '8.2f') +
-                                    format(comm.BRF[1, k], '10.6f') + format(comm.BRF[2, k], '10.6f') +
-                                    format(comm.BRF_C[1, k], '10.6f') + format(comm.BRF_S[2, k], '10.6f') + format(
-                                comm.BRF_F[1, k], '10.6f'))
+            for j in range(1, comm.N_PH + 1):
+                for i in range(1, comm.N_TH + 1):
+                    if (self.AtmMode == 1):
+                        f.write(format(comm.ANG_T[i], '8.2f') + format(comm.ANG_P[j], '8.2f') +
+                                format(comm.BRF[1, k], '10.6f') + format(comm.BRF[2, k], '14.6f') +
+                                format(comm.BRF_C[1, k], '14.6f') + format(comm.BRF_S[1, k], '14.6f') +
+                                format(comm.BRF_F[1, k], '14.6f') + "\n")
+                    else:
+                        f.write(format(comm.ANG_T[i], '8.2f') + format(comm.ANG_P[j], '8.2f') +
+                                format(comm.BRF[1, k], '10.6f') +
+                                format(comm.BRF_C[1, k], '14.6f') + format(comm.BRF_S[1, k], '14.6f') +
+                                format(comm.BRF_F[1, k], '14.6f') + "\n")
 
-                        k += 1
+                    k += 1
 
-                f.close()
+            f.close()
 
         # Nadir view image
         if (self.cmode != 1):
             f = open(config.OUTPUT_PATH + "TOC_IMG.txt")
 
-            for j in range(comm.SIZE - 1, 0, -1):
+            for j in range(comm.SIZE, 0, -1):
                 string = ""
                 if (self.atmType == 1):
                     for i in range(1, comm.SIZE + 1):
@@ -1800,7 +1803,7 @@ class Parameters:
             f.close()
 
             f = open(config.OUTPUT_PATH + "nTOC_IMG.txt", 'w')
-            for j in range(comm.SIZE - 1, 0, -1):
+            for j in range(comm.SIZE, 0, -1):
                 string = ""
                 for i in range(1, comm.SIZE + 1):
                     string += format(pi * comm.I_REFL[1, i, j] / pixelNP, '10.5f')
@@ -1809,7 +1812,7 @@ class Parameters:
         if (self.cmode == 3):
             f = open(config.OUTPUT_PATH + "apar.txt", 'w')
             for k in range(int(comm.Z_MAX) + 1, 0, -1):
-                for j in range(comm.SIZE - 1, 0, -1):
+                for j in range(comm.SIZE, 0, -1):
                     string = ""
                     for i in range(1, comm.SIZE + 1):
                         string += format(comm.AP[i, j, k], '12.5f')
@@ -1818,7 +1821,7 @@ class Parameters:
 
             f = open(config.OUTPUT_PATH + "aparb.txt", 'w')
             for k in range(int(comm.Z_MAX) + 1, 0, -1):
-                for j in range(comm.SIZE - 1, 0, -1):
+                for j in range(comm.SIZE, 0, -1):
                     string = ""
                     for i in range(1, comm.SIZE + 1):
                         string += format(comm.AP_B[i, j, k], '12.5f')
@@ -1827,7 +1830,7 @@ class Parameters:
 
             f = open(config.OUTPUT_PATH + "apard.txt", 'w')
             for k in range(int(comm.Z_MAX) + 1, 0, -1):
-                for j in range(comm.SIZE - 1, 0, -1):
+                for j in range(comm.SIZE, 0, -1):
                     string = ""
                     for i in range(1, comm.SIZE + 1):
                         string += format(comm.AP_D[i, j, k], '12.5f')
@@ -1835,7 +1838,7 @@ class Parameters:
             f.close()
 
             f = open(config.OUTPUT_PATH + "aparf.txt", 'w')
-            for j in range(comm.SIZE - 1, 0, -1):
+            for j in range(comm.SIZE, 0, -1):
                 string = ""
                 for i in range(1, comm.SIZE + 1):
                     string += format(comm.AP_F[i, j, k], '12.5f')
@@ -1843,7 +1846,7 @@ class Parameters:
             f.close()
 
             f = open(config.OUTPUT_PATH + "aparfd.txt", 'w')
-            for j in range(comm.SIZE - 1, 0, -1):
+            for j in range(comm.SIZE, 0, -1):
                 string = ""
                 for i in range(1, comm.SIZE + 1):
                     string += format(comm.AP_FD[i, j, k], '12.5f')

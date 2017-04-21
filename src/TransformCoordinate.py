@@ -7,7 +7,7 @@ def transformCoordinate(oriVecCoord, angleA, angleB, destVecCoord):
     MIN_VALUE = 1.0e-15
 
     if (oriVecCoord.x == 0 and oriVecCoord.y == 0):
-        logging.critical("coord got wrong, check TransformCoordinate.py, line. 8")
+        logging.critical("coord got wrong, check TransformCoordinate.py.")
         exit()
 
     sinA = sin(angleA)

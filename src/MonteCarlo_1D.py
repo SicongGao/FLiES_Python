@@ -38,12 +38,16 @@ class MonteCarlo_1D:
         self.random_cosf = 0.0
         self.iz = 0
         self.nscat = 0
+        self.chi = -1
+        self.ichi = -1
 
-    def save(self, w, nscat, iz):
+    def save(self, w, nscat, iz, chi, ichi):
 
         self.weight = w
         self.nscat = nscat
         self.iz = iz
+        self.chi = chi
+        self.ichi = ichi
 
         return ERRCODE.SUCCESS
 
@@ -361,7 +365,7 @@ class MonteCarlo_1D:
         self.g0bwd = sum0
         if (sum0 > 1.0e-35):
             self.g1bwd = sum1 / sum0
-            self.g2bwd = sum1 / sum0
+            self.g2bwd = sum2 / sum0
         else:
             self.g1bwd = 0.0
             self.g2bwd = 0.0
@@ -561,7 +565,8 @@ class MonteCarlo_1D:
         x += path * ux
 
         if ((x < 0.0) or (x >= xmax)):
-            x = x % xmax
+            x = fmod(x, xmax)
+            # logging.debug("In arthshift, x <0, x = " + str(x) + ", before x = " + str(t))
             if (x < 0.0):
                 x += xmax
 
@@ -739,6 +744,7 @@ class MonteCarlo_1D:
             string = "x = " + str(phoCoord.x) + ", y =" + str(phoCoord.y) + ", z =" + str(phoCoord.z)
             logging.debug("mc1dtrace: start while")
             logging.debug(string)
+            logging.debug("uz = " + str(vectCoord.z))
             absg = comm.ABS_G1D[iz, ikd]
             extm = absg + comm.EXT_T1D[iz, ichi]
             absm = absg + comm.ABS_T1D[iz]
@@ -762,6 +768,7 @@ class MonteCarlo_1D:
                     string = "x = " + str(phoCoord.x) + ", y =" + str(phoCoord.y) + ", z =" + str(phoCoord.z)
                     logging.debug("mc1dtrace: after inner while")
                     logging.debug(string)
+                    logging.debug("uz = " + str(vectCoord.z))
                     # weight scaling
                     w *= (1.0 - absm / extm)
 
@@ -773,7 +780,7 @@ class MonteCarlo_1D:
                             w = 0.0         # killed
 
                     if (w <= 0.0):
-                        self.save(w, nscat, iz)
+                        self.save(w, nscat, iz, chi, ichi)
                         logging.debug("Monte Carlo 1-D simulation finish.(w <= 0)")
                         return ERRCODE.LOW_WEIGHT
 
@@ -785,7 +792,7 @@ class MonteCarlo_1D:
                     chi *= comm.TRU_LUT[6, ichi, iz]
 
                     nscat += 1
-
+                    # print("ichi:", ichi)
                     while (chi < comm.CHI_GRD[ichi]):
                         ichi += 1
 
@@ -898,8 +905,9 @@ class MonteCarlo_1D:
             string = "x = " + str(phoCoord.x) + ", y =" + str(phoCoord.y) + ", z =" + str(phoCoord.z)
             logging.debug("mc1dtrace: after while")
             logging.debug(string)
+            logging.debug("uz = " + str(vectCoord.z))
 
-        self.save(w, nscat, iz)
+        self.save(w, nscat, iz, chi, ichi)
         logging.debug("Monte Carlo 1-D simulation finish.")
         return ERRCODE.SUCCESS
 

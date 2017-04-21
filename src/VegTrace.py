@@ -40,11 +40,6 @@ class VegTrace:
         # optical thickness
         self.tau = tauc12 = tauc = taub = 0.0
 
-        # x0 = y0 = z0 = 0.0
-        #
-        # x0 = x
-        # y0 = y
-        # z0 = max(z, mgn)
         objCoord = Position()
         phoCoord = Position()
         phoCoord.setPosition(coord.x, coord.y, max(coord.z, mgn))
@@ -66,8 +61,8 @@ class VegTrace:
 
         planes = Planes()
         treeBoundary = TreeBoundary()
-        gFunction = G_Function()
-        gFunction.igtbl()
+        # gFunction = G_Function()
+        # gFunction.igtbl()
 
         logging.debug("Vegetation trace start...")
         string = "x = " + str(coord.x) + ", y =" + str(coord.y) + ", z =" + str(coord.z)
@@ -75,9 +70,6 @@ class VegTrace:
 
         # do while photon reaches the terminal point
         while(1):
-            # x1 = trunc(x0 / intv[1])
-            # y1 = trunc(y0 / intv[2])
-            # z1 = trunc(z0 / intv[3])
             objCoord.setPosition(trunc(phoCoord.x / intv[1]),
                                  trunc(phoCoord.y / intv[2]),
                                  trunc(phoCoord.z / intv[3]))
@@ -138,11 +130,11 @@ class VegTrace:
 
                 tobj12[1] = tobj[1]
                 tobj12[2] = tobj[2]
-                tobj12[3] = tobj[3] - tobj[4] * (1.0 - comm.RB) * min(1, abs(comm.OBJ_Shape[iNObj] - 5))
+                tobj12[3] = tobj[3] - tobj[4] * (1.0 - rb12) * min(1, abs(comm.OBJ_Shape[iNObj] - 5))
                 tobj12[4] = tobj[4] * rb12
                 tobj12[5] = tobj[5] * rb12
 
-                treeBoundary.dealTreeType(comm.OBJ_Shape[index], phoCoord, vectCoord, tobj)
+                treeBoundary.dealTreeType(comm.OBJ_Shape[index], phoCoord, vectCoord, tobjb)
                 io2 = treeBoundary.io
                 distance2 = treeBoundary.distance
 
@@ -160,6 +152,7 @@ class VegTrace:
 
                     treeBoundary.dealTreeType(comm.OBJ_Shape[index], branchCoord, vectCoord, tobj12)
                     distance12 = treeBoundary.distance
+                    io12 = treeBoundary.io
 
                 # if outside of branch (io2 = 1) go into the branch
                 if (io2 == 1):
@@ -169,8 +162,9 @@ class VegTrace:
                     branchCoord = Position()
                     branchCoord.setPosition(xb, yb, zb)
 
-                    treeBoundary.dealTreeType(comm.OBJ_Shape[index], branchCoord, vectCoord, tobj12)
+                    treeBoundary.dealTreeType(comm.OBJ_Shape[index], branchCoord, vectCoord, tobjb)
                     distance2 = treeBoundary.distance
+                    io2 = treeBoundary.io
 
                 ################################
                 # calculation of optical path
@@ -178,22 +172,22 @@ class VegTrace:
                 # Don't know what's the meaning
                 ################################
                 th = acos(vectCoord.z)
-                ith = int(radians(th))
+                ith = int(degrees(th))
                 rio = 1.0 - float(io2)
                 rio12 = 1.0 - float(io12)
                 cf = comm.S_BAR[comm.OBJ_Group[index]]
                 cf12 = comm.S_BAR[comm.OBJ_Group[index]]
 
-                taub = rio * (distance2 + mgn) * comm.BAD[comm.OBJ_Group[index]] * gFunction.GT_BLB[ith] * comm.BP2
-                taub += rio * (distance2 + mgn) * comm.U[comm.OBJ_Group[index]] * gFunction.GT_BLC[ith] * 4.0 * cf * (1.0 - comm.BP2)
+                taub = rio * (distance2 + mgn) * comm.BAD[comm.OBJ_Group[index]] * comm.GT_BLB[ith] * comm.BP2
+                taub += rio * (distance2 + mgn) * comm.U[comm.OBJ_Group[index]] * comm.GT_BLC[ith] * 4.0 * cf * (1.0 - comm.BP2)
 
-                tauc12 = ((distance12 + mgn) - (distance12 + mgn) * rio) * rio12
-                tauc12 = comm.U[comm.OBJ_Group[index]] * gFunction.GT_BLC[ith] * 4.0 * cf12 * (1.0 - comm.BP1) \
-                         + (comm.BAD[comm.OBJ_Group[index]] * gFunction.GT_BLB[ith]) * comm.BP1
+                tauc12 = ((distance12 + mgn) - (distance2 + mgn) * rio) * rio12
+                tauc12 *= comm.U[comm.OBJ_Group[index]] * comm.GT_BLC[ith] * 4.0 * cf12 * (1.0 - comm.BP1) \
+                         + (comm.BAD[comm.OBJ_Group[index]] * comm.GT_BLB[ith]) * comm.BP1
 
                 tauc = (distanceObj + mgn) - (distance12 + mgn) * rio12
-                tauc = comm.U[comm.OBJ_Group[index]] * gFunction.GT_BLC[ith] * 4.0 * cf * (1.0 - comm.BP1) \
-                         + (comm.BAD[comm.OBJ_Group[index]] * gFunction.GT_BLB[ith]) * comm.BP1
+                tauc *= comm.U[comm.OBJ_Group[index]] * comm.GT_BLC[ith] * 4.0 * cf * (1.0 - comm.BP1) \
+                       + (comm.BAD[comm.OBJ_Group[index]] * comm.GT_BLB[ith]) * comm.BP1
 
                 self.tau += tauc + tauc12 + taub
 

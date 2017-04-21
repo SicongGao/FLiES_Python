@@ -8,19 +8,17 @@ import numpy as np
 import logging
 
 count = 0
+
+
 class VegRadiation:
-
-    save_a = 0
-
 
     def __init__(self):
         self.save_a = 0
 
     def save(self, a):
-        global count
+
         self.save_a = a
-        count += 1
-        logging.debug("*** count = " + str(count))
+
         return ERRCODE.SUCCESS
     # calculate the phase function from LUT
     # cb:cb = 1 (overstory),cb = 2 (branch)
@@ -61,14 +59,13 @@ class VegRadiation:
                     gmtx[l + 1, m + 1, n + 1] = comm.DLT[cb, 1] * comm.G_MTC[i + l, j + m, k + n] + \
                                     comm.DLT[cb, 2] * comm.G_MTB[i + l, j + m, k + n] + \
                                     comm.DLT[cb, 4] * comm.G_MTF[i + l, j + m, k + n]
-
         # bi-linear over th1 dimension
         for n in range(1, 3):
             for l in range(1, 3):
                 tr[l] = gmrx[1, l, n] * (float(i) - th1) + \
                         gmrx[2, l, n] * (th1 - float(i - 1))
-                tt[l] = gmrx[1, l, n] * (float(i) - th1) + \
-                        gmrx[2, l, n] * (th1 - float(i - 1))
+                tt[l] = gmtx[1, l, n] * (float(i) - th1) + \
+                        gmtx[2, l, n] * (th1 - float(i - 1))
 
             # bi-linear over th1, th2 dimension
             trr[n] = tr[1] * (float(j) - th2) + tr[2] * (th2 - float(j - 1))
@@ -76,7 +73,7 @@ class VegRadiation:
 
         # bi-linear over (th1+th2) - ph plan
         gmr = trr[1] * (float(k) - ph) + trr[2] * (ph - float(k - 1))
-        gmt = ttt[1] * (float(k) - ph) + trr[2] * (ph - float(k - 1))
+        gmt = ttt[1] * (float(k) - ph) + ttt[2] * (ph - float(k - 1))
 
         gm = lr * gmr + lt * gmt
         gfunc = comm.DLT[cb, 1] * comm.GT_BLC[int(th1 * 10.0)] +\
@@ -102,9 +99,9 @@ class VegRadiation:
             logging.debug("*** count = " + str(count + 1))
         count = 0
         MAX_VALUE = 0.999999
-        ua = sum(comm.U) / comm.N_TS
+        ua = (sum(comm.U) - comm.U[0]) / comm.N_TS
 
-        ff = (1.0, 1.0, 0.0, 1.0, 0.0, 0.0)
+        ff = [0.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0]
 
         # if x and y is outside area
         objCoord = Position()
@@ -132,9 +129,9 @@ class VegRadiation:
             af = acos(cosa)
 
             th = acos(vectCoord.z)
-            ith = int(radians(th))
+            ith = int(degrees(th))
             thr = acos(comm.URC_coord[i].z)
-            ithr = int(radians(thr))
+            ithr = int(degrees(thr))
 
             # Hapke, types hot spot function
             # af is converted to the opposite angle of scattering angle
@@ -150,7 +147,11 @@ class VegRadiation:
             ch = comm.G_LAI * (comm.DLT[cb, 4] + comm.DLT[cb, 5])
             ch += ua * (comm.DLT[cb, 1] + comm.DLT[cb, 2] + comm.DLT[cb, 3])
             ch *= ga * leafR * 0.5
-            ch = 1.0 / ch
+            if (ch == 0):
+                ch = 0
+            else:
+                ch = 1.0 / ch
+
             hk = 1.0 / (1.0 + ch * tan(af * 0.5))
             hk = 1.0 - hk
 
@@ -160,7 +161,7 @@ class VegRadiation:
             objCoord.z = 0.0
 
             tempCoord = Position()
-            # TODO tempCoord doesn't used
+
             taua = mc1D.escape(objCoord, comm.URC_coord[i], 1, ichi, ikd, tempCoord)
 
             objCoord.z = zt
@@ -172,7 +173,7 @@ class VegRadiation:
             phr /= nf
             phr = max(-1, phr)
             phr = min(1, phr)
-            #print("phr = ", phr)
+            # print("phr = ", phr)
             phr = acos(phr)
 
             pf = self.fpf(thi, tho, phr, lr, lt, cb)
@@ -187,17 +188,18 @@ class VegRadiation:
                 ph = comm.URC_coord[i].x / rr
                 ph = acos(ph)
                 a = abs(sin(acos(comm.URC_coord[i].z)) * cos(a - ph))
+                self.save(a)
 
             Id = 0.0
             Id = ff[cb] * w * pf * exp(-tauc) / cos(thr)
             Id += (1.0 - ff[cb]) * w * exp(-tauc) / pi
             Id *= abs(a)
             Id *= (1.0 - fd) * float(sflag)
-
+            logging.debug("veg rad: id = " + str(Id))
             comm.BRF[1, i] += Id
             comm.BRF_C[1, i] += Id * comm.DLT[cb, 1]
-            comm.BRF_S[1, i] += Id * comm.DLT[cb, 2] + comm.DLT[cb, 3]
-            comm.BRF_F[1, i] += Id * comm.DLT[cb, 4] + comm.DLT[cb, 5]
+            comm.BRF_S[1, i] += Id * (comm.DLT[cb, 2] + comm.DLT[cb, 3])
+            comm.BRF_F[1, i] += Id * (comm.DLT[cb, 4] + comm.DLT[cb, 5])
 
             # Nadir image (nadir lowest point)
             ix = int(objCoord.x * comm.RES) + 1

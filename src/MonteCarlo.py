@@ -156,7 +156,7 @@ class MonteCarlo:
             ph = 2.0 * pi * randomMethod.getRandom()
 
             a = acos(tempCoord.x)
-            cb = 6
+            CB = 6
 
             TransformCoordinate.transformCoordinate(tempCoord, th, ph, vectCoord)
 
@@ -211,7 +211,8 @@ class MonteCarlo:
 
         # call vegrad()
         vegRadiation.simulate(phoCoord, vectCoord, w, 1.0, 0.0, CB, a, fd, ichi, ikd)
-        a = vegRadiation.save_a
+        if (CB == 6):
+            a = vegRadiation.save_a
 
         logging.debug("Monte Carlo stem simulation finish.")
         self.save(nscat, w)
@@ -227,7 +228,7 @@ class MonteCarlo:
         cf = comm.S_BAR[temp]
         branchAreaDensity = comm.BAD[temp]
         la = comm.U[temp]
-        tsobj = comm.OBJ_Shape[inobj]
+        obj_shape = comm.OBJ_Shape[inobj]
 
         cf12 = comm.S_BAR[comm.OBJ_Group[inobj]]
         rb12 = 1.0
@@ -236,14 +237,14 @@ class MonteCarlo:
         # define the second canopy area
         tObj12 = (0, tObj[1],
                      tObj[2],
-                     tObj[3] - tObj[4] * (1.0 - rb12) * min(1, abs(tsobj - 5)),
+                     tObj[3] - tObj[4] * (1.0 - rb12) * min(1, abs(obj_shape - 5)),
                      tObj[4] * rb12,
                      tObj[5] * rb12)
 
         # define the branch dominant region
         tObjb = (0, tObj[1],
                     tObj[2],
-                    tObj[3] - tObj[4] * (1.0 - comm.RB) * min(1, abs(tsobj - 5)),
+                    tObj[3] - tObj[4] * (1.0 - comm.RB) * min(1, abs(obj_shape - 5)),
                     tObj[4] * comm.RB,
                     tObj[5] * comm.RB)
 
@@ -260,17 +261,26 @@ class MonteCarlo:
             io2 = 0
             io12 = 0
 
-            treeBounday.dealTreeType(tsobj, phoCoord, vectCoord, tObj)
+            treeBounday.dealTreeType(obj_shape, phoCoord, vectCoord, tObj)
             distance1 = treeBounday.distance
             io1 = treeBounday.io
 
-            treeBounday.dealTreeType(tsobj, phoCoord, vectCoord, tObj12)
+            treeBounday.dealTreeType(obj_shape, phoCoord, vectCoord, tObj12)
             distance12 = treeBounday.distance
             io12 = treeBounday.io
 
-            treeBounday.dealTreeType(tsobj, phoCoord, vectCoord, tObjb)
+            treeBounday.dealTreeType(obj_shape, phoCoord, vectCoord, tObjb)
             distance2 = treeBounday.distance
             io2 = treeBounday.io
+
+            string = "phoCoord = " + str(phoCoord.x) + ", " + str(phoCoord.y) + ", " + str(phoCoord.z)
+            logging.debug(string)
+            string = "vectCoord = " + str(vectCoord.x) + ", " + str(vectCoord.y) + ", " + str(vectCoord.z)
+            logging.debug(string)
+            string = "io1, io2, io12 = " + str(io1) + ", " + str(io2) + ", " + str(io12)
+            logging.debug(string)
+            string = "s1, s2, s12 = " + str(distance1) + ", " + str(distance2) + ", " + str(distance12)
+            logging.debug(string)
 
             if (io1 == 1):
                 self.save(nscat, w)
@@ -290,7 +300,7 @@ class MonteCarlo:
 
                     sgm = comm.GT_BLB[ith] * branchAreaDensity * bp
                     sgm += 4.0 * cf * comm.GT_BLC[ith] * la * (1.0 - bp)
-                    sgm *= bp + (sgm / comm.FE) * (1.0 - bp)
+                    sgm = sgm * bp + (sgm / comm.FE) * (1.0 - bp)
                     sgm = max(1.0e-5, sgm)
                     ref = truncRef * bp + lr * (1.0 - bp)
                     tr = lt * (1.0 - bp)
@@ -349,7 +359,7 @@ class MonteCarlo:
                                 vectCoord.z = copysign(UZ_MIN, vectCoord.z)
 
                         # check status
-                        treeBounday.dealTreeType(tsobj, phoCoord, vectCoord, tObjb)
+                        treeBounday.dealTreeType(obj_shape, phoCoord, vectCoord, tObjb)
                         io2 = treeBounday.io
                         distance2 = treeBounday.distance
 
@@ -357,7 +367,7 @@ class MonteCarlo:
                         if (io2 == 1):
                             break
                     else:
-                        phoCoord.movePositionDistance(distance, vectCoord, comm.X_MAX, comm.Y_MAX)
+                        phoCoord.movePositionDistance(distance2, vectCoord, comm.X_MAX, comm.Y_MAX)
                         break
 
             # if photon inside the canopy dominant region
@@ -440,10 +450,10 @@ class MonteCarlo:
                             if (abs(vectCoord.z) < UZ_MIN):
                                 vectCoord.z = copysign(UZ_MIN, vectCoord.z)
 
-                        treeBounday.dealTreeType(tsobj, phoCoord, vectCoord, tObj12)
+                        treeBounday.dealTreeType(obj_shape, phoCoord, vectCoord, tObj12)
                         io12 = treeBounday.io
                         distance12 = treeBounday.distance
-                        treeBounday.dealTreeType(tsobj, phoCoord, vectCoord, tObjb)
+                        treeBounday.dealTreeType(obj_shape, phoCoord, vectCoord, tObjb)
                         io2 = treeBounday.io
                         distance2 = treeBounday.distance
 
@@ -541,10 +551,10 @@ class MonteCarlo:
                                 vectCoord.z = copysign(UZ_MIN, vectCoord.z)
 
                         # check status
-                        treeBounday.dealTreeType(tsobj, phoCoord, vectCoord, tObj)
+                        treeBounday.dealTreeType(obj_shape, phoCoord, vectCoord, tObj)
                         distance1 = treeBounday.distance
                         io1 = treeBounday.io
-                        treeBounday.dealTreeType(tsobj, phoCoord, vectCoord, tObj12)
+                        treeBounday.dealTreeType(obj_shape, phoCoord, vectCoord, tObj12)
                         distance12 = treeBounday.distance
                         io12 = treeBounday.io
 
@@ -600,9 +610,12 @@ class MonteCarlo:
         logging.debug("Monte Carlo floor simulation start...")
         string = "x = " + str(phoCoord.x) + ", y =" + str(phoCoord.y) + ", z =" + str(phoCoord.z)
         logging.debug(string)
+        string = "vectCoord = " + str(vectCoord.x) + ", " + str(vectCoord.y) + ", " + str(vectCoord.z)
+        logging.debug(string)
         # Monte Carlo loop
         while (1):
-
+            string = "Every while: vectCoord = " + str(vectCoord.x) + ", " + str(vectCoord.y) + ", " + str(vectCoord.z)
+            logging.debug(string)
             rand = randMethod.getRandom()
             th = acos(vectCoord.z)
             ith = int(degrees(th))
@@ -653,15 +666,30 @@ class MonteCarlo:
 
                 # new direction
                 self.scatterDirection(ulr, ult, vectCoord, comm.M_F)
+                string = "scatter: vectCoord = " + str(vectCoord.x) + ", " + str(vectCoord.y) + ", " + str(vectCoord.z)
+                logging.debug(string)
                 if (abs(vectCoord.z) < MIN_Z):
                     vectCoord.z = copysign(MIN_Z, vectCoord.z)
 
             else:
+                logging.debug("Monte Carlo floor: else")
+                string = "before: phoCoord = " + str(phoCoord.x) + ", " + str(phoCoord.y) + ", " + str(phoCoord.z)
+                logging.debug(string)
+                string = "vectCoord = " + str(vectCoord.x) + ", " + str(vectCoord.y) + ", " + str(vectCoord.z)
+                logging.debug(string)
+
                 phoCoord.x += (distancePlane + mgn) * vectCoord.x
                 phoCoord.y += (distancePlane + mgn) * vectCoord.y
                 phoCoord.z += distancePlane * vectCoord.z
-                phoCoord.x -= (trunc(phoCoord.x / comm.X_MAX) - 0.5 + copysign(0.5, phoCoord.x)) * comm.X_MAX
-                phoCoord.y -= (trunc(phoCoord.y / comm.Y_MAX) - 0.5 + copysign(0.5, phoCoord.y)) * comm.Y_MAX
+                phoCoord.x -= (int(phoCoord.x / comm.X_MAX) - 0.5 + copysign(0.5, phoCoord.x)) * comm.X_MAX
+                phoCoord.y -= (int(phoCoord.y / comm.Y_MAX) - 0.5 + copysign(0.5, phoCoord.y)) * comm.Y_MAX
+
+                string = "after: phoCoord = " + str(phoCoord.x) + ", " + str(phoCoord.y) + ", " + str(phoCoord.z)
+                logging.debug(string)
+                logging.debug("sp = " + str(distancePlane))
+
+                if (abs(phoCoord.z) < MIN_VALUE):
+                    phoCoord.z = MIN_VALUE
 
                 if (phoCoord.z <= zBottom):
                     # surface boundary reflectance mode 1: Lambertian, 2: RPV model, 3: DSM model
@@ -673,7 +701,7 @@ class MonteCarlo:
                     ix = min(ix, comm.SIZE - 1)
                     iy = min(iy, comm.SIZE - 1)
 
-                    comm.AP_S += w * wq * (1.0 - ulr - ulr)
+                    comm.AP_S[ix, iy] += w * wq * (1.0 - ulr - ulr)
 
                     # surface downward flux
                     comm.SF_DIR[ix, iy] += w * wq * (1.0 - min(nscat, 1))
@@ -682,7 +710,7 @@ class MonteCarlo:
 
                     if (w < MIN_VALUE):
                         self.save(nscat, w)
-                        logging.debug("Monte Carlo floor simulation finish.")
+                        logging.debug("Monte Carlo floor simulation finish. (low w)")
                         return ERRCODE.LOW_WEIGHT
 
                     vegRadiant.simulate(phoCoord, vectCoord, w, ulr, ult, 5, 1.0, fd, ichi, ikd)
