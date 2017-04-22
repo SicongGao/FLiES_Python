@@ -73,7 +73,7 @@ def simulateATM(para):
         wq = para.wq
 
         if (para.npl[iwl] == 0):
-            logging.ERROR("NPL ERROR")
+            logging.critical("NPL ERROR")
             return ERRCODE.FAILURE
 
         # loop for single wavelength
@@ -81,7 +81,7 @@ def simulateATM(para):
         #for ip in range(1, 2):
             if (fmod(ip, SHOW) == 0):
                 logging.info("Single wavelength loop[" + str(iwl) + "]: " + str(ip) + " of " + str(para.npl[iwl]))
-            logging.info("*** IP:" + str(ip))
+            logging.debug("*** IP:" + str(ip))
             w = 1.0
             PhotonCoord.setPosition(comm.X_MAX * float(rand.getRandom()),
                                     comm.Y_MAX * float(rand.getRandom()),
