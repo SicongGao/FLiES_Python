@@ -1,7 +1,7 @@
 # atmosphere mode
 Atmosphere_Mode_Args = {
 
-    "number_photon": 3000,
+    "number_photon": 30000,
     "atm_type": 1,
     "solar_angle": 45.0,
     "solar_elevation": 0.0,
