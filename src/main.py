@@ -1,5 +1,3 @@
-print("main")
-#print(sys.path)
 import sys, os, inspect
 
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
