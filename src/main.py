@@ -1,17 +1,25 @@
+print("main")
+#print(sys.path)
+import sys, os, inspect
+
+currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parentdir = os.path.dirname(currentdir)
+sys.path.insert(0, parentdir)
+
 import datetime
 import logging
 from math import *
-import numpy as np
 import ERRCODE
 import common as comm
-import config.config as config
+
+from config import config
+from config import input_parameters
 from CanopyPhotonTrace import CanopyPhotonTrace
 from Clai import CLAI
 from G_Function import G_Function
 from MonteCarlo_1D import MonteCarlo_1D
 from Position import Position
 from Random import Random
-from config import input_parameters
 from idivspace import idivspace
 from iparam import Parameters
 from ipf import ipf

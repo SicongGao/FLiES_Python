@@ -1,7 +1,7 @@
 import common as comm
 import math
 import ERRCODE
-import config.config as config
+from config import config
 import logging
 
 

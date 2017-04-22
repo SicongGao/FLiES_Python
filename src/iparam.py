@@ -2,7 +2,7 @@ import common as comm
 from math import *
 import numpy as np
 import ERRCODE
-import config.config as config
+from config import config
 import logging
 from Position import Position
 
