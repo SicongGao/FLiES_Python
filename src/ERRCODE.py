@@ -29,3 +29,10 @@ def printMessage(itr):
         logging.info(ERR_MESSAGE[itr])
         logging.info("Error Code: " + str(itr))
 
+
+from netCDF4 import Dataset
+
+NC_FILE = "../data/CumberlandPlain_2014_to _2016_L6_EP_moderate.nc"
+fileNC = Dataset(NC_FILE, mode = "r")
+dataTemp = fileNC.variables['solar_altitude'][:]
+print(dataTemp)

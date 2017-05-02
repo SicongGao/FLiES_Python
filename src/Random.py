@@ -4,8 +4,7 @@
 #     Shinomoto (1992), Statistical mechanics: Parity physics cource.,
 #     Maruzen press, P27
 # *******************************************************************
-import  logging
-
+import logging
 
 CNT = 1001
 RandArray = [0, 1402256527,
@@ -1260,6 +1259,7 @@ RandArray = [0, 1402256527,
              2014386456]
 class Random:
 
+    testValue = 0
     r = 0.0
     A_NORM = 1.0 / 2147483647
     N_RAND = 1000
@@ -1501,3 +1501,36 @@ class Random:
         CNT += 1
         return float(randomValue)
 
+    def test_forParr(self):
+        self.testValue += 1
+
+
+def test(rand):
+    print("test")
+    #import Position
+    rand.test_forParr()
+    return rand
+
+
+if __name__ == '__main__':
+    import multiprocessing
+    from multiprocessing import Pool
+    from config import config
+    config.log_init()
+
+    rand = Random()
+    cpus = multiprocessing.cpu_count()
+    pool = Pool(cpus)
+    results = []
+    for i in range(cpus):
+        result = pool.apply_async(test, args=(rand,))
+        results.append(result)
+
+    pool.close()
+    pool.join()
+    #
+    for result in results:
+        print(result.get().testValue)
+
+    # print("rand.testValue = ", rand.testValue)
+    # print(results)

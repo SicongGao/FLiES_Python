@@ -127,7 +127,7 @@ class MonteCarlo:
 
         return ERRCODE.SUCCESS
 
-    def stem(self, w, wq, phoCoord, vectCoord, nscat, tObj, face, truncRef, ichi, ikd):
+    def stem(self, w, wq, phoCoord, vectCoord, nscat, tObj, face, truncRef, ichi, ikd, para):
         MGN = 1.0e-2
         MIN_VALUE = 1.0e-8
         FD = 0.0
@@ -193,7 +193,7 @@ class MonteCarlo:
 
         # fpar samping (leave or branch)
         # every tree specie may have the same reflectance (truncRef)
-        comm.B_FPR += w * wq * (1.0 - truncRef)
+        para.B_FPR += w * wq * (1.0 - truncRef)
         # ipara.AP_NP range (0,100)
         iz = int(phoCoord.z) + 1
         if (iz > 99):
@@ -201,7 +201,7 @@ class MonteCarlo:
             self.save(nscat, w)
             return ERRCODE.OUT_OF_RANGE
         else:
-            comm.AP_NP[iz] += w * wq * (1.0 - truncRef)
+            para.AP_NP[iz] += w * wq * (1.0 - truncRef)
 
         w *= truncRef
         nscat += 1
@@ -210,7 +210,7 @@ class MonteCarlo:
         w = RussianRoulette.roulette(w)
 
         # call vegrad()
-        vegRadiation.simulate(phoCoord, vectCoord, w, 1.0, 0.0, CB, a, fd, ichi, ikd)
+        vegRadiation.simulate(phoCoord, vectCoord, w, 1.0, 0.0, CB, a, fd, ichi, ikd, para)
         if (CB == 6):
             a = vegRadiation.save_a
 
@@ -218,7 +218,7 @@ class MonteCarlo:
         self.save(nscat, w)
         return ERRCODE.SUCCESS
 
-    def canopy(self, w, wq, phoCoord, vectCoord, nscat, tObj, inobj, truncRef, ichi, ikd, lr, lt):
+    def canopy(self, w, wq, phoCoord, vectCoord, nscat, tObj, inobj, truncRef, ichi, ikd, lr, lt, para):
 
         MIN_VALUE = 1.0e-8
         mgn = 1.0e-2
@@ -321,18 +321,18 @@ class MonteCarlo:
                             fd *= (1.0 - bp)
 
                             # fpar sampling (leave or branch)
-                            comm.B_FPR += w * wq * (1.0 - ssa) * bp
-                            comm.C_FPR += w * wq * (1.0 - ssa) * (1.0 - bp)
+                            para.B_FPR += w * wq * (1.0 - ssa) * bp
+                            para.C_FPR += w * wq * (1.0 - ssa) * (1.0 - bp)
 
                             ix = int(phoCoord.x * comm.RES) + 1
                             iy = int(phoCoord.y * comm.RES) + 1
                             iz = int(phoCoord.z) + 1
 
                             par = w * wq * (1.0 - ssa)
-                            comm.AP[ix, iy, iz] += (1.0 - bp) * par
-                            comm.AP_B[ix, iy, iz] += (1.0 - bp) * (1.0 - min(nscat, 1))
-                            comm.AP_D[ix, iy, iz] += (1.0 - bp) * min(nscat, 1) * par
-                            comm.AP_NP[iz] += par * bp
+                            para.AP[ix, iy, iz] += (1.0 - bp) * par
+                            para.AP_B[ix, iy, iz] += (1.0 - bp) * (1.0 - min(nscat, 1))
+                            para.AP_D[ix, iy, iz] += (1.0 - bp) * min(nscat, 1) * par
+                            para.AP_NP[iz] += par * bp
 
                             w *= ssa
                             nscat += 1
@@ -350,7 +350,7 @@ class MonteCarlo:
 
                         # radiance sampling
                         cb = int((1.0 - bp) + 2.0 * bp)
-                        vegRadiant.simulate(phoCoord, vectCoord, w, ref, tr, cb, 1.0, fd, ichi, ikd)
+                        vegRadiant.simulate(phoCoord, vectCoord, w, ref, tr, cb, 1.0, fd, ichi, ikd, para)
 
                         # new photon direction after scattering
                         if (randMethod.getRandom() > fd):
@@ -410,8 +410,8 @@ class MonteCarlo:
                             fd *= (1.0 - bp)
 
                             # fpar samping (leave or branch)
-                            comm.B_FPR += w * wq * (1.0 - ssa) * bp
-                            comm.C_FPR += w * wq * (1.0 - ssa) * (1.0 - bp)
+                            para.B_FPR += w * wq * (1.0 - ssa) * bp
+                            para.C_FPR += w * wq * (1.0 - ssa) * (1.0 - bp)
 
                             ix = int(phoCoord.x * comm.RES) + 1
                             iy = int(phoCoord.y * comm.RES) + 1
@@ -421,10 +421,10 @@ class MonteCarlo:
                             iy = min(iy, comm.SIZE - 1)
 
                             par = w * wq * (1.0 - ssa)
-                            comm.AP[ix, iy, iz] += par * (1.0 - bp)
-                            comm.AP_B[ix, iy, iz] += (1.0 - bp) * (1.0 - min(nscat, 1))
-                            comm.AP_D[ix, iy, iz] += par * (1.0 - bp) * min(nscat, 1)
-                            comm.AP_NP[iz] += par * bp
+                            para.AP[ix, iy, iz] += par * (1.0 - bp)
+                            para.AP_B[ix, iy, iz] += (1.0 - bp) * (1.0 - min(nscat, 1))
+                            para.AP_D[ix, iy, iz] += par * (1.0 - bp) * min(nscat, 1)
+                            para.AP_NP[iz] += par * bp
 
                             w *= ssa
                             nscat += 1
@@ -442,7 +442,7 @@ class MonteCarlo:
 
                         cb = int((1.0 - bp) + 2.0 * bp)
 
-                        vegRadiant.simulate(phoCoord, vectCoord, w, lr, lt, cb, 1.0, fd, ichi, ikd)
+                        vegRadiant.simulate(phoCoord, vectCoord, w, lr, lt, cb, 1.0, fd, ichi, ikd, para)
 
                         rand = randMethod.getRandom()
                         if (rand >= fd):
@@ -509,8 +509,8 @@ class MonteCarlo:
                             fd *= (1.0 - bp)
 
                             # fpar samping (leave or branch)
-                            comm.B_FPR += w * wq * (1.0 - ssa) * bp
-                            comm.C_FPR += w * wq * (1.0 - ssa) * (1.0 - bp)
+                            para.B_FPR += w * wq * (1.0 - ssa) * bp
+                            para.C_FPR += w * wq * (1.0 - ssa) * (1.0 - bp)
 
                             ix = int(phoCoord.x * comm.RES) + 1
                             iy = int(phoCoord.y * comm.RES) + 1
@@ -520,10 +520,10 @@ class MonteCarlo:
                             iy = min(iy, comm.SIZE - 1)
 
                             par = w * wq * (1.0 - ssa)
-                            comm.AP[ix, iy, iz] += par * (1.0 - bp)
-                            comm.AP_B[ix, iy, iz] += (1.0 - bp) * (1.0 - min(nscat, 1))
-                            comm.AP_D[ix, iy, iz] += par * (1.0 - bp) * min(nscat, 1)
-                            comm.AP_NP[iz] += par * bp
+                            para.AP[ix, iy, iz] += par * (1.0 - bp)
+                            para.AP_B[ix, iy, iz] += (1.0 - bp) * (1.0 - min(nscat, 1))
+                            para.AP_D[ix, iy, iz] += par * (1.0 - bp) * min(nscat, 1)
+                            para.AP_NP[iz] += par * bp
 
                             w *= ssa
                             nscat += 1
@@ -543,7 +543,7 @@ class MonteCarlo:
                             return ERRCODE.LOW_WEIGHT
 
                         cb = int((1.0 - bp) + 2.0 * bp)
-                        vegRadiant.simulate(phoCoord, vectCoord, w, lr, lt, cb, 1.0, fd, ichi, ikd)
+                        vegRadiant.simulate(phoCoord, vectCoord, w, lr, lt, cb, 1.0, fd, ichi, ikd, para)
 
                         if (randMethod.getRandom() >= fd):
                             self.scatterDirection(ref, tr, vectCoord, comm.M_C)
@@ -582,7 +582,7 @@ class MonteCarlo:
     # w        : weight of the photon
     # z (m)    : Height of the photon position from the upper grass boundary (-1.0<=z<0)
     # ##################################################################################S
-    def floor(self, w, wq, phoCoord, vectCoord, nscat, ulr, ult, sor, ichi, ikd):
+    def floor(self, w, wq, phoCoord, vectCoord, nscat, ulr, ult, sor, ichi, ikd, para):
 
         # tentative fd
         fd = 0.0
@@ -636,7 +636,7 @@ class MonteCarlo:
 
                 # recollision
                 while (1):
-                    comm.F_FPR += w * wq * (1.0 - ulr - ult)
+                    para.F_FPR += w * wq * (1.0 - ulr - ult)
 
                     ix = int(phoCoord.x * comm.RES) + 1
                     iy = int(phoCoord.y * comm.RES) + 1
@@ -644,8 +644,8 @@ class MonteCarlo:
                     ix = min(ix, comm.SIZE - 1)
                     iy = min(iy, comm.SIZE - 1)
 
-                    comm.AP_F[ix, iy] += w * wq * (1.0 - ult - ulr)
-                    comm.AP_FD[ix, iy] += w * wq * (1.0 - ult - ulr) * min(float(nscat), 1.0)
+                    para.AP_F[ix, iy] += w * wq * (1.0 - ult - ulr)
+                    para.AP_FD[ix, iy] += w * wq * (1.0 - ult - ulr) * min(float(nscat), 1.0)
 
                     w *= (ult + ulr)
                     nscat += 1
@@ -662,7 +662,7 @@ class MonteCarlo:
                     if (randMethod.getRandom() >= psh):
                         break
 
-                vegRadiant.simulate(phoCoord, vectCoord, w, ulr, ult, 4, 1.0, fd, ichi, ikd)
+                vegRadiant.simulate(phoCoord, vectCoord, w, ulr, ult, 4, 1.0, fd, ichi, ikd, para)
 
                 # new direction
                 self.scatterDirection(ulr, ult, vectCoord, comm.M_F)
@@ -694,18 +694,18 @@ class MonteCarlo:
                 if (phoCoord.z <= zBottom):
                     # surface boundary reflectance mode 1: Lambertian, 2: RPV model, 3: DSM model
                     # fpar sampling
-                    comm.S_FPR += w * wq * (1.0 - sor)
+                    para.S_FPR += w * wq * (1.0 - sor)
 
                     ix = int(phoCoord.x * comm.RES) + 1
                     iy = int(phoCoord.y * comm.RES) + 1
                     ix = min(ix, comm.SIZE - 1)
                     iy = min(iy, comm.SIZE - 1)
 
-                    comm.AP_S[ix, iy] += w * wq * (1.0 - ulr - ulr)
+                    para.AP_S[ix, iy] += w * wq * (1.0 - ulr - ulr)
 
                     # surface downward flux
-                    comm.SF_DIR[ix, iy] += w * wq * (1.0 - min(nscat, 1))
-                    comm.SF_DIF[ix, iy] += w * wq * min(nscat, 1)
+                    para.SF_DIR[ix, iy] += w * wq * (1.0 - min(nscat, 1))
+                    para.SF_DIF[ix, iy] += w * wq * min(nscat, 1)
                     w *= sor
 
                     if (w < MIN_VALUE):
@@ -713,7 +713,7 @@ class MonteCarlo:
                         logging.debug("Monte Carlo floor simulation finish. (low w)")
                         return ERRCODE.LOW_WEIGHT
 
-                    vegRadiant.simulate(phoCoord, vectCoord, w, ulr, ult, 5, 1.0, fd, ichi, ikd)
+                    vegRadiant.simulate(phoCoord, vectCoord, w, ulr, ult, 5, 1.0, fd, ichi, ikd, para)
 
                     self.save(nscat, w)
                     self.scatterReflectSurface(vectCoord, mode)

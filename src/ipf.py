@@ -1,6 +1,6 @@
 from math import *
 import ERRCODE
-from G_Function import G_Function
+from G_Function import G_Function, fgl
 import common as comm
 import numpy as np
 import logging
@@ -136,9 +136,9 @@ def gmkernel(gmr, gmt, th1, th2, ph, m):
         # integration over theta
         for j in range(1, 90):
             thl1 = radians(float(j) - 1)
-            gl1 = gFunction.fgl(thl1, m) / sin(max(thl1, 1.0e-8))
+            gl1 = fgl(thl1, m) / sin(max(thl1, 1.0e-8))
             thl2 = thl1 + pi / 180
-            gl2 = gFunction.fgl(thl2, m) / sin(max(thl2, 1.0e-8))
+            gl2 = fgl(thl2, m) / sin(max(thl2, 1.0e-8))
 
             gmrp[i] += (gl2 * gmrt[j + 1] * sin(thl2) + gl1 * gmrt[j] * sin(thl1)) * pi / (2.0 * 2.0 * 90.0)
             gmtp[i] += (gl2 * gmtt[j + 1] * sin(thl2) + gl1 * gmtt[j] * sin(thl1)) * pi / (2.0 * 2.0 * 90.0)
@@ -169,6 +169,6 @@ def transferToMatrix(origin):
     for i in range(0, 19):
         for j in range(0, 19):
             for k in range(0, 37):
-                destin[i + 1][j + 1][k + 1] = origin[i*19+j][k]
+                destin[i + 1][j + 1][k + 1] = origin[i * 19 + j][k]
 
     return destin

@@ -93,7 +93,7 @@ class VegRadiation:
 
     # a changed
 
-    def simulate(self, phoCoord, vectCoord, w, lr, lt, cb, a, fd, ichi, ikd):
+    def simulate(self, phoCoord, vectCoord, w, lr, lt, cb, a, fd, ichi, ikd, para):
         global count
         if (phoCoord.z <= 1e-5):
             logging.debug("*** count = " + str(count + 1))
@@ -143,14 +143,12 @@ class VegRadiation:
             ga += comm.DLT[cb, 3] * (comm.GT_BLB[ith] + comm.GT_BLB[ithr]) * 0.25
             ga += comm.DLT[cb, 4] * (comm.GT_BLF[ith] + comm.GT_BLF[ithr]) * 0.5
             ga += comm.DLT[cb, 5] * (comm.GT_BLF[ith] + comm.GT_BLF[ithr]) * 0.5
-
+            # for stem side, the hotspot effect will be ignored so hk=1.0
+            ga += comm.DLT[cb, 6] * 1.0e-6
             ch = comm.G_LAI * (comm.DLT[cb, 4] + comm.DLT[cb, 5])
             ch += ua * (comm.DLT[cb, 1] + comm.DLT[cb, 2] + comm.DLT[cb, 3])
+            ch += comm.DLT[cb, 6] * 1.0e-6
             ch *= ga * leafR * 0.5
-            if (ch == 0):
-                ch = 0
-            else:
-                ch = 1.0 / ch
 
             hk = 1.0 / (1.0 + ch * tan(af * 0.5))
             hk = 1.0 - hk
@@ -196,10 +194,10 @@ class VegRadiation:
             Id *= abs(a)
             Id *= (1.0 - fd) * float(sflag)
             logging.debug("veg rad: id = " + str(Id))
-            comm.BRF[1, i] += Id
-            comm.BRF_C[1, i] += Id * comm.DLT[cb, 1]
-            comm.BRF_S[1, i] += Id * (comm.DLT[cb, 2] + comm.DLT[cb, 3])
-            comm.BRF_F[1, i] += Id * (comm.DLT[cb, 4] + comm.DLT[cb, 5])
+            para.BRF[1, i] += Id
+            para.BRF_C[1, i] += Id * comm.DLT[cb, 1]
+            para.BRF_S[1, i] += Id * (comm.DLT[cb, 2] + comm.DLT[cb, 3])
+            para.BRF_F[1, i] += Id * (comm.DLT[cb, 4] + comm.DLT[cb, 5])
 
             # Nadir image (nadir lowest point)
             ix = int(objCoord.x * comm.RES) + 1
@@ -208,17 +206,17 @@ class VegRadiation:
             ix = min(ix, comm.SIZE - 1)
             iY = min(iy, comm.SIZE - 1)
 
-            comm.REFL[1, ix, iy] += Id
-            comm.I_REFL[1, ix, iy] += 1
+            para.REFL[1, ix, iy] += Id
+            para.I_REFL[1, ix, iy] += 1
 
             Id *= exp(-taua)
-            comm.BRF[2, i] += Id
-            comm.BRF_C[2, i] += Id * comm.DLT[cb, 1]
-            comm.BRF_S[2, i] += Id * comm.DLT[cb, 2] + comm.DLT[cb, 3]
-            comm.BRF_F[2, i] += Id * comm.DLT[cb, 4] + comm.DLT[cb, 5]
+            para.BRF[2, i] += Id
+            para.BRF_C[2, i] += Id * comm.DLT[cb, 1]
+            para.BRF_S[2, i] += Id * comm.DLT[cb, 2] + comm.DLT[cb, 3]
+            para.BRF_F[2, i] += Id * comm.DLT[cb, 4] + comm.DLT[cb, 5]
 
-            comm.REFL[2, ix, iy] += Id
-            comm.I_REFL[2, ix, iy] += 1
+            para.REFL[2, ix, iy] += Id
+            para.I_REFL[2, ix, iy] += 1
 
         self.save(a)
         logging.debug("Vegetation Radiation finish.")

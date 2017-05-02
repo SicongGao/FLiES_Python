@@ -40,8 +40,6 @@ SA_LUT = np.zeros(N_LUT1 * K_NZ, dtype=float).reshape(N_LUT1, K_NZ)
 UX_RTAB = [0.0] * K_NRDC
 UY_RTAB = [0.0] * K_NRDC
 UZ_RTAB = [0.0] * K_NRDC
-PROC_F = np.zeros((K_NXR + 1) * (K_NXR + 1) * K_NRDC, dtype=float).reshape((K_NXR + 1), (K_NXR + 1), K_NRDC)
-PROC_Q = np.zeros((K_NXR + 1) * (K_NXR + 1) * K_NRDC, dtype=float).reshape((K_NXR + 1), (K_NXR + 1), K_NRDC)
 K_LAYER = [0.0] * K_NZ
 WRR = FS_ANG = 0.0
 N_Z = N_CHI = N_RDC = 0
@@ -52,31 +50,18 @@ N_ANG_C = N_TH = N_PH = N_OBJ = 0
 OBJ_Group = [0] * OBJ_NUM_MAX   # tree type group number
 OBJ_Shape = [0] * OBJ_NUM_MAX   # type of the tree object
 DIF_TYPE = DIR_FLAG = BOUND = 0
-REFL = np.zeros(3 * SIZE * SIZE, dtype=float).reshape(3, SIZE, SIZE)
-I_REFL = np.zeros(3 * SIZE * SIZE, dtype=int).reshape(3, SIZE, SIZE)
+
 M_C = M_B = M_F = N_TS = 0  # N_TS is the number of tree species.
 OBJ = np.zeros(OBJ_NUM_MAX * 5, dtype=float).reshape(OBJ_NUM_MAX, 5)
 S_BAR = [0.0] * 5   # index expressing degree of shoot clumping, always set to 0.25
 ANG_T = [0.0] * 100
 ANG_P = [0.0] * 100
-BRF = np.zeros(3 * 700, dtype=float).reshape(3, 700)
-BRF_C = np.zeros(3 * 700, dtype=float).reshape(3, 700)
-BRF_S = np.zeros(3 * 700, dtype=float).reshape(3, 700)
-BRF_F = np.zeros(3 * 700, dtype=float).reshape(3, 700)
+
 F_EYE = np.zeros(90 * 360, dtype=float).reshape(90, 360)
 RF_EYE = np.zeros(90 * 360, dtype=float).reshape(90, 360)
-AP = np.zeros(SIZE * SIZE * 101, dtype=float).reshape(SIZE, SIZE, 101)
-AP_D = np.zeros(SIZE * SIZE * 101, dtype=float).reshape(SIZE, SIZE, 101)
-AP_B = np.zeros(SIZE * SIZE * 101, dtype=float).reshape(SIZE, SIZE, 101)
-AP_F = np.zeros(SIZE * SIZE, dtype=float).reshape(SIZE, SIZE)
-AP_S = np.zeros(SIZE * SIZE, dtype=float).reshape(SIZE, SIZE)
-AP_FD = np.zeros(SIZE * SIZE, dtype=float).reshape(SIZE, SIZE)
-AP_NP = [0.0] * 100
-T_FPR = C_FPR = B_FPR = F_FPR = S_FPR = 0.0
-FF_DIR = np.zeros(SIZE * SIZE, dtype=float).reshape(SIZE, SIZE)
-FF_DIF = np.zeros(SIZE * SIZE, dtype=float).reshape(SIZE, SIZE)
-SF_DIR = np.zeros(SIZE * SIZE, dtype=float).reshape(SIZE, SIZE)
-SF_DIF = np.zeros(SIZE * SIZE, dtype=float).reshape(SIZE, SIZE)
+
+
+
 G_LAI = 0.0
 U = [0.0] * 6
 BAD = [0.0] * 5
@@ -108,9 +93,6 @@ DLT = np.zeros((6 + 1) * (6 + 1), dtype=float).reshape((6 + 1), (6 + 1))
 GT_BLC = [0.0] * 181
 GT_BLB = [0.0] * 181
 GT_BLF = [0.0] * 181
-
-scmpf = np.zeros(4 * 101, dtype=float).reshape(4, 101)
-scmpp = np.zeros(4 * 101, dtype=float).reshape(4, 101)
 
 for i in range(0, 62832 * 2):
     T_SIN[i] = math.sin(float(i - 62832) * 0.0001)

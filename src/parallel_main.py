@@ -47,6 +47,75 @@ Nprod = 1
 
 rand = Random()
 
+def gatherData(results):
+    paraCount = results.pop().get()
+
+    for result in results:
+        currPara = result.get()
+
+        paraCount.tflx += currPara.tflx
+        paraCount.bflx += currPara.bflx
+        paraCount.dflx += currPara.dflx
+
+        paraCount.rflx += currPara.rflx
+        paraCount.rbflx += currPara.rbflx
+        paraCount.rdflx += currPara.rdflx
+
+        paraCount.tpfd += currPara.tpfd
+        paraCount.bpfd += currPara.bpfd
+        paraCount.dpfd += currPara.dpfd
+
+        paraCount.C_FPR += currPara.C_FPR
+        paraCount.B_FPR += currPara.B_FPR
+        paraCount.F_FPR += currPara.F_FPR
+        paraCount.S_FPR += currPara.S_FPR
+        paraCount.T_FPR += currPara.T_FPR
+
+        for i in range(1, paraCount.nwl + 1):
+            paraCount.scmpf[1, i] += currPara.scmpf[1, i]
+            paraCount.scmpp[1, i] += currPara.scmpp[1, i]
+            paraCount.scmpf[2, i] += currPara.scmpf[2, i]
+            paraCount.scmpp[2, i] += currPara.scmpp[2, i]
+            paraCount.scmpf[3, i] += currPara.scmpf[3, i]
+            paraCount.scmpp[3, i] += currPara.scmpp[3, i]
+
+        for i in range(1, comm.N_ANG_C + 1):
+            paraCount.BRF[1, i] += currPara.BRF[1, i]
+            paraCount.BRF_C[1, i] += currPara.BRF[1, i]
+            paraCount.BRF_S[1, i] += currPara.BRF[1, i]
+            paraCount.BRF_F[1, i] += currPara.BRF[1, i]
+
+            paraCount.BRF[2, i] += currPara.BRF[2, i]
+            paraCount.BRF_C[2, i] += currPara.BRF_C[2, i]
+            paraCount.BRF_S[2, i] += currPara.BRF_S[2, i]
+            paraCount.BRF_F[2, i] += currPara.BRF_F[2, i]
+
+        for k in range(int(comm.Z_MAX) + 1, 0, -1):
+            paraCount.AP_NP[k] += currPara.AP_NP[k]
+
+        for k in range(int(comm.Z_MAX) + 1, 0, -1):
+            for i in range(1, comm.SIZE):
+                for j in range(1, comm.SIZE):
+                    paraCount.AP[i, j, k] += currPara.AP[i, j, k]
+                    paraCount.AP_D[i, j, k] += currPara.AP_D[i, j, k]
+                    paraCount.AP_B[i, j, k] += currPara.AP_B[i, j, k]
+
+        for i in range(1, comm.SIZE):
+            for j in range(1, comm.SIZE):
+                paraCount.AP_F[i, j] += currPara.AP_F[i, j]
+                paraCount.AP_FD[i, j] += currPara.AP_FD[i, j]
+                paraCount.SF_DIR[i, j] += currPara.SF_DIR[i, j]
+                paraCount.SF_DIF[i, j] += currPara.SF_DIF[i, j]
+                paraCount.FF_DIR[i, j] += currPara.FF_DIR[i, j]
+                paraCount.FF_DIF[i, j] += currPara.FF_DIF[i, j]
+
+        for j in range(1, comm.K_NYR + 1):
+            for i in range(1, comm.K_NXR + 1):
+                paraCount.PROC_F[i, j, k] += currPara.PROC_F[i, j, k]
+                paraCount.PROC_Q[i, j, k] += currPara.PROC_Q[i, j, k]
+
+    return paraCount
+
 def simulateATM(para, iwl):
     global PhotonCoord, VectorCoord
     global nscat, nscata
@@ -58,7 +127,8 @@ def simulateATM(para, iwl):
     mc1D = MonteCarlo_1D()
     canopyTrace = CanopyPhotonTrace()
 
-    #for iwl in range(1, para.nwl + 1):
+
+    #for iwl in range(1, para.nwl):
     string = "This is the " + str(iwl) + " of " + str(para.nwl) + " wavelength."
     logging.info(string)
     para.preparAtm(iwl)
@@ -182,10 +252,10 @@ def simulateATM(para, iwl):
     para.bpfd += para.scmpp[2, iwl]
     para.dpfd += para.scmpp[3, iwl]
 
-    return ERRCODE.SUCCESS
+    return para
 
 
-def simulateNoATM(para):
+def simulateNoATM(para, iwl):
 
     global PhotonCoord, VectorCoord
     global nscat, nscata
@@ -352,11 +422,19 @@ def preinit(para, **args):
 
     return errCode
 
-
 def startSimulate(para):
+
+    results = []
+
+    # Parallel programming
+    if (config.CPU_MANUAL):
+        cpus = config.CPUS
+    else:
+        cpus = multiprocessing.cpu_count()
 
     logging.info("Finish initialise multiprocessing...")
 
+    pool = Pool(cpus)
     # ---- start simulation --------
 
     logging.info("start simulation...")
@@ -366,7 +444,12 @@ def startSimulate(para):
     # #################################
     if (para.AtmMode == 2):
         logging.info("without atmosphere simulation.")
-        simulateNoATM(para)
+        for iwl in range(1, para.nwl + 1):
+            result = pool.apply_async(simulateNoATM, args=(para, iwl,))
+            results.append(result)
+
+        pool.close()
+        pool.join()
 
     # #################################
     # With atmosphere
@@ -374,17 +457,21 @@ def startSimulate(para):
     else:
         logging.info("with atmosphere simulation.")
         for iwl in range(1, para.nwl + 1):
-            err = simulateATM(para, iwl)
+            result = pool.apply_async(simulateATM, args=(para, iwl,))
+            results.append(result)
+
+        pool.close()
+        pool.join()
 
     logging.info("end simulation.")
 
     # ---- end simulation --------
     # Output
     logging.info("Start to write results...")
+    para = gatherData(results)
     errCode = para.writeData()
 
     return errCode
-
 
 def main():
     START_TIME = datetime.datetime.now()

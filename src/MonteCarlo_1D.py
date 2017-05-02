@@ -732,7 +732,7 @@ class MonteCarlo_1D:
         return tau
 
     # Traces a trajectory in plane-parallel vertically-inhomogeneous atmosphere
-    def trace(self, phoCoord, vectCoord, w, wq, ftau, chi, ikd, iz, nscat, ichi):
+    def trace(self, phoCoord, vectCoord, w, wq, ftau, chi, ikd, iz, nscat, ichi, para):
 
         rand = Random()
 
@@ -828,8 +828,8 @@ class MonteCarlo_1D:
                         ixr = min(ixr, comm.K_NXR)
                         iyr = min(iyr, comm.K_NYR)
 
-                        comm.PROC_F[ixr, iyr, irdc] += p
-                        comm.PROC_Q[ixr, iyr, irdc] += p * wq
+                        para.PROC_F[ixr, iyr, irdc] += p
+                        para.PROC_Q[ixr, iyr, irdc] += p * wq
 
                     for i in range(1, comm.N_ANG_C + 1):
                         vectR = Position()
@@ -859,7 +859,7 @@ class MonteCarlo_1D:
                         p = w * adf * exp(-tau)
 
                         # brf(2, i) = 0 in the previous stage
-                        comm.BRF[2, i] += p
+                        para.BRF[2, i] += p
 
                     # scattering
                     self.getRandomCircle(1.0e-12)
