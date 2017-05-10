@@ -5,6 +5,7 @@ import ERRCODE
 from config import config
 import logging
 from Position import Position
+import matplotlib
 
 # Parameters Initialization
 class Parameters:
@@ -332,9 +333,9 @@ class Parameters:
         self.AP = np.zeros(comm.SIZE * comm.SIZE * 101, dtype=float).reshape(comm.SIZE, comm.SIZE, 101)
         self.AP_D = np.zeros(comm.SIZE * comm.SIZE * 101, dtype=float).reshape(comm.SIZE, comm.SIZE, 101)
         self.AP_B = np.zeros(comm.SIZE * comm.SIZE * 101, dtype=float).reshape(comm.SIZE, comm.SIZE, 101)
-        self.AP_F = np.zeros(comm.SIZE * comm.SIZE, dtype=float).reshape(comm.SIZE, comm.SIZE)
-        self.AP_S = np.zeros(comm.SIZE * comm.SIZE, dtype=float).reshape(comm.SIZE, comm.SIZE)
-        self.AP_FD = np.zeros(comm.SIZE * comm.SIZE, dtype=float).reshape(comm.SIZE, comm.SIZE)
+        self.AP_F = np.zeros(comm.SIZE * comm.SIZE * 101, dtype=float).reshape(comm.SIZE, comm.SIZE, 101)
+        self.AP_S = np.zeros(comm.SIZE * comm.SIZE * 101, dtype=float).reshape(comm.SIZE, comm.SIZE, 101)
+        self.AP_FD = np.zeros(comm.SIZE * comm.SIZE * 101, dtype=float).reshape(comm.SIZE, comm.SIZE, 101)
         self.AP_NP = [0.0] * 100
 
         self.FF_DIR = np.zeros(comm.SIZE * comm.SIZE, dtype=float).reshape(comm.SIZE, comm.SIZE)
@@ -405,6 +406,10 @@ class Parameters:
 
         if (self.cmode >= 2):
             comm.N_ANG_C = 1
+            temp = Position()
+            temp.setPosition(0, 0, 0)
+            comm.URC_coord.append(temp)
+            comm.URC_coord.append(temp)
             comm.URC_coord[1].setPosition(0.0, 0.0, 1.0)
 
         self.process201(**args)
@@ -712,7 +717,7 @@ class Parameters:
     def readVegParameters(self, **args):
 
         if ((self.nPhoton == -4) or (self.nPhoton == -5)):
-            return self.process201()
+            return self.process201(**args)
 
         # input output mode
         logging.info("cmode: calculation mode")
@@ -734,7 +739,7 @@ class Parameters:
             return ERRCODE.INPUT_ERROR
 
         if (self.cmode != 1):
-            self.process100()
+            self.process100(**args)
 
         logging.info("nth, angt: # of angle anfinished process 201 200d zenith angle(max 18)for BRF")
         logging.info("eg. 5 10. 20. 45. 50. 70.")
@@ -1817,7 +1822,7 @@ class Parameters:
 
         # Nadir view image
         if (self.cmode != 1):
-            f = open(config.OUTPUT_PATH + "TOC_IMG.txt")
+            f = open(config.OUTPUT_PATH + "TOC_IMG.txt", "w")
 
             for j in range(comm.SIZE, 0, -1):
                 string = ""
@@ -1831,6 +1836,10 @@ class Parameters:
 
             f.close()
 
+            # draw pic
+            dataRaw = np.loadtxt(config.OUTPUT_PATH + "TOC_IMG.txt")
+            matplotlib.image.imsave(config.OUTPUT_PATH + "TOC_IMG.png", dataRaw)
+
             f = open(config.OUTPUT_PATH + "nTOC_IMG.txt", 'w')
             for j in range(comm.SIZE, 0, -1):
                 string = ""
@@ -1838,6 +1847,9 @@ class Parameters:
                     string += format(pi * self.I_REFL[1, i, j] / pixelNP, '10.5f')
                 f.write(string + "\n")
             f.close()
+
+            dataRaw = np.loadtxt(config.OUTPUT_PATH + "nTOC_IMG.txt")
+            matplotlib.image.imsave(config.OUTPUT_PATH + "nTOC_IMG.png", dataRaw)
 
         if (self.cmode == 3):
             f = open(config.OUTPUT_PATH + "apar.txt", 'w')
@@ -1888,3 +1900,4 @@ class Parameters:
             self.printFishEye()
 
         return ERRCODE.SUCCESS
+

@@ -1,7 +1,7 @@
 # atmosphere mode
 Atmosphere_Mode_Args = {
 
-    "number_photon": 1000,
+    "number_photon": 300000,
     "atm_type": 1,
     "solar_angle": 45.0,
     "solar_elevation": 0.0,
@@ -13,7 +13,7 @@ Atmosphere_Mode_Args = {
     "AOT": 0.3,
     "cloud_type": 0,    # cloud free
     "surface_type": 2,  # 3-D canopy
-    "calculation_mode": 1,  # BRF only
+    "calculation_mode": 3,  # BRF only
     "BRF_zenith_angles": [0.0, 10.0, 20.0, 30.0, 40.0, 50.0],
     "BRF_azimuth_angles": [0.0, 180],
     "tree_species": 1,
