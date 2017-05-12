@@ -614,8 +614,8 @@ class MonteCarlo:
         logging.debug(string)
         # Monte Carlo loop
         while (1):
-            string = "Every while: vectCoord = " + str(vectCoord.x) + ", " + str(vectCoord.y) + ", " + str(vectCoord.z)
-            logging.debug(string)
+            # string = "Every while: vectCoord = " + str(vectCoord.x) + ", " + str(vectCoord.y) + ", " + str(vectCoord.z)
+            # logging.debug(string)
             rand = randMethod.getRandom()
             th = acos(vectCoord.z)
             ith = int(degrees(th))
@@ -666,17 +666,17 @@ class MonteCarlo:
 
                 # new direction
                 self.scatterDirection(ulr, ult, vectCoord, comm.M_F)
-                string = "scatter: vectCoord = " + str(vectCoord.x) + ", " + str(vectCoord.y) + ", " + str(vectCoord.z)
-                logging.debug(string)
+                # string = "scatter: vectCoord = " + str(vectCoord.x) + ", " + str(vectCoord.y) + ", " + str(vectCoord.z)
+                # logging.debug(string)
                 if (abs(vectCoord.z) < MIN_Z):
                     vectCoord.z = copysign(MIN_Z, vectCoord.z)
 
             else:
                 logging.debug("Monte Carlo floor: else")
-                string = "before: phoCoord = " + str(phoCoord.x) + ", " + str(phoCoord.y) + ", " + str(phoCoord.z)
-                logging.debug(string)
-                string = "vectCoord = " + str(vectCoord.x) + ", " + str(vectCoord.y) + ", " + str(vectCoord.z)
-                logging.debug(string)
+                # string = "before: phoCoord = " + str(phoCoord.x) + ", " + str(phoCoord.y) + ", " + str(phoCoord.z)
+                # logging.debug(string)
+                # string = "vectCoord = " + str(vectCoord.x) + ", " + str(vectCoord.y) + ", " + str(vectCoord.z)
+                # logging.debug(string)
 
                 phoCoord.x += (distancePlane + mgn) * vectCoord.x
                 phoCoord.y += (distancePlane + mgn) * vectCoord.y
@@ -684,9 +684,9 @@ class MonteCarlo:
                 phoCoord.x -= (int(phoCoord.x / comm.X_MAX) - 0.5 + copysign(0.5, phoCoord.x)) * comm.X_MAX
                 phoCoord.y -= (int(phoCoord.y / comm.Y_MAX) - 0.5 + copysign(0.5, phoCoord.y)) * comm.Y_MAX
 
-                string = "after: phoCoord = " + str(phoCoord.x) + ", " + str(phoCoord.y) + ", " + str(phoCoord.z)
-                logging.debug(string)
-                logging.debug("sp = " + str(distancePlane))
+                # string = "after: phoCoord = " + str(phoCoord.x) + ", " + str(phoCoord.y) + ", " + str(phoCoord.z)
+                # logging.debug(string)
+                # logging.debug("sp = " + str(distancePlane))
 
                 if (abs(phoCoord.z) < MIN_VALUE):
                     phoCoord.z = MIN_VALUE

@@ -108,7 +108,7 @@ def simulateATM(para, iwl):
             chi = mc1D.chi
             ichi = mc1D.ichi
 
-            logging.debug("After mc1d - nscat:" + str(nscat))
+            # logging.debug("After mc1d - nscat:" + str(nscat))
 
             nscata = nscat
             if ((w <= 0.0) or (iz > comm.N_Z)):
@@ -160,7 +160,7 @@ def simulateATM(para, iwl):
                 w = canopyTrace.weight
                 nscat = canopyTrace.cNscat
 
-                logging.debug("*** CanopyPhotonTrace Count:" + str(canopyTrace.COUNT))
+                # logging.debug("*** CanopyPhotonTrace Count:" + str(canopyTrace.COUNT))
                 string = "Finish canopy trace. w = " + str(w) + ", nscat = " + str(nscat) + \
                          ", ERRORCODE = " + ERRCODE.ERR_MESSAGE[errCode]
                 logging.debug(string)
@@ -389,7 +389,7 @@ def startSimulate(para):
 def main():
     START_TIME = datetime.datetime.now()
     para = Parameters()
-    err = preinit(para, **input_parameters.Atmosphere_Mode_Args)
+    err = preinit(para, **input_parameters.input)
     if (err != ERRCODE.SUCCESS):
         return ERRCODE.printMessage(err)
 

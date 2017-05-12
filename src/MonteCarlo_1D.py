@@ -741,10 +741,10 @@ class MonteCarlo_1D:
         logging.debug(string)
         # loop for layers
         while ((iz >= 1) and (iz <= comm.N_Z)):
-            string = "x = " + str(phoCoord.x) + ", y =" + str(phoCoord.y) + ", z =" + str(phoCoord.z)
+            # string = "x = " + str(phoCoord.x) + ", y =" + str(phoCoord.y) + ", z =" + str(phoCoord.z)
             logging.debug("mc1dtrace: start while")
-            logging.debug(string)
-            logging.debug("uz = " + str(vectCoord.z))
+            # logging.debug(string)
+            # logging.debug("uz = " + str(vectCoord.z))
             absg = comm.ABS_G1D[iz, ikd]
             extm = absg + comm.EXT_T1D[iz, ichi]
             absm = absg + comm.ABS_T1D[iz]
@@ -753,8 +753,8 @@ class MonteCarlo_1D:
                 path = (comm.Z_GRD[iz - 1] - phoCoord.z) / vectCoord.z
             else:
                 path = (comm.Z_GRD[iz] - phoCoord.z) / vectCoord.z
-            logging.debug("vectCoord.z = " + str(vectCoord.z))
-            logging.debug("path = " + str(path))
+            # logging.debug("vectCoord.z = " + str(vectCoord.z))
+            # logging.debug("path = " + str(path))
             # scattering events
             if (extm > 1.0e-20):
                 fpath = ftau / extm
@@ -765,10 +765,10 @@ class MonteCarlo_1D:
 
                     phoCoord.x = self.arthshift(phoCoord.x, vectCoord.x, fpath, comm.X_MAX)
                     phoCoord.y = self.arthshift(phoCoord.y, vectCoord.y, fpath, comm.Y_MAX)
-                    string = "x = " + str(phoCoord.x) + ", y =" + str(phoCoord.y) + ", z =" + str(phoCoord.z)
+                    # string = "x = " + str(phoCoord.x) + ", y =" + str(phoCoord.y) + ", z =" + str(phoCoord.z)
                     logging.debug("mc1dtrace: after inner while")
-                    logging.debug(string)
-                    logging.debug("uz = " + str(vectCoord.z))
+                    # logging.debug(string)
+                    # logging.debug("uz = " + str(vectCoord.z))
                     # weight scaling
                     w *= (1.0 - absm / extm)
 
@@ -902,10 +902,10 @@ class MonteCarlo_1D:
 
             phoCoord.x = self.arthshift(phoCoord.x, vectCoord.x, path, comm.X_MAX)
             phoCoord.y = self.arthshift(phoCoord.y, vectCoord.y, path, comm.Y_MAX)
-            string = "x = " + str(phoCoord.x) + ", y =" + str(phoCoord.y) + ", z =" + str(phoCoord.z)
+            # string = "x = " + str(phoCoord.x) + ", y =" + str(phoCoord.y) + ", z =" + str(phoCoord.z)
             logging.debug("mc1dtrace: after while")
-            logging.debug(string)
-            logging.debug("uz = " + str(vectCoord.z))
+            # logging.debug(string)
+            # logging.debug("uz = " + str(vectCoord.z))
 
         self.save(w, nscat, iz, chi, ichi)
         logging.debug("Monte Carlo 1-D simulation finish.")

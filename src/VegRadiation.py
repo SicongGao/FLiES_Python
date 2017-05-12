@@ -193,7 +193,7 @@ class VegRadiation:
             Id += (1.0 - ff[cb]) * w * exp(-tauc) / pi
             Id *= abs(a)
             Id *= (1.0 - fd) * float(sflag)
-            logging.debug("veg rad: id = " + str(Id))
+            # logging.debug("veg rad: id = " + str(Id))
             para.BRF[1, i] += Id
             para.BRF_C[1, i] += Id * comm.DLT[cb, 1]
             para.BRF_S[1, i] += Id * (comm.DLT[cb, 2] + comm.DLT[cb, 3])

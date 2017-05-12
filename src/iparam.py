@@ -333,9 +333,9 @@ class Parameters:
         self.AP = np.zeros(comm.SIZE * comm.SIZE * 101, dtype=float).reshape(comm.SIZE, comm.SIZE, 101)
         self.AP_D = np.zeros(comm.SIZE * comm.SIZE * 101, dtype=float).reshape(comm.SIZE, comm.SIZE, 101)
         self.AP_B = np.zeros(comm.SIZE * comm.SIZE * 101, dtype=float).reshape(comm.SIZE, comm.SIZE, 101)
-        self.AP_F = np.zeros(comm.SIZE * comm.SIZE * 101, dtype=float).reshape(comm.SIZE, comm.SIZE, 101)
+        self.AP_F = np.zeros(comm.SIZE * comm.SIZE, dtype=float).reshape(comm.SIZE, comm.SIZE)
         self.AP_S = np.zeros(comm.SIZE * comm.SIZE * 101, dtype=float).reshape(comm.SIZE, comm.SIZE, 101)
-        self.AP_FD = np.zeros(comm.SIZE * comm.SIZE * 101, dtype=float).reshape(comm.SIZE, comm.SIZE, 101)
+        self.AP_FD = np.zeros(comm.SIZE * comm.SIZE, dtype=float).reshape(comm.SIZE, comm.SIZE)
         self.AP_NP = [0.0] * 100
 
         self.FF_DIR = np.zeros(comm.SIZE * comm.SIZE, dtype=float).reshape(comm.SIZE, comm.SIZE)
@@ -1713,23 +1713,24 @@ class Parameters:
                           format(self.AP_NP[k], '13.6f') + "\n"
             f.write(string + "\n")
 
-        f.write("\n-- spctrl fraction. energy & photon flux(%) --" + "\n")
-        f.write(format("wl(um)", '10') + format("Etot", '10') + format("Ebeam", '10') + format("Ediffuse", '14') +
-                format("Ptot", '12') + format("Pbeam", '10') + format("Pdiffuse", '10') + "\n")
-        for i in range(1, self.nwl + 1):
-            if (i <= 20):
-                temp = self.wls + self.span[i] * float(i) - self.span[i] / 2.0
-            else:
-                temp = 0.7 + self.wls + self.span[i] * float(i - 20) - self.span[i] / 2.0
+        if (self.imode != 1):
+            f.write("\n-- spctrl fraction. energy & photon flux(%) --" + "\n")
+            f.write(format("wl(um)", '10') + format("Etot", '10') + format("Ebeam", '10') + format("Ediffuse", '14') +
+                    format("Ptot", '12') + format("Pbeam", '10') + format("Pdiffuse", '10') + "\n")
+            for i in range(1, self.nwl + 1):
+                if (i <= 20):
+                    temp = self.wls + self.span[i] * float(i) - self.span[i] / 2.0
+                else:
+                    temp = 0.7 + self.wls + self.span[i] * float(i - 20) - self.span[i] / 2.0
 
-            f.write(format(temp, '5.3f'))
-            string = ""
-            for j in range(3):
-                string += format(self.scmpf[j + 1, i], '12.5f')
-            for j in range(3):
-                string += format(self.scmpp[j + 1, i], '12.5f')
+                f.write(format(temp, '5.3f'))
+                string = ""
+                for j in range(3):
+                    string += format(self.scmpf[j + 1, i], '12.5f')
+                for j in range(3):
+                    string += format(self.scmpp[j + 1, i], '12.5f')
 
-            f.write(string + "\n")
+                f.write(string + "\n")
 
         f.write("\n-- Downward radiance at the top of canopy --\n")
         f.write(format("idrc", '10') + format("theta", '10') + format("phi", '9') + format("radiance_F", '13') +
@@ -1837,8 +1838,7 @@ class Parameters:
             f.close()
 
             # draw pic
-            dataRaw = np.loadtxt(config.OUTPUT_PATH + "TOC_IMG.txt")
-            matplotlib.image.imsave(config.OUTPUT_PATH + "TOC_IMG.png", dataRaw)
+            self.drawPic("TOC_IMG.txt")
 
             f = open(config.OUTPUT_PATH + "nTOC_IMG.txt", 'w')
             for j in range(comm.SIZE, 0, -1):
@@ -1848,8 +1848,7 @@ class Parameters:
                 f.write(string + "\n")
             f.close()
 
-            dataRaw = np.loadtxt(config.OUTPUT_PATH + "nTOC_IMG.txt")
-            matplotlib.image.imsave(config.OUTPUT_PATH + "nTOC_IMG.png", dataRaw)
+            self.drawPic("nTOC_IMG.txt")
 
         if (self.cmode == 3):
             f = open(config.OUTPUT_PATH + "apar.txt", 'w')
@@ -1876,24 +1875,26 @@ class Parameters:
                     string = ""
                     for i in range(1, comm.SIZE + 1):
                         string += format(self.AP_D[i, j, k], '12.5f')
-                    f.write(string + "\ n")
+                    f.write(string + "\n")
             f.close()
 
             f = open(config.OUTPUT_PATH + "aparf.txt", 'w')
             for j in range(comm.SIZE, 0, -1):
                 string = ""
                 for i in range(1, comm.SIZE + 1):
-                    string += format(self.AP_F[i, j, k], '12.5f')
+                    string += format(self.AP_F[i, j], '20.5f')
                 f.write(string + "\n")
             f.close()
+            self.drawPic("aparf.txt")
 
             f = open(config.OUTPUT_PATH + "aparfd.txt", 'w')
             for j in range(comm.SIZE, 0, -1):
                 string = ""
                 for i in range(1, comm.SIZE + 1):
-                    string += format(self.AP_FD[i, j, k], '12.5f')
+                    string += format(self.AP_FD[i, j], '20.5f')
                 f.write(string + "\n")
             f.close()
+            self.drawPic("aparfd.txt")
 
         # print fish eye data
         if (self.nPhoton == -4):
@@ -1901,3 +1902,8 @@ class Parameters:
 
         return ERRCODE.SUCCESS
 
+    def drawPic(self, fileName):
+        dataRaw = np.loadtxt(config.OUTPUT_PATH + fileName)
+        fName = fileName.split(".")[0]
+        # plt.imshow(dataRaw)
+        matplotlib.image.imsave(config.OUTPUT_PATH + fName + ".png", dataRaw)
