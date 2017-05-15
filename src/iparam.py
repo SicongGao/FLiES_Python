@@ -6,6 +6,7 @@ from config import config
 import logging
 from Position import Position
 import matplotlib
+from matplotlib import image
 
 # Parameters Initialization
 class Parameters:
@@ -920,7 +921,11 @@ class Parameters:
 
             elif (self.imode == 1):
                 logging.info("wl0:wavelength (micron ex 0.55)")
-                self.wl0 = float(input())
+                if (config.INPUT_MODE):
+                    self.wl0 = args.get("single_wavelength")
+                    logging.info(self.wl0)
+                else:
+                    self.wl0 = float(input())
                 self.wls = 0.2
                 self.nwl = int(round((4.0 - 0.3) / self.span[1]))
                 self.npl[1] = self.nPhotonProcess
@@ -1269,7 +1274,10 @@ class Parameters:
 
         if (self.AtmMode == 2):
             logging.info("diffuse: Input frac. of diffuse radiation (0-1)")
-            self.diffuse = int(input())
+            if (config.INPUT_MODE):
+                self.diffuse = args.get("diffuse")
+            else:
+                self.diffuse = float(input())
             if ((self.diffuse < 0.0) or (self.diffuse > 1.0)):
                 logging.ERROR("fraction of diffuse should be 0.0-1.0... exit ")
                 return ERRCODE.INPUT_ERROR
@@ -1832,7 +1840,7 @@ class Parameters:
                         string += format(pi * self.REFL[1, i, j] / (pixelNP * tm), '10.5f')
                 else:
                     for i in range(1, comm.SIZE + 1):
-                        string += format(pi * self.REFL[1, i, j] / pixelNP, '10.5f')
+                        string += format(pi * self.REFL[1, i, j] / pixelNP, '20.5f')
                 f.write(string + "\n")
 
             f.close()
@@ -1844,7 +1852,7 @@ class Parameters:
             for j in range(comm.SIZE, 0, -1):
                 string = ""
                 for i in range(1, comm.SIZE + 1):
-                    string += format(pi * self.I_REFL[1, i, j] / pixelNP, '10.5f')
+                    string += format(pi * self.I_REFL[1, i, j] / pixelNP, '20.5f')
                 f.write(string + "\n")
             f.close()
 
@@ -1899,8 +1907,8 @@ class Parameters:
         # print fish eye data
         if (self.nPhoton == -4):
             self.printFishEye()
-
         return ERRCODE.SUCCESS
+
 
     def drawPic(self, fileName):
         dataRaw = np.loadtxt(config.OUTPUT_PATH + fileName)
