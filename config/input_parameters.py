@@ -27,7 +27,7 @@ Atmosphere_Mode_Args = {
 # atmosphere mode with apar
 Atmosphere_APAR_Mode_Args = {
 
-    "number_photon": 20000000,
+    "number_photon": 1000000,
     # "number_photon": 1000,
     "atm_type": 1,
     "solar_angle": 45.0,
@@ -54,7 +54,7 @@ Atmosphere_APAR_Mode_Args = {
 # single spectral
 Atmosphere_One_Spectral_NoATM_Args = {
 
-    "number_photon": 100000,
+    "number_photon": 1000000,
     "atm_type": 2,
     "diffuse": 0.1,
     "solar_angle": 45.0,
@@ -79,4 +79,4 @@ Atmosphere_One_Spectral_NoATM_Args = {
     "sbar": [0.25],
 }
 
-input = Atmosphere_One_Spectral_NoATM_Args
+input = Atmosphere_APAR_Mode_Args

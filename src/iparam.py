@@ -8,6 +8,8 @@ from Position import Position
 import matplotlib
 from matplotlib import image
 
+MAX_SPECIES = 5
+
 # Parameters Initialization
 class Parameters:
     ix = [0] * 1025
@@ -58,16 +60,13 @@ class Parameters:
     alb = [0.0] * 100
     spcf = [0.0] * 400
     spcq = [0.0] * 400
-    ulr = [0.0] * 100 # reflectance of forest floor vegetaion
-    ult = [0.0] * 100 # tansmittance of forest floor vegetaion
-    soilRef = [0.0] * 100 # soil reflectance
-    tlr = [0.0] * 5
-    tlt = [0.0] * 5
-    tstr = [0.0] * 5
+    floor_reflectance = [0.0] * 50 # reflectance of forest floor vegetaion
+    floor_transmittance = [0.0] * 50 # tansmittance of forest floor vegetaion
+    soilRef = [0.0] * 50 # soil reflectance
 
-    lr = np.zeros(5 * 100, dtype=float).reshape(5, 100) # reflectance of crown foliage
-    lt = np.zeros(5 * 100, dtype=float).reshape(5, 100) # transmittance of crown foliage
-    truncRef = np.zeros(5 * 100, dtype=float).reshape(5, 100) # trunk reflectance
+    leaf_reflectance = np.zeros(MAX_SPECIES * 50, dtype=float).reshape(MAX_SPECIES, 50) # reflectance of crown foliage
+    leaf_transmittance = np.zeros(MAX_SPECIES * 50, dtype=float).reshape(MAX_SPECIES, 50) # transmittance of crown foliage
+    truncRef = np.zeros(MAX_SPECIES * 50, dtype=float).reshape(5, 50) # trunk reflectance
     ext = np.zeros(10 * 200, dtype=float).reshape(10, 200)
     wkd = [0.0] * 200
 
@@ -78,10 +77,10 @@ class Parameters:
     bound = 1
 
     # for math
-    T_SIN = [0.0] * comm.ANGLE_SHIFT * 2
-    T_COS = [1.0] * comm.ANGLE_SHIFT * 2
-    T_ACOS = [0.0] * comm.ACOOS_SHIFT * 2
-    T_EXP = [0.0] * comm.ACOOS_SHIFT
+    # T_SIN = [0.0] * comm.ANGLE_SHIFT * 2
+    # T_COS = [1.0] * comm.ANGLE_SHIFT * 2
+    # T_ACOS = [0.0] * comm.ACOOS_SHIFT * 2
+    # T_EXP = [0.0] * comm.ACOOS_SHIFT
     DLT = np.zeros((6 + 1) * (6 + 1), dtype=float).reshape((6 + 1), (6 + 1))
 
     # for output
@@ -358,14 +357,14 @@ class Parameters:
         self.initMathparameters()
 
     def initMathparameters(self):
-        for i in range(0, 62832 * 2):
-            self.T_SIN[i] = sin(float(i - 62832) * 0.0001)
-            self.T_COS[i] = cos(float(i - 62832) * 0.0001)
+        # for i in range(0, 62832 * 2):
+        #     self.T_SIN[i] = sin(float(i - 62832) * 0.0001)
+        #     self.T_COS[i] = cos(float(i - 62832) * 0.0001)
+        #
+        # for i in range(0, comm.ACOOS_SHIFT * 2):
+        #     self.T_ACOS[i] = acos(float(i - comm.ACOOS_SHIFT) * 0.0001)
 
-        for i in range(0, comm.ACOOS_SHIFT * 2):
-            self.T_ACOS[i] = acos(float(i - comm.ACOOS_SHIFT) * 0.0001)
-
-        for i in range(1, 6):
+        for i in range(1, 7):
             comm.DLT[i, i] = 1.0
 
         return ERRCODE.SUCCESS
@@ -375,13 +374,13 @@ class Parameters:
             tempList = list(args.get("optical_parameters"))
             #print(args)
             for j in range(1, self.nts + 1):
-                self.lr[j,i] = tempList.pop(0)
+                self.leaf_reflectance[j, i] = tempList.pop(0)
 
             for j in range(1, self.nts + 1):
-                self.lt[j, i] = tempList.pop(0)
+                self.leaf_transmittance[j, i] = tempList.pop(0)
 
-            self.ulr[i] = tempList.pop(0)
-            self.ult[i] = tempList.pop(0)
+            self.floor_reflectance[i] = tempList.pop(0)
+            self.floor_transmittance[i] = tempList.pop(0)
 
             for j in range(1, self.nts + 1):
                 self.truncRef[j] = tempList.pop(0)
@@ -389,13 +388,13 @@ class Parameters:
             self.soilRef[i] = tempList.pop(0)
         else:
             for j in range(1, self.nts + 1):
-                self.lr[j, i] = float(input())
+                self.leaf_reflectance[j, i] = float(input())
 
             for j in range(1, self.nts + 1):
-                self.lt[j, i] = float(input())
+                self.leaf_transmittance[j, i] = float(input())
 
-            self.ulr[i] = float(input())
-            self.ult[i] = float(input())
+            self.floor_reflectance[i] = float(input())
+            self.floor_transmittance[i] = float(input())
 
             for j in range(1, self.nts + 1):
                 self.truncRef[j] = float(input())
@@ -599,8 +598,8 @@ class Parameters:
 
                 for i in range(1, self.nwl + 1):
                     for j in range(1, self.nts + 1):
-                        avelr += self.lr[j, i]
-                        avelt += self.lt[j, i]
+                        avelr += self.leaf_reflectance[j, i]
+                        avelt += self.leaf_transmittance[j, i]
 
                 avelr /= float(self.nwl * self.nts)
                 avelt /= float(self.nwl * self.nts)
@@ -647,9 +646,9 @@ class Parameters:
                     logging.info(str(ramda) + " and " + str(ramda + 5 * self.span[1]))
 
             if (i == 1):
-                logging.info("lr1 lr2.. lt1 lt2.. ulr ult str1 str2.. sor")
-                logging.info("(lr, lt:leaf refl. & leaf transm.")
-                logging.info("ulr,ult:understory leaf refl. & transm.")
+                logging.info("lr1 lr2.. lt1 lt2.. floor_reflectance floor_transmittance str1 str2.. sor")
+                logging.info("(leaf_reflectance, leaf_transmittance:leaf refl. & leaf transm.")
+                logging.info("floor_reflectance,floor_transmittance:understory leaf refl. & transm.")
                 logging.info("stmr: stem refl., soilr: soil refl.)")
 
             if (self.nwl == 1):
@@ -668,31 +667,31 @@ class Parameters:
 
                 else:
                     for j in range(1, self.nts + 1):
-                        self.lr[j, i] = self.lr[j, ispc]
-                        self.lt[j, i] = self.lt[j, ispc]
+                        self.leaf_reflectance[j, i] = self.leaf_reflectance[j, ispc]
+                        self.leaf_transmittance[j, i] = self.leaf_transmittance[j, ispc]
                         self.truncRef[j, i] = self.truncRef[j, ispc]
 
-                    self.ulr[i] = self.ult[ispc]
-                    self.ult[i] = self.ult[ispc]
+                    self.floor_reflectance[i] = self.floor_transmittance[ispc]
+                    self.floor_transmittance[i] = self.floor_transmittance[ispc]
                     self.soilRef[i] = self.soilRef[ispc]
 
             # check the parameter range
             for j in range(1, self.nts + 1):
-                if (self.lr[j,i] + self.lt[j,i] > 0.99):
+                if (self.leaf_reflectance[j, i] + self.leaf_transmittance[j,i] > 0.99):
                     logging.ERROR("canopy leaf reflectance+transmittance is too large, exit!")
                     return ERRCODE.OUT_OF_RANGE
 
-                if (self.lr[j, i] + self.lt[j, i] < 0.0001):
-                    self.lr[j,i] = 0.0001
-                    self.lt[j,i] = 0.0001
+                if (self.leaf_reflectance[j, i] + self.leaf_transmittance[j, i] < 0.0001):
+                    self.leaf_reflectance[j, i] = 0.0001
+                    self.leaf_transmittance[j,i] = 0.0001
 
-            if (self.ulr[i] + self.ult[i] > 0.99):
+            if (self.floor_reflectance[i] + self.floor_transmittance[i] > 0.99):
                 logging.ERROR("floor leaf reflectance+transmittance is too large, exit!")
                 return ERRCODE.OUT_OF_RANGE
 
-            if (self.ulr[i] + self.ult[i] < 0.0001):
-                self.ulr[i] = 0.0001
-                self.ult[i] = 0.0001
+            if (self.floor_reflectance[i] + self.floor_transmittance[i] < 0.0001):
+                self.floor_reflectance[i] = 0.0001
+                self.floor_transmittance[i] = 0.0001
 
             for j in range(1, self.nts + 1):
                 if (self.truncRef[j, i] > 1.00):
@@ -839,7 +838,6 @@ class Parameters:
         self.cos_q0 = cos(q0)
         self.sin_f0 = sin(f0)
         self.cos_f0 = cos(f0)
-        #self.sin_f0 =
 
         if (self.AtmMode == 2):
             return

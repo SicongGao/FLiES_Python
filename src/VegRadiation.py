@@ -25,7 +25,7 @@ class VegRadiation:
     # cb = 3 (stem top/bottom),cb = 4 (understory), cb = 5 (soil surface)
     # cb = 6 (stem side)
 
-    def fpf(self, thi, tho, phr, lr, lt, cb):
+    def fpf(self, thi, tho, phr, leaf_reflectance, leaf_transmittance, cb):
 
         gmrx = np.zeros(3 * 3 * 3, dtype=float).reshape(3, 3, 3)
         gmtx = np.zeros(3 * 3 * 3, dtype=float).reshape(3, 3, 3)
@@ -75,13 +75,13 @@ class VegRadiation:
         gmr = trr[1] * (float(k) - ph) + trr[2] * (ph - float(k - 1))
         gmt = ttt[1] * (float(k) - ph) + ttt[2] * (ph - float(k - 1))
 
-        gm = lr * gmr + lt * gmt
+        gm = leaf_reflectance * gmr + leaf_transmittance * gmt
         gfunc = comm.DLT[cb, 1] * comm.GT_BLC[int(th1 * 10.0)] +\
                 comm.DLT[cb, 2] * comm.GT_BLB[int(th1 * 10.0)] + \
                 comm.DLT[cb, 4] * comm.GT_BLF[int(th1 * 10.0)] + \
                 float(comm.DLT[cb, 3] + comm.DLT[cb, 5] + comm.DLT[cb, 6])
 
-        gm = (1.0 / gfunc) * gm / ((lr + lt) * pi)
+        gm = (1.0 / gfunc) * gm / ((leaf_reflectance + leaf_transmittance) * pi)
 
         return gm
 
@@ -93,7 +93,7 @@ class VegRadiation:
 
     # a changed
 
-    def simulate(self, phoCoord, vectCoord, w, lr, lt, cb, a, fd, ichi, ikd, para):
+    def simulate(self, phoCoord, vectCoord, w, leaf_reflectance, leaf_transmittance, cb, a, fd, ichi, ikd, para):
         global count
         if (phoCoord.z <= 1e-5):
             logging.debug("*** count = " + str(count + 1))
@@ -104,6 +104,9 @@ class VegRadiation:
         ff = [0.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0]
 
         # if x and y is outside area
+        # if ((phoCoord.x > comm.X_MAX) or (phoCoord.x < 0) or (phoCoord.y < 0) or (phoCoord.y > comm.Y_MAX)):
+        #     return ERRCODE.OUT_OF_RANGE
+
         objCoord = Position()
         objCoord.x = phoCoord.x - (int(phoCoord.x / comm.X_MAX) - 0.5 + copysign(0.5, phoCoord.x)) * comm.X_MAX
         objCoord.y = phoCoord.y - (int(phoCoord.y / comm.Y_MAX) - 0.5 + copysign(0.5, phoCoord.y)) * comm.Y_MAX
@@ -174,7 +177,7 @@ class VegRadiation:
             # print("phr = ", phr)
             phr = acos(phr)
 
-            pf = self.fpf(thi, tho, phr, lr, lt, cb)
+            pf = self.fpf(thi, tho, phr, leaf_reflectance, leaf_transmittance, cb)
 
             tauc = vegTrace.tau + (- objCoord.z / comm.URC_coord[i].z) * \
                     comm.GT_BLF[ithr] * comm.G_LAI * (comm.DLT[cb, 4] + comm.DLT[cb, 5])

@@ -32,7 +32,7 @@ knzext = 200
 fpv = [0.0] * 101
 fpc = fpf = 0.0
 num = 0
-SHOW = 10
+SHOW = 100
 MIN_VALUE = 1.0e-8
 MIN_UZ = 0.0174524
 
@@ -144,17 +144,17 @@ def simulateATM(para, iwl):
 
             else:
                 # 3-D surface
-                tLR = [0.0] * (para.nts + 1)
-                tLT = [0.0] * (para.nts + 1)
-                tSTR = [0.0] * (para.nts + 1)
+                tLR = [0.0]
+                tLT = [0.0]
+                tSTR = [0.0]
                 for i in range(1, para.nts + 1):
-                    tLR[i] = para.lr[i, 1]
-                    tLT[i] = para.lt[i, 1]
-                    tSTR[i] = para.truncRef[i, 1]
+                    tLR.append(para.leaf_reflectance[i, 1])
+                    tLT.append(para.leaf_transmittance[i, 1])
+                    tSTR.append(para.truncRef[i, 1])
 
                 # call the canopy radiation transfer module
                 errCode = canopyTrace.trace(PhotonCoord, VectorCoord, w, para.wq, nscat, ichi, ikd, tSTR[1], para.soilRef[1],
-                                  tLR, tLT, para.ulr[1], para.ult[1], para)
+                                  tLR, tLT, para.floor_reflectance[1], para.floor_transmittance[1], para)
 
                 w = canopyTrace.weight
                 nscat = canopyTrace.cNscat
@@ -260,17 +260,17 @@ def simulateNoATM(para):
                 VectorCoord.z = copysign(MIN_VALUE, VectorCoord.z)
         else:
             # 3D surface
-            tLR = [0.0] * (para.nts + 1)
-            tLT = [0.0] * (para.nts + 1)
-            tSTR = [0.0] * (para.nts + 1)
+            tLR = [0.0]
+            tLT = [0.0]
+            tSTR = [0.0]
             for i in range(1, para.nts + 1):
-                tLR[i] = para.lr[i, 1]
-                tLT[i] = para.lt[i, 1]
-                tSTR[i] = para.truncRef[i, 1]
+                tLR.append(para.leaf_reflectance[i, 1])
+                tLT.append(para.leaf_transmittance[i, 1])
+                tSTR.append(para.truncRef[i, 1])
 
             # call the canopy radiation transfer module
             canopyTrace.trace(PhotonCoord, VectorCoord, w, para.wq, nscat, ichi, ikd, tSTR[1], para.soilRef[1],
-                              tLR, tLT, para.ulr[1], para.ult[1], para)
+                              tLR, tLT, para.floor_reflectance[1], para.floor_transmittance[1], para)
 
             w = canopyTrace.weight
             nscat = canopyTrace.cNscat

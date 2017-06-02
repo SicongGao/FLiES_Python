@@ -70,7 +70,7 @@ class MonteCarlo:
     # We use the method of Frontier Technical Report No7
     # p90-91, based on Rejection method
     # ****************************************************
-    def scatterDirection(self, lr, lt, vectCoord, m):
+    def scatterDirection(self, leaf_reflectance, leaf_transmittance, vectCoord, m):
 
         fglm = (0, 1.0, 4.0 / pi, 4.0 / pi)
         phl = thl = 0
@@ -109,7 +109,7 @@ class MonteCarlo:
         a = acos(a)
 
         # reflection
-        if (cRandom.getRandom() <= (lr / (lr + lt))):
+        if (cRandom.getRandom() <= (leaf_reflectance / (leaf_reflectance + leaf_transmittance))):
             if (cosa >= 0.0):
                 b += pi
                 if (b > (2.0 * pi)):
@@ -218,7 +218,7 @@ class MonteCarlo:
         self.save(nscat, w)
         return ERRCODE.SUCCESS
 
-    def canopy(self, w, wq, phoCoord, vectCoord, nscat, tObj, inobj, truncRef, ichi, ikd, lr, lt, para):
+    def canopy(self, w, wq, phoCoord, vectCoord, nscat, tObj, inobj, truncRef, ichi, ikd, leaf_reflectance, leaf_transmittance, para):
 
         MIN_VALUE = 1.0e-8
         mgn = 1.0e-2
@@ -302,8 +302,8 @@ class MonteCarlo:
                     sgm += 4.0 * cf * comm.GT_BLC[ith] * la * (1.0 - bp)
                     sgm = sgm * bp + (sgm / comm.FE) * (1.0 - bp)
                     sgm = max(1.0e-5, sgm)
-                    ref = truncRef * bp + lr * (1.0 - bp)
-                    tr = lt * (1.0 - bp)
+                    ref = truncRef * bp + leaf_reflectance * (1.0 - bp)
+                    tr = leaf_transmittance * (1.0 - bp)
 
                     rand = randMethod.getRandom()
                     distance = -log(rand) / sgm
@@ -385,8 +385,8 @@ class MonteCarlo:
                     sgm = sgm * bp + (sgm / comm.FE) * (1.0 - bp)
                     sgm = max(1.0e-5, sgm)
 
-                    ref = truncRef * bp + lr * (1.0 - bp)
-                    tr = lt * (1.0 - bp)
+                    ref = truncRef * bp + leaf_reflectance * (1.0 - bp)
+                    tr = leaf_transmittance * (1.0 - bp)
 
                     rand = randMethod.getRandom()
                     distance = -log(rand) / sgm
@@ -442,7 +442,7 @@ class MonteCarlo:
 
                         cb = int((1.0 - bp) + 2.0 * bp)
 
-                        vegRadiant.simulate(phoCoord, vectCoord, w, lr, lt, cb, 1.0, fd, ichi, ikd, para)
+                        vegRadiant.simulate(phoCoord, vectCoord, w, leaf_reflectance, leaf_transmittance, cb, 1.0, fd, ichi, ikd, para)
 
                         rand = randMethod.getRandom()
                         if (rand >= fd):
@@ -477,8 +477,8 @@ class MonteCarlo:
                     sgm = sgm * bp + (sgm / comm.FE) * (1.0 - bp)
                     sgm = max(1.0e-5, sgm)
 
-                    ref = truncRef * bp + lr * (1.0 - bp)
-                    tr = lt * (1.0 - bp)
+                    ref = truncRef * bp + leaf_reflectance * (1.0 - bp)
+                    tr = leaf_transmittance * (1.0 - bp)
 
                     rand = randMethod.getRandom()
                     distance = -log(rand) / sgm
@@ -543,7 +543,7 @@ class MonteCarlo:
                             return ERRCODE.LOW_WEIGHT
 
                         cb = int((1.0 - bp) + 2.0 * bp)
-                        vegRadiant.simulate(phoCoord, vectCoord, w, lr, lt, cb, 1.0, fd, ichi, ikd, para)
+                        vegRadiant.simulate(phoCoord, vectCoord, w, leaf_reflectance, leaf_transmittance, cb, 1.0, fd, ichi, ikd, para)
 
                         if (randMethod.getRandom() >= fd):
                             self.scatterDirection(ref, tr, vectCoord, comm.M_C)
@@ -582,7 +582,7 @@ class MonteCarlo:
     # w        : weight of the photon
     # z (m)    : Height of the photon position from the upper grass boundary (-1.0<=z<0)
     # ##################################################################################S
-    def floor(self, w, wq, phoCoord, vectCoord, nscat, ulr, ult, sor, ichi, ikd, para):
+    def floor(self, w, wq, phoCoord, vectCoord, nscat, floor_reflectance, floor_transmittance, sor, ichi, ikd, para):
 
         # tentative fd
         fd = 0.0
@@ -636,7 +636,7 @@ class MonteCarlo:
 
                 # recollision
                 while (1):
-                    para.F_FPR += w * wq * (1.0 - ulr - ult)
+                    para.F_FPR += w * wq * (1.0 - floor_reflectance - floor_transmittance)
 
                     ix = int(phoCoord.x * comm.RES) + 1
                     iy = int(phoCoord.y * comm.RES) + 1
@@ -644,10 +644,10 @@ class MonteCarlo:
                     ix = min(ix, comm.SIZE - 1)
                     iy = min(iy, comm.SIZE - 1)
 
-                    para.AP_F[ix, iy] += w * wq * (1.0 - ult - ulr)
-                    para.AP_FD[ix, iy] += w * wq * (1.0 - ult - ulr) * min(float(nscat), 1.0)
+                    para.AP_F[ix, iy] += w * wq * (1.0 - floor_transmittance - floor_reflectance)
+                    para.AP_FD[ix, iy] += w * wq * (1.0 - floor_transmittance - floor_reflectance) * min(float(nscat), 1.0)
 
-                    w *= (ult + ulr)
+                    w *= (floor_transmittance + floor_reflectance)
                     nscat += 1
 
                     w = RussianRoulette.roulette(w)
@@ -662,10 +662,10 @@ class MonteCarlo:
                     if (randMethod.getRandom() >= psh):
                         break
 
-                vegRadiant.simulate(phoCoord, vectCoord, w, ulr, ult, 4, 1.0, fd, ichi, ikd, para)
+                vegRadiant.simulate(phoCoord, vectCoord, w, floor_reflectance, floor_transmittance, 4, 1.0, fd, ichi, ikd, para)
 
                 # new direction
-                self.scatterDirection(ulr, ult, vectCoord, comm.M_F)
+                self.scatterDirection(floor_reflectance, floor_transmittance, vectCoord, comm.M_F)
                 # string = "scatter: vectCoord = " + str(vectCoord.x) + ", " + str(vectCoord.y) + ", " + str(vectCoord.z)
                 # logging.debug(string)
                 if (abs(vectCoord.z) < MIN_Z):
@@ -701,7 +701,7 @@ class MonteCarlo:
                     ix = min(ix, comm.SIZE - 1)
                     iy = min(iy, comm.SIZE - 1)
 
-                    para.AP_S[ix, iy] += w * wq * (1.0 - ulr - ulr)
+                    para.AP_S[ix, iy] += w * wq * (1.0 - floor_reflectance - floor_reflectance)
 
                     # surface downward flux
                     para.SF_DIR[ix, iy] += w * wq * (1.0 - min(nscat, 1))
@@ -713,7 +713,7 @@ class MonteCarlo:
                         logging.debug("Monte Carlo floor simulation finish. (low w)")
                         return ERRCODE.LOW_WEIGHT
 
-                    vegRadiant.simulate(phoCoord, vectCoord, w, ulr, ult, 5, 1.0, fd, ichi, ikd, para)
+                    vegRadiant.simulate(phoCoord, vectCoord, w, floor_reflectance, floor_transmittance, 5, 1.0, fd, ichi, ikd, para)
 
                     self.save(nscat, w)
                     self.scatterReflectSurface(vectCoord, mode)

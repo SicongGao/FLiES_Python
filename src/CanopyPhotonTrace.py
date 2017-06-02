@@ -40,7 +40,7 @@ class CanopyPhotonTrace:
 
         return ERRCODE.SUCCESS
 
-    def trace(self, phoCoord, vectCoord, w, wq, nscat, ichi, ikd, truncRef, SO_R, lr, lt, ulr, ult, para):
+    def trace(self, phoCoord, vectCoord, w, wq, nscat, ichi, ikd, truncRef, SO_R, leaf_reflectance, leaf_transmittance, floor_reflectance, floor_transmittance, para):
 
         iVOX = 0
         distancePho = 0.0
@@ -166,7 +166,7 @@ class CanopyPhotonTrace:
 
                     index = comm.OBJ_Group[iNobj]
                     mcSimulation.canopy(w, wq, phoCoord, vectCoord, nscat, tObj, iNobj,
-                                        truncRef, ichi, ikd, lr[index], lt[index], para)
+                                        truncRef, ichi, ikd, leaf_reflectance[index], leaf_transmittance[index], para)
                     # load changes
                     nscat = mcSimulation.cNscat
                     w = mcSimulation.weight
@@ -197,7 +197,7 @@ class CanopyPhotonTrace:
                     para.FF_DIR[ix, iy] += w * wq * (1.0 - min(nscat, 1))
                     para.FF_DIF[ix, iy] += w * wq * min(nscat, 1)
 
-                    mcSimulation.floor(w, wq, phoCoord, vectCoord, nscat, ulr, ult, SO_R, ichi, ikd, para)
+                    mcSimulation.floor(w, wq, phoCoord, vectCoord, nscat, floor_reflectance, floor_transmittance, SO_R, ichi, ikd, para)
 
                     # load changes
                     nscat = mcSimulation.cNscat

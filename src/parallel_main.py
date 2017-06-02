@@ -219,13 +219,13 @@ def simulateATM(para, iwl):
                 tLT = [0.0] * (para.nts + 1)
                 tSTR = [0.0] * (para.nts + 1)
                 for i in range(1, para.nts + 1):
-                    tLR[i] = para.lr[i, 1]
-                    tLT[i] = para.lt[i, 1]
+                    tLR[i] = para.leaf_reflectance[i, 1]
+                    tLT[i] = para.leaf_transmittance[i, 1]
                     tSTR[i] = para.truncRef[i, 1]
 
                 # call the canopy radiation transfer module
                 errCode = canopyTrace.trace(PhotonCoord, VectorCoord, w, para.wq, nscat, ichi, ikd, tSTR[1], para.soilRef[1],
-                                  tLR, tLT, para.ulr[1], para.ult[1], para)
+                                  tLR, tLT, para.floor_reflectance[1], para.floor_transmittance[1], para)
 
                 w = canopyTrace.weight
                 nscat = canopyTrace.cNscat
@@ -334,13 +334,13 @@ def simulateNoATM(para, iwl):
             tLT = [0.0] * (para.nts + 1)
             tSTR = [0.0] * (para.nts + 1)
             for i in range(para.nts):
-                tLR[i] = para.lr[i, 1]
-                tLT[i] = para.lt[i, 1]
+                tLR[i] = para.leaf_reflectance[i, 1]
+                tLT[i] = para.leaf_transmittance[i, 1]
                 tSTR[i] = para.truncRef[i, 1]
 
             # call the canopy radiation transfer module
             canopyTrace.trace(PhotonCoord, VectorCoord, w, para.wq, nscat, ichi, ikd, tSTR, para.soilRef[1],
-                              tLR, tLT, para.ulr[1], para.ult[1], para)
+                              tLR, tLT, para.floor_reflectance[1], para.floor_transmittance[1], para)
 
             w = canopyTrace.weight
             nscat = canopyTrace.cNscat
