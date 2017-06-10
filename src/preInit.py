@@ -98,7 +98,7 @@ class DrawTrees:
         self.user_height = 0
 
         # Direction of light
-        self.direction = [0.0, 2.0, -1.0, 1.0]
+        self.direction = [0.0, 2.0, 2.0, 1.0]
 
         # Intensity of light
         self.intensity = [0.7, 0.7, 0.7, 1.0]
@@ -174,10 +174,12 @@ class DrawTrees:
 
         # Reset matrix
         glLoadIdentity()
-        glFrustum(-d * 0.5, d * 0.5, -d * 0.5, d * 0.5, d - 1.1, d + 1.1)
+        glFrustum(-d * 0.5, d * 0.5, -d * 0.5, d * 0.5, d - 1, d + 1)
 
         # Set camera
         gluLookAt(x, y, z, 0, 0, 0, 0, 0, 1)
+
+        print(x, y, z)
 
     # Display the sphere
     def display(self):
@@ -206,7 +208,7 @@ class DrawTrees:
         gluQuadricNormals(cylinder, GL_SMOOTH)
         gluQuadricOrientation(cylinder, GLU_INSIDE)
         #glEnable(GL_LIGHTING)
-        gluCylinder(cylinder, 0.03, 0.03, height, 40, 20)
+        gluCylinder(cylinder, 0.025, 0.025, height, 40, 20)
         gluDeleteQuadric(cylinder)
 
     def drawSingleTree(self, posX, posY, heightTrunk, heightCrown, radius):
@@ -220,7 +222,7 @@ class DrawTrees:
         glPopMatrix()
 
     def drawGround(self):
-        area = 100
+        area = 2
         glPushMatrix()
         glBegin(GL_QUADS)
         glColor3f(self.PINK[0], self.PINK[1], self.PINK[2])
@@ -233,7 +235,8 @@ class DrawTrees:
 
     # Draw the sphere
     def draw(self):
-        self.drawCoordinate()
+        glTranslatef(0, -1, -1)
+        #self.drawCoordinate()
         self.drawGround()
 
         for tree in self.treeData:
@@ -293,6 +296,7 @@ class DrawTrees:
 
     # The idle callback
     def idle(self):
+        return True
         global last_time
         time = glutGet(GLUT_ELAPSED_TIME)
 
@@ -315,7 +319,7 @@ class DrawTrees:
         glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH)
 
         # Set the Window size and position
-        glutInitWindowSize(800, 800)
+        glutInitWindowSize(self.WIDTH, self.HEIGHT)
         glutInitWindowPosition(50, 100)
 
         # Create the window with given title
