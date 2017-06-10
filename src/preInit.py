@@ -7,7 +7,7 @@ outputArray = []
 treeObjFilePath = "C:/Users/12442063/Documents/software/fusion/Example_UTM/TEST2/output/"
 treeObjFileName = "Example_Out.csv"
 outputPath = "../data/"
-
+treeObjFilePath = "../result/"
 
 def makeTreeTable():
     numObj = 0
@@ -49,20 +49,71 @@ def makeTreeTable():
     file.close()
 
     return outputArray
+#
+# import pyglet
+# from pyglet.gl import *
+# from pyglet.window import mouse
 
-import pyglet
-from pyglet.gl import *
-from pyglet.window import mouse
-import math
+# treeData = makeTreeTable()
+# drawTrees = DrawTrees(treeData)
+# drawTrees.startDrawing()
 
+# author: Somsubhra Bairi (201101056)
+
+# Draw sphere with QUAD_STRIP
+# Controls: UP/DOWN - scale up/down
+#           LEFT/RIGHT - rotate left/right
+#           F1 - Toggle surface as SMOOTH or FLAT
+
+# Python imports
+from math import *
+
+# OpenGL imports for python
+try:
+    from OpenGL.GL import *
+    from OpenGL.GLU import *
+    from OpenGL.GLUT import *
+except:
+    print("OpenGL wrapper for python not found")
+
+# Last time when sphere was re-displayed
+last_time = 0
+
+# The sphere class
 class DrawTrees:
 
+    # Constructor for the sphere class
     def __init__(self, treeData):
+        #
+        # # Radius of sphere
+        # self.radius = radius
+        #
+        # # Number of latitudes in sphere
+        # self.lats = 100
+        #
+        # # Number of longitudes in sphere
+        # self.longs = 100
+
+        self.user_theta = 0
+        self.user_height = 0
+
+        # Direction of light
+        self.direction = [0.0, 2.0, -1.0, 1.0]
+
+        # Intensity of light
+        self.intensity = [0.7, 0.7, 0.7, 1.0]
+
+        # Intensity of ambient light
+        self.ambient_intensity = [0.3, 0.3, 0.3, 1.0]
+
+        # The surface type(Flat or Smooth)
+        self.surface = GL_FLAT
+
         self.WIDTH = 800
         self.HEIGHT = 600
         self.RED = (255, 0, 0)
         self.GREEN = (0, 255, 0)
-        self.BLUE = (0, 0, 255)
+        self.BLUE = (0, 0, 255/255.0)
         self.DARKBLUE = (0, 0, 128)
         self.WHITE = (255, 255, 255)
         self.BLACK = (0, 0, 0)
@@ -70,139 +121,126 @@ class DrawTrees:
         self.DARKGREEN = (156 / 255.0, 184 / 255.0, 28 / 255.0)
         self.BROWN = (172 / 255.0, 103 / 255.0, 13 / 255.0)
 
-        self.window = pyglet.window.Window()
-        self.window.set_caption("Research Area")
-        self.window.set_size(self.WIDTH, self.HEIGHT)
-
-        self.on_draw = self.window.event(self.on_draw)
-        self.on_mouse_drag = self.window.event(self.on_mouse_drag)
-        self.on_mouse_scroll = self.window.event(self.on_mouse_scroll)
-
-        self.sensitivity = 0.1
-        self.camX = 0.0
-        self.camZ = 5.0
-        self.camVecX = 0.0
-        self.camVecZ = -1.0
-        self.camAngle = 0
-        self.deltaAngle = 0.0
-        self.deltaMove = 0
-        self.scrollScale = 1
-
         self.treeData = treeData
         self.processTreeData()
-        self.mouseFlag = 0
+    # Initialize
+    def init(self):
 
-
+        # Set background color to black
         glClearColor(0.0, 0.0, 0.0, 0.0)
-        glMatrixMode(GL_PROJECTION)
-        glLoadIdentity()
-        glViewport(0, 0, self.WIDTH, self.HEIGHT)
-        glMatrixMode(GL_PROJECTION)
-        glLoadIdentity()
-        gluPerspective(45.0, self.WIDTH / self.HEIGHT, 0.1, 100.0)
-        glMatrixMode(GL_MODELVIEW)
+
+        self.compute_location()
+
+        # Set OpenGL parameters
+        glEnable(GL_DEPTH_TEST)
+
+        # Enable lighting
+        glEnable(GL_LIGHTING)
+
+        # Set light model
+        glLightModelfv(GL_LIGHT_MODEL_AMBIENT, self.ambient_intensity)
+
+        # Enable light number 0
+        glEnable(GL_LIGHT0)
+
+        # Set position and intensity of light
+        glLightfv(GL_LIGHT0, GL_POSITION, self.direction)
+        glLightfv(GL_LIGHT0, GL_DIFFUSE, self.intensity)
+
+        # Setup the material
+        glEnable(GL_COLOR_MATERIAL)
+        glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE)
 
     def processTreeData(self):
         i = 0
-        while (i < len(self.treeData)):
+        scale = 0.05
+        while(i < len(self.treeData)):
             if (self.treeData[i][0] == 4):
                 self.treeData.pop(i)
             else:
                 for j in range(7):
-                    self.treeData[i][j] = float(self.treeData[i][j]) * 10
+                    self.treeData[i][j] = float(self.treeData[i][j]) * scale
                 i += 1
 
+    # Compute location
+    def compute_location(self):
+        x = 2 * cos(self.user_theta)
+        y = 2 * sin(self.user_theta)
+        z = self.user_height
+        d = sqrt(x * x + y * y + z * z)
+
+        # Set matrix mode
+        glMatrixMode(GL_PROJECTION)
+
+        # Reset matrix
+        glLoadIdentity()
+        glFrustum(-d * 0.5, d * 0.5, -d * 0.5, d * 0.5, d - 1.1, d + 1.1)
+
+        # Set camera
+        gluLookAt(x, y, z, 0, 0, 0, 0, 0, 1)
+
+    # Display the sphere
+    def display(self):
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+
+        # Set color to white
+        glColor3f(1.0, 1.0, 1.0)
+
+        # Set shade model
+        glShadeModel(self.surface)
+
+        self.draw()
+        glutSwapBuffers()
 
     def drawCrown(self, height, radius):
-        return True
+        glColor3f(self.DARKGREEN[0], self.DARKGREEN[1], self.DARKGREEN[2])
+        cylinder = gluNewQuadric()
+        #glutSolidSphere(radius, 20, 20)
+        gluSphere(cylinder, radius, 20, 20)
 
     def drawTrunk(self, height):
-        # glRotatef(24, 0.0, 0.0, 0.0)
-        # glLineWidth(12.5)
-        #
-        # glPushMatrix()
-        # glColor3f(1.0, 0.0, 0.0)
-        # glBegin(GL_LINES)
-        # glVertex3f(0.0, 0.0, 0.0)
-        # glVertex3f(150, 0, 0)
-        # glEnd()
-        # glPopMatrix()
-        #
-        #
-        # glPushMatrix()
-        # glColor3f(1.0, 10.0, 0.0)
-        # glBegin(GL_LINES)
-        # glVertex3f(0.0, 0.0, 0.0)
-        # glVertex3f(0, 150, 0)
-        # glEnd()
-        # glPopMatrix()
-        #
-        # # glPushMatrix()
-        # # glColor3f(0.0, 10.0, 19.0)
-        # glBegin(GL_LINES)
-        # glVertex3f(0.0, 0.0, 0.0)
-        # glVertex3f(0, 0, 150)
-        # glEnd()
-
-        # glPopMatrix()
-        glColor3f(1, 0, 0)
-        # cylinder = gluNewQuadric()
-        # gluQuadricDrawStyle(cylinder, GLU_FILL)
-        # gluQuadricNormals(cylinder, GL_SMOOTH)
-        # gluQuadricOrientation(cylinder, GLU_INSIDE)
-        # # gluCylinder(cylinder, base radius, top radius, length, slice, slice)
-        # gluCylinder(cylinder, 20.0, 20.0, height, 100, 100)
-        #
-        # gluDeleteQuadric(cylinder)
-
-        #self.drawGround()
+        glRotatef(90, 0, 1, 0)
+        glColor3f(self.BROWN[0], self.BROWN[1], self.BROWN[2])
+        cylinder = gluNewQuadric()
+        gluQuadricDrawStyle(cylinder, GLU_FILL)
+        gluQuadricNormals(cylinder, GL_SMOOTH)
+        gluQuadricOrientation(cylinder, GLU_INSIDE)
+        #glEnable(GL_LIGHTING)
+        gluCylinder(cylinder, 0.03, 0.03, height, 40, 20)
+        gluDeleteQuadric(cylinder)
 
     def drawSingleTree(self, posX, posY, heightTrunk, heightCrown, radius):
-
         glPushMatrix()
 
-        glTranslatef(posX, posY, 0)
-
-        self.drawTrunk(heightTrunk * 10)
-
-        # move to crown
-        # glTranslatef(0, 0, heightTrunk)
-        # self.drawCrown(heightCrown, radius)
+        glTranslatef(0, posX, posY)
+        self.drawTrunk(heightTrunk)
+        glTranslatef(0, 0, heightTrunk + radius)
+        self.drawCrown(heightCrown, radius)
 
         glPopMatrix()
 
     def drawGround(self):
-        area_width = 300
-        area_long = 300
-        area_start = 0
-        ground_vertices = [(area_start, area_start, 0),
-                           (area_start + area_width, area_start, 0),
-                           (area_start + area_width, area_start + area_long, 0),
-                           (area_start, area_start + area_long, 0)]
-
+        area = 100
         glPushMatrix()
         glBegin(GL_QUADS)
-
-        # for vertex in ground_vertices:
-        #     glColor3f(self.DARKGREEN[0], self.DARKGREEN[1], self.DARKGREEN[2])
-        #     glVertex3f(vertex[0], vertex[1], vertex[2])
-        glVertex3f(-100.0, 0.0, -100.0)
-        glVertex3f(-100.0, 0.0, 100.0)
-        glVertex3f(100.0, 0.0, 100.0)
-        glVertex3f(100.0, 0.0, -100.0)
-
+        glColor3f(self.PINK[0], self.PINK[1], self.PINK[2])
+        glVertex3f(0, 0, 0)
+        glVertex3f(0, area, 0)
+        glVertex3f(0, area, area)
+        glVertex3f(0, 0, area)
         glEnd()
         glPopMatrix()
 
-    def drawWholeArea(self):
-
+    # Draw the sphere
+    def draw(self):
+        self.drawCoordinate()
         self.drawGround()
 
+        for tree in self.treeData:
+            self.drawSingleTree(tree[1], tree[2], tree[4], tree[3], tree[5])
 
-        glTranslatef(100, 100, 0)
-        #glTranslatef(0, -10, -10)
+    def drawCoordinate(self):
         glLineWidth(10)
-
 
         glPushMatrix()
         glColor3f(0.0, 1.0, 0.0) # Y: green
@@ -228,50 +266,75 @@ class DrawTrees:
         glEnd()
         glPopMatrix()
 
-    def doRotateAndZoom(self):
-        # transX = 100
-        # transY = 100
-        # transZ = 0
-        #
-        # glTranslatef(0, 0, -self.scrollScale)
-        # glTranslatef(transX, transY, transZ)
-        # #glRotatef(self.rotateY, 1.0, 0.0, 0.0)
-        # glRotatef(self.rotateX, 0.0, 1.0, 0.0)
-        # glTranslatef(-transX, -transY, -transZ)
-        return True
+    # Keyboard controller for sphere
+    def special(self, key, x, y):
 
-    def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
+        # Scale the sphere up or down
+        if key == GLUT_KEY_UP:
+            self.user_height += 0.3
+        if key == GLUT_KEY_DOWN:
+            self.user_height -= 0.3
 
-        if (buttons & mouse.LEFT):
-            # # print(x, y, dx, dy, buttons, modifiers)
-            # self.rotateX += dx * self.sensitivity
-            # self.rotateY += dy * self.sensitivity
+        # Rotate the cube
+        if key == GLUT_KEY_LEFT:
+            self.user_theta += 0.3
+        if key == GLUT_KEY_RIGHT:
+            self.user_theta -= 0.3
 
-            self.deltaAngle = dx * 0.001
+        # Toggle the surface
+        if key == GLUT_KEY_F1:
+            if self.surface == GL_FLAT:
+                self.surface = GL_SMOOTH
+            else:
+                self.surface = GL_FLAT
 
-            self.camVecX = math.sin(self.camAngle + self.deltaAngle)
-            self.camVecZ = -math.cos(self.camAngle + self.deltaAngle)
-            self.mouseFlag = 1
+        self.compute_location()
+        glutPostRedisplay()
 
+    # The idle callback
+    def idle(self):
+        global last_time
+        time = glutGet(GLUT_ELAPSED_TIME)
 
-    def on_mouse_scroll(self, x, y, scroll_x, scroll_y):
-        self.scrollScale -= self.scrollScale * scroll_y * self.sensitivity
+        if last_time == 0 or time >= last_time + 40:
+            last_time = time
+            glutPostRedisplay()
 
-    def on_draw(self):
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-        glMatrixMode(GL_MODELVIEW)
-        glLoadIdentity()
+    # The visibility callback
+    def visible(self, vis):
+        if vis == GLUT_VISIBLE:
+            glutIdleFunc(self.idle)
+        else:
+            glutIdleFunc(None)
 
-        gluLookAt(0, 0, 2, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0)
+    def openGL(self):
+        # Initialize the OpenGL pipeline
+        glutInit(sys.argv)
 
+        # Set OpenGL display mode
+        glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH)
 
-        self.drawWholeArea()
+        # Set the Window size and position
+        glutInitWindowSize(800, 800)
+        glutInitWindowPosition(50, 100)
 
-        # glRotatef(9, 0.0, 0.0, 1.0)
+        # Create the window with given title
+        glutCreateWindow('Research Area')
 
-    def startDrawing(self):
-        pyglet.app.run()
+        self.init()
+
+        # Set the callback function for display
+        glutDisplayFunc(self.display)
+
+        # Set the callback function for the visibility
+        glutVisibilityFunc(self.visible)
+
+        # Set the callback for special function
+        glutSpecialFunc(self.special)
+
+        # Run the OpenGL main loop
+        glutMainLoop()
 
 treeData = makeTreeTable()
-drawTrees = DrawTrees(treeData)
-drawTrees.startDrawing()
+drawTree = DrawTrees(treeData)
+drawTree.openGL()
