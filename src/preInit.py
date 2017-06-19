@@ -3,14 +3,35 @@ import numpy as np
 import csv
 
 X_MAX = Y_MAX = 30
-outputArray = []
+
 treeObjFilePath = "C:/Users/12442063/Documents/software/fusion/Example_UTM/TEST2/output/"
-treeObjFileName = "Example_Out.csv"
+treeObjFileName = "pre_treeData.csv"
+grassObjFileName = "pre_grassData.csv"
 outputPath = "../data/"
 treeObjFilePath = "../result/"
 
+def makeGrassTable():
+    outputArray = []
+    numObj = 0
+
+    with open(treeObjFilePath + grassObjFileName) as file:
+        fileContent = csv.reader(file)
+        next(fileContent)
+
+        for rowContent in fileContent:
+            if ((float(rowContent[1]) <= X_MAX) and (float(rowContent[2]) <= Y_MAX)):
+                # X, Y, HEIGHT
+                objX = float(rowContent[1])
+                objY = float(rowContent[2])
+                objHeight = float(rowContent[3])
+                tempArr = [objX, objY, objHeight]
+                outputArray.append(tempArr)
+    file.close()
+    return outputArray
+
 def makeTreeTable():
     numObj = 0
+    outputArray = []
 
     with open(treeObjFilePath + treeObjFileName) as file:
         fileContent = csv.reader(file)
@@ -83,7 +104,7 @@ last_time = 0
 class DrawTrees:
 
     # Constructor for the sphere class
-    def __init__(self, treeData):
+    def __init__(self, treeData, grassData):
         #
         # # Radius of sphere
         # self.radius = radius
@@ -120,9 +141,13 @@ class DrawTrees:
         self.PINK = (255 / 255.0, 200 / 255.0, 200 / 255.0)
         self.DARKGREEN = (156 / 255.0, 184 / 255.0, 28 / 255.0)
         self.BROWN = (172 / 255.0, 103 / 255.0, 13 / 255.0)
+        self.GRASSGREEN = (144 / 255.0, 251 / 255.0, 58 / 255.0)
 
         self.treeData = treeData
+        self.grassData = grassData
         self.processTreeData()
+        self.processGrassData()
+
     # Initialize
     def init(self):
 
@@ -162,6 +187,14 @@ class DrawTrees:
                     self.treeData[i][j] = float(self.treeData[i][j]) * scale
                 i += 1
 
+    def processGrassData(self):
+        scale = 0.05
+        i = 0
+        while(i < len(self.grassData)):
+            for j in range(3):
+                self.grassData[i][j] *= scale
+            i += 1
+
     # Compute location
     def compute_location(self):
         x = 2 * cos(self.user_theta)
@@ -179,7 +212,7 @@ class DrawTrees:
         # Set camera
         gluLookAt(x, y, z, 0, 0, 0, 0, 0, 1)
 
-        print(x, y, z)
+        # print(x, y, z)
 
     # Display the sphere
     def display(self):
@@ -233,14 +266,44 @@ class DrawTrees:
         glEnd()
         glPopMatrix()
 
+    def drawSingleGrass(self, posX, posY, height):
+        glPushMatrix()
+        #glDisable(GL_LIGHTING)
+        #print("XY = ", posX, posY)
+        glTranslatef(0, posY, posX)
+
+        # glColor3f(self.GRASSGREEN[0], self.GRASSGREEN[1], self.GRASSGREEN[2])
+        # cylinder = gluNewQuadric()
+        # gluSphere(cylinder, height, 20, 20)
+        # glEnable(GL_LIGHTING)
+
+        glRotatef(90, 0, 1, 0)
+        glColor3f(self.GRASSGREEN[0], self.GRASSGREEN[1], self.GRASSGREEN[2])
+        cylinder = gluNewQuadric()
+        gluQuadricDrawStyle(cylinder, GLU_FILL)
+        gluQuadricNormals(cylinder, GL_SMOOTH)
+        gluQuadricOrientation(cylinder, GLU_INSIDE)
+        # glEnable(GL_LIGHTING)
+        gluCylinder(cylinder, 0.025, 0.0, height, 40, 20)
+        gluDeleteQuadric(cylinder)
+
+        #gltranslatef(0, 0, height)
+
+        glPopMatrix()
+
     # Draw the sphere
     def draw(self):
         glTranslatef(0, -1, -1)
-        #self.drawCoordinate()
+        self.drawCoordinate()
         self.drawGround()
 
         for tree in self.treeData:
+            #if (tree[1] == 0.325 or tree[1] == 0.675):
             self.drawSingleTree(tree[1], tree[2], tree[4], tree[3], tree[5])
+
+        for grass in self.grassData:
+            #if (grass[0] == 0.9):
+            self.drawSingleGrass(grass[0], grass[1], grass[2])
 
     def drawCoordinate(self):
         glLineWidth(10)
@@ -339,6 +402,8 @@ class DrawTrees:
         # Run the OpenGL main loop
         glutMainLoop()
 
+grassData = makeGrassTable()
 treeData = makeTreeTable()
-drawTree = DrawTrees(treeData)
+drawTree = DrawTrees(treeData, grassData)
 drawTree.openGL()
+
