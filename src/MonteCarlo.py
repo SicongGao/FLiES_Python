@@ -127,7 +127,7 @@ class MonteCarlo:
 
         return ERRCODE.SUCCESS
 
-    def stem(self, w, wq, phoCoord, vectCoord, nscat, tObj, face, truncRef, ichi, ikd, para):
+    def stem(self, w, wq, phoCoord, vectCoord, nscat, tObj, face, trunkRef, ichi, ikd, para):
         MGN = 1.0e-2
         MIN_VALUE = 1.0e-8
         FD = 0.0
@@ -192,8 +192,8 @@ class MonteCarlo:
             a = 1.0
 
         # fpar samping (leave or branch)
-        # every tree specie may have the same reflectance (truncRef)
-        para.B_FPR += w * wq * (1.0 - truncRef)
+        # every tree specie may have the same reflectance (trunkRef)
+        para.B_FPR += w * wq * (1.0 - trunkRef)
         # ipara.AP_NP range (0,100)
         iz = int(phoCoord.z) + 1
         if (iz > 99):
@@ -201,9 +201,9 @@ class MonteCarlo:
             self.save(nscat, w)
             return ERRCODE.OUT_OF_RANGE
         else:
-            para.AP_NP[iz] += w * wq * (1.0 - truncRef)
+            para.AP_NP[iz] += w * wq * (1.0 - trunkRef)
 
-        w *= truncRef
+        w *= trunkRef
         nscat += 1
 
         # Russian Roulette
@@ -218,7 +218,7 @@ class MonteCarlo:
         self.save(nscat, w)
         return ERRCODE.SUCCESS
 
-    def canopy(self, w, wq, phoCoord, vectCoord, nscat, tObj, inobj, truncRef, ichi, ikd, leaf_reflectance, leaf_transmittance, para):
+    def canopy(self, w, wq, phoCoord, vectCoord, nscat, tObj, inobj, trunkRef, ichi, ikd, leaf_reflectance, leaf_transmittance, para):
 
         MIN_VALUE = 1.0e-8
         mgn = 1.0e-2
@@ -302,7 +302,7 @@ class MonteCarlo:
                     sgm += 4.0 * cf * comm.GT_BLC[ith] * la * (1.0 - bp)
                     sgm = sgm * bp + (sgm / comm.FE) * (1.0 - bp)
                     sgm = max(1.0e-5, sgm)
-                    ref = truncRef * bp + leaf_reflectance * (1.0 - bp)
+                    ref = trunkRef * bp + leaf_reflectance * (1.0 - bp)
                     tr = leaf_transmittance * (1.0 - bp)
 
                     rand = randMethod.getRandom()
@@ -385,7 +385,7 @@ class MonteCarlo:
                     sgm = sgm * bp + (sgm / comm.FE) * (1.0 - bp)
                     sgm = max(1.0e-5, sgm)
 
-                    ref = truncRef * bp + leaf_reflectance * (1.0 - bp)
+                    ref = trunkRef * bp + leaf_reflectance * (1.0 - bp)
                     tr = leaf_transmittance * (1.0 - bp)
 
                     rand = randMethod.getRandom()
@@ -477,7 +477,7 @@ class MonteCarlo:
                     sgm = sgm * bp + (sgm / comm.FE) * (1.0 - bp)
                     sgm = max(1.0e-5, sgm)
 
-                    ref = truncRef * bp + leaf_reflectance * (1.0 - bp)
+                    ref = trunkRef * bp + leaf_reflectance * (1.0 - bp)
                     tr = leaf_transmittance * (1.0 - bp)
 
                     rand = randMethod.getRandom()

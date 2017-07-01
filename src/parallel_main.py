@@ -221,7 +221,7 @@ def simulateATM(para, iwl):
                 for i in range(1, para.nts + 1):
                     tLR[i] = para.leaf_reflectance[i, 1]
                     tLT[i] = para.leaf_transmittance[i, 1]
-                    tSTR[i] = para.truncRef[i, 1]
+                    tSTR[i] = para.trunkRef[i, 1]
 
                 # call the canopy radiation transfer module
                 errCode = canopyTrace.trace(PhotonCoord, VectorCoord, w, para.wq, nscat, ichi, ikd, tSTR[1], para.soilRef[1],
@@ -336,7 +336,7 @@ def simulateNoATM(para, iwl):
             for i in range(para.nts):
                 tLR[i] = para.leaf_reflectance[i, 1]
                 tLT[i] = para.leaf_transmittance[i, 1]
-                tSTR[i] = para.truncRef[i, 1]
+                tSTR[i] = para.trunkRef[i, 1]
 
             # call the canopy radiation transfer module
             canopyTrace.trace(PhotonCoord, VectorCoord, w, para.wq, nscat, ichi, ikd, tSTR, para.soilRef[1],

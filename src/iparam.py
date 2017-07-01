@@ -66,7 +66,7 @@ class Parameters:
 
     leaf_reflectance = np.zeros(MAX_SPECIES * 50, dtype=float).reshape(MAX_SPECIES, 50) # reflectance of crown foliage
     leaf_transmittance = np.zeros(MAX_SPECIES * 50, dtype=float).reshape(MAX_SPECIES, 50) # transmittance of crown foliage
-    truncRef = np.zeros(MAX_SPECIES * 50, dtype=float).reshape(5, 50) # trunk reflectance
+    trunkRef = np.zeros(MAX_SPECIES * 50, dtype=float).reshape(5, 50) # trunk reflectance
     ext = np.zeros(10 * 200, dtype=float).reshape(10, 200)
     wkd = [0.0] * 200
 
@@ -383,7 +383,7 @@ class Parameters:
             self.floor_transmittance[i] = tempList.pop(0)
 
             for j in range(1, self.nts + 1):
-                self.truncRef[j] = tempList.pop(0)
+                self.trunkRef[j] = tempList.pop(0)
 
             self.soilRef[i] = tempList.pop(0)
         else:
@@ -397,7 +397,7 @@ class Parameters:
             self.floor_transmittance[i] = float(input())
 
             for j in range(1, self.nts + 1):
-                self.truncRef[j] = float(input())
+                self.trunkRef[j] = float(input())
             self.soilRef[i] = float(input())
 
         return ERRCODE.SUCCESS
@@ -669,7 +669,7 @@ class Parameters:
                     for j in range(1, self.nts + 1):
                         self.leaf_reflectance[j, i] = self.leaf_reflectance[j, ispc]
                         self.leaf_transmittance[j, i] = self.leaf_transmittance[j, ispc]
-                        self.truncRef[j, i] = self.truncRef[j, ispc]
+                        self.trunkRef[j, i] = self.trunkRef[j, ispc]
 
                     self.floor_reflectance[i] = self.floor_transmittance[ispc]
                     self.floor_transmittance[i] = self.floor_transmittance[ispc]
@@ -694,12 +694,12 @@ class Parameters:
                 self.floor_transmittance[i] = 0.0001
 
             for j in range(1, self.nts + 1):
-                if (self.truncRef[j, i] > 1.00):
+                if (self.trunkRef[j, i] > 1.00):
                     logging.ERROR("stem reflectance is too large, exit!")
                     return ERRCODE.OUT_OF_RANGE
 
-                if (self.truncRef[j, i] < 0.0001):
-                    self.truncRef[j, i] = 0.0001
+                if (self.trunkRef[j, i] < 0.0001):
+                    self.trunkRef[j, i] = 0.0001
 
             if (self.soilRef[i] > 1.0):
                 logging.ERROR("soil reflectance is too large, exit!")
@@ -738,64 +738,63 @@ class Parameters:
             logging.info("  1: Periodic  2: Non-periodic")
             return ERRCODE.INPUT_ERROR
 
-        if (self.cmode != 1):
-            self.process100(**args)
+        if (self.cmode == 1):
 
-        logging.info("nth, angt: # of angle anfinished process 201 200d zenith angle(max 18)for BRF")
-        logging.info("eg. 5 10. 20. 45. 50. 70.")
-        if (config.INPUT_MODE):
-            comm.ANG_T = list(args.get("BRF_zenith_angles"))
-            comm.N_TH = len(comm.ANG_T)
-            logging.info(str(comm.N_TH) + ": " + str(comm.ANG_T))
-            comm.ANG_T.insert(0, -1)
-        else:
-            self.N_TH = int(input())
-            for i in range(1, comm.N_TH + 1):
-                comm.ANG_T[i] = float(input())
+            logging.info("nth, angt: # of angle anfinished process 201 200d zenith angle(max 18)for BRF")
+            logging.info("eg. 5 10. 20. 45. 50. 70.")
+            if (config.INPUT_MODE):
+                comm.ANG_T = list(args.get("BRF_zenith_angles"))
+                comm.N_TH = len(comm.ANG_T)
+                logging.info(str(comm.N_TH) + ": " + str(comm.ANG_T))
+                comm.ANG_T.insert(0, -1)
+            else:
+                self.N_TH = int(input())
+                for i in range(1, comm.N_TH + 1):
+                    comm.ANG_T[i] = float(input())
 
-        logging.info("nph, angp:# of angle and azimuth angle(max 36)for BRF")
-        logging.info("eg. 3 0. 90. 180.")
-        if (config.INPUT_MODE):
-            comm.ANG_P = list(args.get("BRF_azimuth_angles"))
-            comm.N_PH = len(comm.ANG_P)
-            logging.info(str(comm.N_PH) + ": " + str(comm.ANG_P))
-            comm.ANG_P.insert(0, -1)
-        else:
-            self.N_PH = int(input())
+            logging.info("nph, angp:# of angle and azimuth angle(max 36)for BRF")
+            logging.info("eg. 3 0. 90. 180.")
+            if (config.INPUT_MODE):
+                comm.ANG_P = list(args.get("BRF_azimuth_angles"))
+                comm.N_PH = len(comm.ANG_P)
+                logging.info(str(comm.N_PH) + ": " + str(comm.ANG_P))
+                comm.ANG_P.insert(0, -1)
+            else:
+                self.N_PH = int(input())
+                for i in range(1, comm.N_PH + 1):
+                    comm.ANG_P[i] = float(input())
+
+            if (comm.N_TH * comm.N_PH > 700):
+                logging.ERROR("The number of sampling angles are too huge! It should be theta*phi<348")
+                return ERRCODE.INPUT_ERROR
+
+            if (comm.N_TH > 18):
+                logging.ERROR("The number of sampling theta are too huge! It should be theta*phi<100")
+                return ERRCODE.INPUT_ERROR
+
+            if (comm.N_PH > 36):
+                logging.ERROR("The number of sampling phi are too huge! It should be theta*phi<100")
+                return ERRCODE.INPUT_ERROR
+
+            k = 0
+
+            temp = Position()
+            temp.setPosition(0, 0, 0)
+            comm.URC_coord.append(temp)
             for i in range(1, comm.N_PH + 1):
-                comm.ANG_P[i] = float(input())
+                for j in range(1, comm.N_TH + 1):
+                    if (comm.ANG_T[j] > 80.0):
+                        logging.warning("Zenith angle should be less than 80")
+                        logging.warning(str(comm.ANG_T[j]) + " is ignored !")
+                    else:
+                        k += 1
+                        temp = Position()
+                        temp.setPosition(sin(radians(comm.ANG_T[j])) * cos(radians(comm.ANG_P[i])),
+                                         sin(radians(comm.ANG_T[j])) * sin(radians(comm.ANG_P[i])),
+                                         cos(radians(comm.ANG_T[j])))
+                        comm.URC_coord.append(temp)
 
-        if (comm.N_TH * comm.N_PH > 700):
-            logging.ERROR("The number of sampling angles are too huge! It should be theta*phi<348")
-            return ERRCODE.INPUT_ERROR
-
-        if (comm.N_TH > 18):
-            logging.ERROR("The number of sampling theta are too huge! It should be theta*phi<100")
-            return ERRCODE.INPUT_ERROR
-
-        if (comm.N_PH > 36):
-            logging.ERROR("The number of sampling phi are too huge! It should be theta*phi<100")
-            return ERRCODE.INPUT_ERROR
-
-        k = 0
-
-        temp = Position()
-        temp.setPosition(0, 0, 0)
-        comm.URC_coord.append(temp)
-        for i in range(1, comm.N_PH + 1):
-            for j in range(1, comm.N_TH + 1):
-                if (comm.ANG_T[j] > 80.0):
-                    logging.warning("Zenith angle should be less than 80")
-                    logging.warning(str(comm.ANG_T[j]) + " is ignored !")
-                else:
-                    k += 1
-                    temp = Position()
-                    temp.setPosition(sin(radians(comm.ANG_T[j])) * cos(radians(comm.ANG_P[i])),
-                                     sin(radians(comm.ANG_T[j])) * sin(radians(comm.ANG_P[i])),
-                                     cos(radians(comm.ANG_T[j])))
-                    comm.URC_coord.append(temp)
-
-        comm.N_ANG_C = k
+            comm.N_ANG_C = k
 
         self.process100(**args)
 
@@ -1396,7 +1395,7 @@ class Parameters:
         self.omg = [0.0] * 10
         G = [0.0] * 10
         self.ang = [0]
-        #dphs = [0]
+        dphs = []
         self.phs = np.zeros(10 * 201, dtype=float).reshape(10, 201)
 
         for i in range(2, self.nmix + 1):
@@ -1428,7 +1427,7 @@ class Parameters:
 
                         file.readline()
 
-                        for k in range(nAng):
+                        for k in range(int(nAng)):
                             result = file.readline().split()
                             self.ang.append(float(result[0]))
                             self.phs[i, k + 1] = float(result[1])
@@ -1458,8 +1457,9 @@ class Parameters:
 
                             file.readline()
 
-                            for k in range(nAng):
+                            for k in range(int(nAng)):
                                 result = file.readline().split()
+                                print(result[0], result[1])
                                 self.ang.append(float(result[0]))
                                 dphs.append(float(result[1]))
 
@@ -1473,7 +1473,7 @@ class Parameters:
                                           * (1.0 / 0.005)
 
                             for k in range(nAng):
-                                self.phs[i, k + 1] = ((self.wl0 - wl1) * dphs + (wl2 - self.wl0) * self.phs[i + 1, k + 1]) \
+                                self.phs[i, k + 1] = ((self.wl0 - wl1) * dphs[k] + (wl2 - self.wl0) * self.phs[i + 1, k + 1]) \
                                           * (1.0 / 0.005)
 
                             break
@@ -1739,43 +1739,47 @@ class Parameters:
                 f.write(string + "\n")
 
         f.write("\n-- Downward radiance at the top of canopy --\n")
-        f.write(format("idrc", '10') + format("theta", '10') + format("phi", '9') + format("radiance_F", '13') +
-                format("stdev_F", '10') + format("radiance_Q", '13') + format("radiance_Q", '13') + "\n")
 
-        pixelNP_A = float(self.nPhoton) / float(comm.K_NXR * comm.K_NYR)
+        if (comm.N_RDC == 0):
+            f.write("Single wavelength simulation doesn't show here.")
+        else:
+            f.write(format("idrc", '10') + format("theta", '10') + format("phi", '9') + format("radiance_F", '13') +
+                    format("stdev_F", '10') + format("radiance_Q", '13') + format("radiance_Q", '13') + "\n")
 
-        for k in range(1, comm.N_RDC + 1):
-            sumF = sum2F = 0.0
-            pF_Max = 0.0
-            sumQ = sum2Q = 0.0
-            pQ_Max = 0.0
+            pixelNP_A = float(self.nPhoton) / float(comm.K_NXR * comm.K_NYR)
 
-            for j in range(1, comm.K_NYR + 1):
-                for i in range(1, comm.K_NXR + 1):
-                    pF = self.PROC_F[i, j, k] / pixelNP_A
-                    pQ = self.PROC_Q[i, j, k] / pixelNP_A
+            for k in range(1, comm.N_RDC + 1):
+                sumF = sum2F = 0.0
+                pF_Max = 0.0
+                sumQ = sum2Q = 0.0
+                pQ_Max = 0.0
 
-                    sumF += pF
-                    sum2F += pF ** 2
-                    pF_Max = max(pF_Max, pF)
+                for j in range(1, comm.K_NYR + 1):
+                    for i in range(1, comm.K_NXR + 1):
+                        pF = self.PROC_F[i, j, k] / pixelNP_A
+                        pQ = self.PROC_Q[i, j, k] / pixelNP_A
 
-                    sumQ += pQ
-                    sum2Q += pQ ** 2
-                    pQ_Max = max(pQ_Max, pQ)
+                        sumF += pF
+                        sum2F += pF ** 2
+                        pF_Max = max(pF_Max, pF)
 
-            aveF = sumF / float(comm.K_NXR * comm.K_NYR)
-            # print("sum2F / float(comm.K_NXR * comm.K_NYR) - aveF ** 2 = ", sum2F / float(comm.K_NXR * comm.K_NYR) - aveF ** 2)
-            sdvF = sqrt(sum2F / float(comm.K_NXR * comm.K_NYR) - aveF ** 2)
-            aveQ = sumQ / float(comm.K_NXR * comm.K_NYR)
-            sdvQ = sqrt(sum2Q / float(comm.K_NXR * comm.K_NYR) - aveQ ** 2)
+                        sumQ += pQ
+                        sum2Q += pQ ** 2
+                        pQ_Max = max(pQ_Max, pQ)
 
-            uxc = copysign(max(1.0e-5, abs(comm.UX_RTAB[k])), comm.UX_RTAB[k])
-            phi = sqrt(comm.UX_RTAB[k] ** 2 + comm.UY_RTAB[k])
-            phi = max(1.0e-5, phi)
-            phi = degrees(acos(uxc / phi))
+                aveF = sumF / float(comm.K_NXR * comm.K_NYR)
+                # print("sum2F / float(comm.K_NXR * comm.K_NYR) - aveF ** 2 = ", sum2F / float(comm.K_NXR * comm.K_NYR) - aveF ** 2)
+                sdvF = sqrt(sum2F / float(comm.K_NXR * comm.K_NYR) - aveF ** 2)
+                aveQ = sumQ / float(comm.K_NXR * comm.K_NYR)
+                sdvQ = sqrt(sum2Q / float(comm.K_NXR * comm.K_NYR) - aveQ ** 2)
 
-            f.write(format(k, "4") + format(degrees(acos(comm.UZ_RTAB[k])), '11.3f') + format(phi, '9.3f') +
-                    format(aveF, '12.5f') + format(sdvF, '12.5f') + format(aveQ, '12.5f') + format(sdvQ, '12.5f') + "\n")
+                uxc = copysign(max(1.0e-5, abs(comm.UX_RTAB[k])), comm.UX_RTAB[k])
+                phi = sqrt(comm.UX_RTAB[k] ** 2 + comm.UY_RTAB[k])
+                phi = max(1.0e-5, phi)
+                phi = degrees(acos(uxc / phi))
+
+                f.write(format(k, "4") + format(degrees(acos(comm.UZ_RTAB[k])), '11.3f') + format(phi, '9.3f') +
+                        format(aveF, '12.5f') + format(sdvF, '12.5f') + format(aveQ, '12.5f') + format(sdvQ, '12.5f') + "\n")
 
         f.close()
 

@@ -1,6 +1,13 @@
-import pandas as pd
-import numpy as np
 import csv
+from math import *
+
+# OpenGL imports for python
+try:
+    from OpenGL.GL import *
+    from OpenGL.GLU import *
+    from OpenGL.GLUT import *
+except:
+    print("OpenGL wrapper for python not found")
 
 X_MAX = Y_MAX = 30
 
@@ -9,6 +16,7 @@ treeObjFileName = "pre_treeData.csv"
 grassObjFileName = "pre_grassData.csv"
 outputPath = "../data/"
 treeObjFilePath = "../result/"
+
 
 def makeGrassTable():
     outputArray = []
@@ -28,6 +36,7 @@ def makeGrassTable():
                 outputArray.append(tempArr)
     file.close()
     return outputArray
+
 
 def makeTreeTable():
     numObj = 0
@@ -55,6 +64,7 @@ def makeTreeTable():
                 outputArray.append(tempArr)
 
                 numObj += 2
+    file.close()
 
     file = open(outputPath + "crowndata.txt", "w")
     file.write(str(numObj) + "\n")
@@ -70,14 +80,6 @@ def makeTreeTable():
     file.close()
 
     return outputArray
-#
-# import pyglet
-# from pyglet.gl import *
-# from pyglet.window import mouse
-
-# treeData = makeTreeTable()
-# drawTrees = DrawTrees(treeData)
-# drawTrees.startDrawing()
 
 # author: Somsubhra Bairi (201101056)
 
@@ -86,19 +88,9 @@ def makeTreeTable():
 #           LEFT/RIGHT - rotate left/right
 #           F1 - Toggle surface as SMOOTH or FLAT
 
-# Python imports
-from math import *
-
-# OpenGL imports for python
-try:
-    from OpenGL.GL import *
-    from OpenGL.GLU import *
-    from OpenGL.GLUT import *
-except:
-    print("OpenGL wrapper for python not found")
-
 # Last time when sphere was re-displayed
 last_time = 0
+
 
 # The sphere class
 class DrawTrees:
