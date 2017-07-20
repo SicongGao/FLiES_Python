@@ -1,5 +1,6 @@
 import csv
 from math import *
+import makeInputFile
 
 # OpenGL imports for python
 try:
@@ -15,7 +16,7 @@ treeObjFilePath = "C:/Users/12442063/Documents/software/fusion/Example_UTM/TEST2
 treeObjFileName = "pre_treeData.csv"
 grassObjFileName = "pre_grassData.csv"
 outputPath = "../data/"
-treeObjFilePath = "../result/"
+#treeObjFilePath = "../result/"
 
 
 def makeGrassTable():
@@ -32,13 +33,13 @@ def makeGrassTable():
                 objX = float(rowContent[1])
                 objY = float(rowContent[2])
                 objHeight = float(rowContent[3])
-                tempArr = [objX, objY, objHeight]
+                tempArr = [5, objX, objY, 0, objHeight, 0.1, 1]
                 outputArray.append(tempArr)
     file.close()
     return outputArray
 
 
-def makeTreeTable():
+def makeTreeTable(grassData):
     numObj = 0
     outputArray = []
 
@@ -66,15 +67,25 @@ def makeTreeTable():
                 numObj += 2
     file.close()
 
-    file = open(outputPath + "crowndata.txt", "w")
+
+    tree_grass = []
+
+    for data in outputArray:
+        tree_grass.append(data)
+    for data in grassData:
+        tree_grass.append(data)
+
+    numObj = tree_grass.__len__()
+
+    file = open(makeInputFile.filePath + "crowndata.txt", "w")
     file.write(str(numObj) + "\n")
     for i in range(numObj):
-        string = str(outputArray[i][0]) + " "
+        string = str(tree_grass[i][0]) + " "
 
         for j in range(1, 6):
-            string += format(float(outputArray[i][j]), "12.5f")
+            string += format(float(tree_grass[i][j]), "12.5f")
 
-        string += "   " + str(outputArray[i][6]) + "\n"
+        string += "   " + str(tree_grass[i][6]) + "\n"
 
         file.write(string)
     file.close()
@@ -183,7 +194,7 @@ class DrawTrees:
         scale = 0.05
         i = 0
         while(i < len(self.grassData)):
-            for j in range(3):
+            for j in range(grassData[0]):
                 self.grassData[i][j] *= scale
             i += 1
 
@@ -302,7 +313,7 @@ class DrawTrees:
 
         for grass in self.grassData:
             #if (grass[0] == 0.9):
-            self.drawSingleGrass(grass[0], grass[1], grass[2])
+            self.drawSingleGrass(grass[1], grass[2], grass[4])
 
     def drawCoordinate(self):
         glLineWidth(10)
@@ -402,7 +413,7 @@ class DrawTrees:
         glutMainLoop()
 
 grassData = makeGrassTable()
-treeData = makeTreeTable()
-drawTree = DrawTrees(treeData, grassData)
-drawTree.openGL()
+treeData = makeTreeTable(grassData)
+# drawTree = DrawTrees(treeData, grassData)
+# drawTree.openGL()
 

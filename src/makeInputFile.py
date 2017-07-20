@@ -6,7 +6,7 @@ input_parameters = {
     "number_photon": 1000000,
     "atm_type": 1,
     "diffuse": 0.1,
-    "solar_angle": 45.0,
+    "solar_angle": 42.0,
     "solar_elevation": 0.0,
     #"zenith_angle": [100.0, 120.0, 140.0, 150.0, 160.0],
     "zenith_angle": [140.0],
