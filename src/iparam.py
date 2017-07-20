@@ -786,6 +786,7 @@ class Parameters:
                     if (comm.ANG_T[j] > 80.0):
                         logging.warning("Zenith angle should be less than 80")
                         logging.warning(str(comm.ANG_T[j]) + " is ignored !")
+                        comm.N_TH -= 1
                     else:
                         k += 1
                         temp = Position()

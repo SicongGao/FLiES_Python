@@ -286,8 +286,15 @@ class DrawTrees:
     # Draw the sphere
     def draw(self):
         glTranslatef(0, -1, -1)
-        self.drawCoordinate()
+        # self.drawCoordinate()
         self.drawGround()
+
+        # draw test
+        # #self.drawSingleTree(1.1, 1.1, 0.3, 0.5, 0.173)
+        # self.drawSingleGrass(1.1, 1.1, 0.362)
+        # glScale(2, 2, 2)
+        # return True
+        # finish draw test
 
         for tree in self.treeData:
             #if (tree[1] == 0.325 or tree[1] == 0.675):

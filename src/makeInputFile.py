@@ -8,9 +8,9 @@ input_parameters = {
     "diffuse": 0.1,
     "solar_angle": 45.0,
     "solar_elevation": 0.0,
-    "zenith_angle": [100.0, 120.0, 140.0, 150.0, 160.0],
-    #"zenith_angle": [40.0],
-    "azimuth_angle": [0.0, 180.0],
+    #"zenith_angle": [100.0, 120.0, 140.0, 150.0, 160.0],
+    "zenith_angle": [140.0],
+    "azimuth_angle": [180],
     "integration_mode": 3,  # short wavelength
     "single_wavelength": 0.82,
     "atmosphere_type": 2,  # Mid latitude summer
@@ -33,8 +33,8 @@ input_parameters = {
                                0.1, 0.0001,  # trunk reflectance
                                0.05],  # soil reflectance
     "leaf_area_density": [0.5, 0.5],
-    "forest_floor_LAI": 0.3711,
-    "branch_area_density": [0.5, 0.5],
+    "forest_floor_LAI": 0.12666,
+    "branch_area_density": [0.5, 0.1],
     "sbar": [0.25, 0.25],
 }
 
@@ -52,7 +52,8 @@ BANDS_SETTING = {
     "NIR": 0.80,
 }
 
-SUMMER = [1, 2, 3, 4, 9, 10, 11, 12]
+SUMMER = [1, 2, 3, 9, 10, 11, 12]
+# SUMMER = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 
 filePath = "C:/Users/12442063/Dropbox/Share with MAC/PhD Studies/Model work/" \
            "Experiment_1_Alice_spring_seasonal/materials/"
@@ -265,7 +266,7 @@ def makeInput_Fortran():
             input_parameters["atmosphere_type"] = 3
         #input_parameters["single_wavelength"] = BANDS_SETTING.get(band)
         input_parameters["leaf_area_density"] = []
-        input_parameters["leaf_area_density"].append(float(LAI_DATA.get("LAI_total")[i]))
+        input_parameters["leaf_area_density"].append(float(LAI_DATA.get("LAI_canopy")[i]))
         input_parameters["leaf_area_density"].append(float(LAI_DATA.get("LAI_understory")[i]))
 
         i += 1
